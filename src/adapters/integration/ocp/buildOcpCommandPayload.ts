@@ -14,6 +14,8 @@ import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 
+import { mapOcpCallTypeToWire } from "./mapOcpCallTypeToWire.js";
+
 function buildWireType(command: string, entity: string): string {
   return entity.length > 0 ? `${command}_${entity}` : command;
 }
@@ -26,7 +28,8 @@ function buildProxyUsersStatusPayload(
   return {
     operator_id: operatorId,
     reason_id: reasonId,
-    function_call_type: callType,
+    // OCP rejects unknown values; never forward Application-only "sdk".
+    function_call_type: mapOcpCallTypeToWire(callType),
   };
 }
 
@@ -86,23 +89,31 @@ export function buildOcpCommandPayload(
     }
     case "get_main_acallid": {
       const entity = "calls";
+      // OCP wire quirk: SIP CallId is sent as `acallid` (no underscore).
+      // Inbound MainCallIDInfo uses `acall_id` — do not conflate the two.
       return ok({
         command: cmd.kind,
         entity,
-        payload: { call_id: cmd.callId },
+        payload: {
+          acallid: cmd.callId,
+          user_login: cmd.userLogin,
+          caller_id: cmd.callerId,
+          called_id: cmd.calledId,
+          event: cmd.lifecycleEvent,
+        },
         type: buildWireType(cmd.kind, entity),
       });
     }
     case "dlg_stop": {
       const entity = "calls";
-      const payload: Record<string, unknown> = { call_id: cmd.callId };
-      if (cmd.acallId !== undefined) {
-        payload["acall_id"] = cmd.acallId;
-      }
+      // Same wire quirk as get_main_acallid: SIP CallId → `acallid` (no underscore).
+      // Do not send call_id / acall_id — live OCP hosts expect `{ acallid }` only.
       return ok({
         command: cmd.kind,
         entity,
-        payload,
+        payload: {
+          acallid: cmd.callId,
+        },
         type: buildWireType(cmd.kind, entity),
       });
     }

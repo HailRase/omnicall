@@ -1,7 +1,7 @@
 /**
  * - Purpose: gateway-driven OCP projection hub implementing OcpOperatorReadModel.
  * - Inputs: OcpGateway transport states/messages, optional reasons cache hydration.
- * - Outputs: dual-FSM session/operator/reasons/campaign snapshots for Use Cases and UI.
+ * - Outputs: dual-FSM session/operator/reasons/campaign/call-context snapshots for Use Cases and UI.
  */
 
 import type { OperatorProfile } from "@domain/integration/ocp/OperatorProfile.js";
@@ -17,7 +17,21 @@ import {
   reduceCampaignEventFromPayload,
   clearCampaignEvent,
   type CampaignEventProjection,
+  type CampaignReduceOutcome,
+  type CampaignClearResult,
 } from "../projections/integration/campaignEventProjection.js";
+import type { OcpCampaignEventPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
+import {
+  clearCallOcpContext,
+  initialCallOcpContextProjection,
+  markCallOcpContextPending,
+  markCallOcpContextUnavailable,
+  resolveCallOcpContext,
+  resetCallOcpContextProjection,
+  type CallOcpContextAcdWire,
+  type CallOcpContextDirection,
+  type CallOcpContextProjection,
+} from "../projections/integration/callOcpContextProjection.js";
 import {
   initialOcpReasonsProjection,
   reduceOcpReasonsFromPayload,
@@ -27,8 +41,11 @@ import {
   applyAuthorizationProgress,
   applyOcpActiveAttemptId,
   applyOcpAuthFeedback,
+  applyOcpSessionAuthenticatedLogin,
   applyOcpSessionDomain,
+  beginOcpTransportRecoveryAttempt,
   clearOcpAuthFeedback,
+  clearOcpTransportRecovery,
   initialOcpSessionProjection,
   reduceOcpSessionFromAuthorization,
   reduceOcpSessionFromServerState,
@@ -59,6 +76,8 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   private operator: OperatorStatusProjection = initialOperatorStatusProjection();
   private reasons: OcpReasonsProjection = initialOcpReasonsProjection();
   private campaign: CampaignEventProjection = initialCampaignEventProjection();
+  private callOcpContext: CallOcpContextProjection =
+    initialCallOcpContextProjection();
   private readonly unsubscribers: Unsubscribe[] = [];
   private readonly changeListeners = new Set<() => void>();
   private authFeedbackNonce = 0;
@@ -119,6 +138,51 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     return this.campaign;
   }
 
+  getCallOcpContextProjection(): CallOcpContextProjection {
+    return this.callOcpContext;
+  }
+
+  markCallOcpContextPending(
+    callId: string,
+    direction: CallOcpContextDirection,
+  ): void {
+    this.callOcpContext = markCallOcpContextPending(this.callOcpContext, {
+      callId,
+      direction,
+    });
+    this.notifyChangeListeners();
+  }
+
+  resolveCallOcpContext(
+    callId: string,
+    input: Readonly<{
+      acallId: string;
+      queueName: string | null;
+      acdWire: CallOcpContextAcdWire;
+    }>,
+  ): void {
+    this.callOcpContext = resolveCallOcpContext(this.callOcpContext, {
+      callId,
+      acallId: input.acallId,
+      queueName: input.queueName,
+      acdWire: input.acdWire,
+    });
+    this.notifyChangeListeners();
+  }
+
+  markCallOcpContextUnavailable(callId: string): void {
+    this.callOcpContext = markCallOcpContextUnavailable(
+      this.callOcpContext,
+      callId,
+    );
+    this.notifyChangeListeners();
+  }
+
+  clearCallOcpContext(callId: string): void {
+    this.callOcpContext = clearCallOcpContext(this.callOcpContext, callId);
+    this.notifyChangeListeners();
+  }
+
   getCurrentOperatorProfile(): OperatorProfile | null {
     return toOperatorProfile(this.operator);
   }
@@ -133,6 +197,16 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
 
   setSessionDomain(domain: string): void {
     this.session = applyOcpSessionDomain(this.session, domain);
+    this.notifyChangeListeners();
+  }
+
+  /** Persist OCP connect login for call-sync wire (`user_login`). */
+  setSessionAuthenticatedLogin(login: string): void {
+    const trimmed = login.trim();
+    if (trimmed.length === 0) {
+      return;
+    }
+    this.session = applyOcpSessionAuthenticatedLogin(this.session, trimmed);
     this.notifyChangeListeners();
   }
 
@@ -181,6 +255,40 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
+  /**
+   * Begin/refresh Application-owned unexpected-drop recovery presentation.
+   * Keeps the global banner visible across disconnect/HTTP/connect flaps.
+   */
+  beginTransportRecoveryAttempt(
+    attemptId: CorrelationId,
+    attempt: number,
+  ): void {
+    this.activeSocketEpoch = this.deps.ocpGateway.getSocketEpoch?.() ?? null;
+    this.session = applyOcpActiveAttemptId(this.session, attemptId);
+    this.session = beginOcpTransportRecoveryAttempt(this.session, attempt);
+    this.notifyChangeListeners();
+  }
+
+  /** Clear recovery presentation (success / cancel / supersede). */
+  clearTransportRecovery(): void {
+    const next = clearOcpTransportRecovery(this.session);
+    if (next === this.session) {
+      return;
+    }
+    this.session = next;
+    this.notifyChangeListeners();
+  }
+
+  /**
+   * Cap reached for Application-owned transport recovery — surface failed banner
+   * (Retry via OperatorStatus / System State) without opening the sign-in Dialog.
+   */
+  markTransportRecoveryExhausted(): void {
+    this.session = clearOcpTransportRecovery(this.session);
+    this.session = reduceOcpSessionFromServerState(this.session, "failed");
+    this.notifyChangeListeners();
+  }
+
   setAuthFeedback(reason: OcpAuthFeedbackReason): void {
     this.authFeedbackNonce += 1;
     this.session = applyOcpAuthFeedback(
@@ -218,9 +326,37 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
-  clearActiveCampaign(): void {
-    this.campaign = clearCampaignEvent();
+  /**
+   * Apply campaign_events onto projection (single-modal hold). Idempotent when
+   * both hub gateway listener and lifecycle invoke the same payload.
+   */
+  applyCampaignOffer(payload: OcpCampaignEventPayload): CampaignReduceOutcome {
+    const { projection, outcome } = reduceCampaignEventFromPayload(
+      this.campaign,
+      payload,
+    );
+    this.campaign = projection;
     this.notifyChangeListeners();
+    return outcome;
+  }
+
+  /**
+   * Clears visible offer; promotes `pendingPreview` when present.
+   */
+  clearActiveCampaign(): CampaignClearResult {
+    const result = clearCampaignEvent(this.campaign);
+    this.campaign = result.projection;
+    this.notifyChangeListeners();
+    return result;
+  }
+
+  /** Snapshot of the active campaign id without clearing (preview preferred). */
+  getActiveCampaignId(): string | null {
+    return (
+      this.campaign.activeCampaign?.id ??
+      this.campaign.progressiveContext?.id ??
+      null
+    );
   }
 
   /**
@@ -234,6 +370,7 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.session = initialOcpSessionProjection();
     this.operator = initialOperatorStatusProjection();
     this.campaign = initialCampaignEventProjection();
+    this.callOcpContext = resetCallOcpContextProjection();
     this.notifyChangeListeners();
   }
 
@@ -262,6 +399,14 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     if (isColdIdle && state !== "disconnected") {
       return;
     }
+    // During Application recovery, ignore socket close/fail flaps so the banner
+    // stays on reconnecting until success, exhaustion, or explicit cancel.
+    if (
+      this.session.transportRecoveryActive &&
+      (state === "disconnected" || state === "failed")
+    ) {
+      return;
+    }
     this.session = reduceOcpSessionFromServerState(this.session, state);
     this.notifyChangeListeners();
   }
@@ -283,9 +428,8 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
       return;
     }
 
-    if (message.entity === "campaign_events") {
-      this.campaign = reduceCampaignEventFromPayload(message.data);
-    }
+    // campaign_events: applied solely via `applyCampaignOffer` from
+    // OcpSessionLifecycleService (single-modal FSM + Domain Events).
 
     this.notifyChangeListeners();
   }

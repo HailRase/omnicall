@@ -18,6 +18,7 @@ export function SessionFeatureShell({
     <>
       <LogoutActiveSessionConfirmationModal
         open={sessionLogoutActions.confirmationModalOpen}
+        delayedJobsWaiting={sessionLogoutActions.delayedJobsWaiting}
         onConfirm={sessionLogoutActions.handleConfirmLogout}
         onCancel={sessionLogoutActions.handleCancelLogout}
       />

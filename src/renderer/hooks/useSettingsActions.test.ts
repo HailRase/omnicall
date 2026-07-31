@@ -27,10 +27,10 @@ function createSoftphonePreloadApiMock(
   return {
     getPlatformVersion: vi.fn().mockResolvedValue({
       version: "0.0.1",
-      name: "Axatalk",
+      name: "OmniCall",
       platform: "win32",
     }),
-    getProfilesStorageRoot: vi.fn().mockResolvedValue({ storageRoot: "/tmp/axatalk-profiles" }),
+    getProfilesStorageRoot: vi.fn().mockResolvedValue({ storageRoot: "/tmp/omnicall-profiles" }),
     invokeProfilesFilesystem: vi.fn().mockResolvedValue({ ok: true }),
     invokeSecretStorage: vi.fn().mockResolvedValue({ ok: true }),
     openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),
@@ -41,12 +41,41 @@ function createSoftphonePreloadApiMock(
     requestAppRestart: vi.fn().mockResolvedValue({ ok: true }),
     minimizeWindow: vi.fn().mockResolvedValue({ ok: true }),
     closeWindow: vi.fn().mockResolvedValue({ ok: true }),
+    toggleMaximizeWindow: vi.fn().mockResolvedValue({ ok: true }),
+    getWindowMaximized: vi.fn().mockResolvedValue({ ok: true, maximized: false }),
+    onWindowMaximizedChanged: vi.fn(() => () => undefined),
     applyShellWindowLayout: vi.fn().mockResolvedValue(undefined),
+    raiseShellWindow: vi.fn().mockResolvedValue({ ok: true }),
+    setShellTelephonyBusy: vi.fn().mockResolvedValue({ ok: true }),
+    onShellOperatorAttention: vi.fn().mockReturnValue(() => {}),
     openContactsCsvImportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
     saveContactsCsvExportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
+    openPreferencesImportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
+    savePreferencesExportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
     setHeadsetPreferredDeviceId: vi.fn().mockResolvedValue({ ok: true }),
     listDisplaySources: vi.fn().mockResolvedValue({ ok: true, sources: [] }),
     setPendingDisplaySource: vi.fn().mockResolvedValue({ ok: true }),
+    onSdkBrokerRequest: vi.fn().mockReturnValue(() => {}),
+    replySdkBrokerRequest: vi.fn().mockResolvedValue({ ok: true }),
+    publishSdkGatewayEvent: vi.fn().mockResolvedValue({ ok: true, delivered: 0 }),
+    invokeSdkGatewaySettings: vi.fn().mockResolvedValue({
+      ok: false,
+      reason: "preload_unavailable",
+    }),
+    setSdkBrokerReady: vi.fn().mockResolvedValue({ ok: true }),
+    onSdkClientSessionEnded: vi.fn().mockReturnValue(() => {}),
+    executeExternalServiceHttp: vi.fn().mockResolvedValue({
+      kind: "network_error",
+      code: "unknown",
+      durationMs: 0,
+      message: "not implemented in test mock",
+    }),
+    openExternalServicesCollectionImportDialog: vi
+      .fn()
+      .mockResolvedValue({ ok: true, cancelled: true }),
+    saveExternalServicesCollectionExportDialog: vi
+      .fn()
+      .mockResolvedValue({ ok: true, cancelled: true }),
     ...overrides,
   };
 }

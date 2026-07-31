@@ -2,9 +2,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
   padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: inherit;
   line-height: 0;
   vertical-align: middle;
+  cursor: pointer;
+  appearance: none;
+}
+
+.button:disabled {
+  cursor: not-allowed;
 }
 
 .button svg {

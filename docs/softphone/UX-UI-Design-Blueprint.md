@@ -72,7 +72,9 @@ Required window behavior:
 - minimize to tray
 - restore from tray
 - close behavior with active-call warning
-- incoming call window focus policy
+- incoming / outgoing call window focus policy (raise above other apps via shared
+  main `bringBrowserWindowToFront`; ADR-0013)
+- SDK Origin-trust / pairing / activate-consent operator attention raise (same helper)
 - reconnect overlay visible after restore
 
 Electron main process owns shell behavior.
@@ -120,7 +122,7 @@ The shell must represent these global states:
 
 | State | Meaning | UX Requirement |
 |-------|---------|----------------|
-| `booting` | App is starting | Show app loading state. |
+| `booting` | App is starting | Single-stage `#boot-splash` bounce ball (`#42AAFF`, ~1000ms CSS loop) from first paint until settle (freeze→rest, no teleport), with UI-only min visible dwell `BOOTSTRAP_SPLASH_MIN_VISIBLE_MS` (4000; skipped under `prefers-reduced-motion`), then opacity crossfade exit over the ready shell — React only updates progress/copy via `bootSplashDom`, no second loading UI / no JS spring on the production path. See `Bootstrap-Splash-Contract.md`. |
 | `sipOnlyReady` | SIP-only mode ready | Hide legacy operator platform-only controls. |
 | `ocpAuthenticating` | legacy operator auth in progress | Show legacy operator platform loading state. |
 | `ocpSessionExists` | legacy operator platform rejected duplicate session | Show recoverable error. |
@@ -246,7 +248,7 @@ Campaign modal must show:
 - timeout state if provided
 - progressive campaign behavior without unnecessary modal
 
-Campaign UX exists only when legacy operator integration is enabled.
+Campaign UX exists when **OCP Module (F-028)** is authenticated (not the removed legacy operator stack). Preview (`progressive: false`) → centered Dialog with blur; progressive → badges on call surfaces only. Queue/campaign projection rules: `docs/softphone/OCP-Call-Context.md`.
 
 ## History UX
 
@@ -274,6 +276,60 @@ Settings panels:
 5. Notifications
 6. Diagnostics
 7. Advanced
+
+### Shared Settings content measure (layout rule)
+
+Shared primitives in `SettingsForm.module.css` constrain Settings body content so wide windows do not stretch preference rows edge-to-edge:
+
+| Rule | Target |
+| --- | --- |
+| Complex list pages (`panel-stack`, `section-card`, `content-column`) | **max-width 36rem** (range 32–40rem) |
+| Simple preference fields / toggle rows / stacked forms | **max-width 28rem** |
+| Preference / toggle rows | Label + description left; control immediately after text — **never** `space-between` across a full-bleed pane |
+| Stacked forms (add site, grant access) | Vertical fields; primary action under fields |
+
+Do not reintroduce `max-width: none` on shared Settings form stacks without an ADR-level layout decision.
+
+### OmniCall Kit Settings IA (F-011)
+
+Three UI Kit Tabs (same pattern as Account mode tabs, `indicator="slide"`):
+
+1. **Main** — gateway status (+ refresh), paired clients (no global hide toggle — `window.hide`
+   lives on Trusted sites Origin matrix, default off; ADR-0013)  
+2. **Trusted sites** — add site; each site is a UI Kit Accordion item (permissions as labeled Selects allowed/denied; address edit with explicit Save/Cancel)  
+3. **Blocked sites** — origin left, Unblock right  
+
+Activate consent is a root overlay (`SdkActivateProfileConsentModal`): login from SDK →
+lookup saved profile → method picker when SIP and OCP are both complete. No Settings
+“temporary profile access / profileRef grant”.  
+
+After Allow (OCP mode) — and for any other **user-initiated** OCP-backed sign-in (Account Login,
+modal Reconnect, SDK activate with `uiSurface: modal`) — the **same** root overlay
+`OcpSignInProgress` shows stage progress with Disconnect/Reconnect.
+It is mounted in `SoftphoneReadyShell` (not inside Settings Account), so dialpad / contacts /
+history / settings all share it. Density: `comfortable` when Settings is open, `compact` on
+the main softphone window (smaller type/gaps; stage status **icons only**, failure tooltip
+retained).
+
+**Unexpected OCP socket drop (auto-recovery):** do **not** open `OcpSignInProgress`. Use
+global `OcpConnectionBanner` in the shell **overlay layer** (same mount family as
+`OcpSignInProgress`) with `--z-shell-status-banner` so it stays visible over dialpad,
+contacts, history, video, and Settings fullscreen (`reconnecting` N/max → `failed` + Retry).
+Still below Dialog/modals. Background recovery uses `authorizationProgress.uiSurface: silent`
+so the sign-in Dialog gate stays closed. Manual banner Retry / System State Retry server may
+open the modal when the Application marks progress `modal` again.
+
+Activate consent footer: **Cancel** split-button (chevron → **Block site** / Deny) + **Allow**.
+Deny persists `account.activate=false` on the Origin matrix (ADR-0018 §E); Settings Trusted
+sites must reflect the gateway snapshot after Deny (sync via `sdkIntegrationSettingsSync`).
+Window raise on activate consent uses a unique `attentionId` per episode (ADR-0013), so a
+second request after Cancel still brings the softphone to front.
+
+Attention for Origin TOFU / pairing is a root overlay (`SdkConnectCeremonyModal`) above any
+shell route (including Settings). Settings → OmniCall Kit does not host pending TOFU/pairing
+callouts. Pending must clear with the socket/policy (disconnect → TOFU cancel without
+blacklist; pairing deny-by-connection; Origin leave-allowed closes WS without auto-revoke;
+waiting Cancel/Escape). See ADR-0018 §G.
 
 Settings must show:
 

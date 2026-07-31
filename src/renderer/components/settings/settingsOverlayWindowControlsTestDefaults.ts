@@ -5,7 +5,10 @@ export const settingsOverlayWindowControlsTestDefaults: ShellWindowControlsViewM
   platform: "linux",
   showNativeWindowControls: true,
   isShuttingDown: false,
+  maximizeEnabled: true,
+  isMaximized: false,
   onMinimize: vi.fn(),
   onClose: vi.fn(),
   onRestart: vi.fn(),
+  onToggleMaximize: vi.fn(),
 };

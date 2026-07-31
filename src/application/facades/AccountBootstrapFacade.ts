@@ -63,6 +63,8 @@ import type {
   CallHistoryRepository,
   ContactRepository,
   ContactCsvFileGateway,
+  PreferencesFileGateway,
+  ExternalServicesCollectionFileGateway,
   TelephonyGateway,
   MediaGateway,
   SecretStoragePort,
@@ -81,6 +83,7 @@ import {
 import {
   applyAuthorizationExecutionStage,
   clearAuthorizationProgress,
+  withAuthorizationProgressUiSurface,
   type AuthorizationProgressStage,
 } from "../projections/settings/authorizationProgressProjection.js";
 import type { ChangeOperatorStatusOutcome } from "../use-cases/integration/ocp/ChangeOperatorStatusUseCase.js";
@@ -99,13 +102,33 @@ import {
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { InMemoryUserNotificationJournalRepository } from "@adapters/settings/InMemoryUserNotificationJournalRepository.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
+import type { DomainEvent } from "@domain/shared/DomainEvent.js";
+import type { ExternalServicesComposition } from "@application/services/integration/external-services/ExternalServicesComposition.js";
+import type { ExternalServicesProductSnapshot } from "@application/services/integration/external-services/ExternalServicesProductSnapshot.js";
+import type { ExternalServiceExecutionResult } from "@application/services/integration/external-services/ExternalServiceExecutionResult.js";
+import type { RunExternalServiceRequestNowInput } from "@application/use-cases/integration/RunExternalServiceRequestNowUseCase.js";
+import type {
+  QueryExternalServicesInput,
+  QueryExternalServicesOutcome,
+} from "@application/use-cases/integration/QueryExternalServicesUseCase.js";
+import type {
+  SaveExternalServicesSettingsInput,
+  SaveExternalServicesSettingsOutcome,
+} from "@application/use-cases/integration/SaveExternalServicesSettingsUseCase.js";
 import { CallEngine } from "@application/services/telephony/CallEngine.js";
-import type { MultiCallSettings } from "@domain/index.js";
-import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
+import type {
+  ExternalServicesSettings,
+  ExternalServiceCollection,
+  ExternalServiceCollectionId,
+  MultiCallSettings,
+  SettingsAccountKey,
+  UserSettings,
+} from "@domain/index.js";
 import {
   buildOcpConnectLoginOptions,
   createAccountSessionActivatedEvent,
   createCallId,
+  createSettingsAccountKey,
   mergeMultiCallIntoUserSettings,
   OCP_SIGN_IN_EXECUTION_STAGES,
   resolveOcpConnectLoginTarget,
@@ -187,6 +210,8 @@ import { CallContactUseCase } from "../use-cases/telephony/CallContactUseCase.js
 import { ImportContactsCsvUseCase } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
 import { ExportContactsCsvUseCase } from "../use-cases/contacts/ExportContactsCsvUseCase.js";
 import type { ContactsCsvImportSummary } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
+import { ExportOperatorPreferencesUseCase } from "../use-cases/settings/ExportOperatorPreferencesUseCase.js";
+import { ImportOperatorPreferencesUseCase } from "../use-cases/settings/ImportOperatorPreferencesUseCase.js";
 import { CallHistoryRecordingOrchestrationService } from "../services/contacts/CallHistoryRecordingOrchestrationService.js";
 import { MockHeadsetGateway } from "@adapters/mock/MockHeadsetGateway.js";
 import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/settings/isLocalSavedProfileNotFoundError.js";
@@ -235,6 +260,41 @@ export type ContactsCsvExportOutcome = Readonly<
   | { kind: "exported"; contactCount: number; savedFileName: string }
 >;
 
+export type OperatorPreferencesImportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | {
+      kind: "imported";
+      settings: UserSettings;
+      sourceProfileKey: string | null;
+      sourceAppVersion: string | null;
+    }
+>;
+
+export type OperatorPreferencesExportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | { kind: "exported"; savedFileName: string; profileKey: string }
+>;
+
+export type ExternalServiceCollectionImportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | {
+      kind: "imported";
+      collection: ExternalServiceCollection;
+      settings: UserSettings;
+      settingsRevision: number;
+    }
+>;
+
+export type ExternalServiceCollectionExportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | {
+      kind: "exported";
+      savedFileName: string;
+      collectionId: ExternalServiceCollectionId;
+      collectionName: string;
+    }
+>;
+
 export type ProfileScopedDataProjectionHandlers = Readonly<{
   setContactsLoading: () => void;
   setContactsLoaded: (contacts: ReadonlyArray<Contact>) => void;
@@ -253,6 +313,8 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   callHistoryRepository?: CallHistoryRepository;
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
+  preferencesFileGateway?: PreferencesFileGateway;
+  externalServicesCollectionFileGateway?: ExternalServicesCollectionFileGateway;
   secretStoragePort?: SecretStoragePort;
   userNotificationJournalRepository?: UserNotificationJournalRepository;
   hostIntegrationGateway?: HostIntegrationGateway;
@@ -261,6 +323,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   ocpProxyAuthenticate?: OcpProxyAuthenticatePort;
   ocpReasonsCache?: OcpReasonsCachePort;
   ocpNotificationPresenter?: OcpNotificationPresenter;
+  externalServicesComposition?: ExternalServicesComposition;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -339,6 +402,10 @@ export class AccountBootstrapFacade {
   private readonly importContactsCsvUseCase: ImportContactsCsvUseCase;
   private readonly exportContactsCsvUseCase: ExportContactsCsvUseCase;
   private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
+  private readonly exportOperatorPreferencesUseCase: ExportOperatorPreferencesUseCase;
+  private readonly importOperatorPreferencesUseCase: ImportOperatorPreferencesUseCase;
+  private readonly preferencesFileGateway: PreferencesFileGateway | null;
+  private readonly externalServicesCollectionFileGateway: ExternalServicesCollectionFileGateway | null;
 
   private sipSessionRegistered = false;
   /** SIP WebSocket transport reached connected (ADR-0004) — independent of REGISTER. */
@@ -469,6 +536,17 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.contactCsvFileGateway = deps.contactCsvFileGateway ?? null;
+    this.exportOperatorPreferencesUseCase = new ExportOperatorPreferencesUseCase(
+      deps.settingsRepository,
+      deps.logger,
+    );
+    this.importOperatorPreferencesUseCase = new ImportOperatorPreferencesUseCase(
+      deps.settingsRepository,
+      deps.logger,
+    );
+    this.preferencesFileGateway = deps.preferencesFileGateway ?? null;
+    this.externalServicesCollectionFileGateway =
+      deps.externalServicesCollectionFileGateway ?? null;
     const callHistoryRecordingOrchestration = new CallHistoryRecordingOrchestrationService(
       recordCallHistoryUseCase,
       deps.logger,
@@ -731,7 +809,12 @@ export class AccountBootstrapFacade {
       // Deferred call: INVALID_TOKEN arrives after construction; HTTP re-auth via connectOcp.
       reauthenticateOnInvalidToken: () => this.connectOcp(),
       // Application-owned fresh-token reconnect (ADR-AF-002) — never adapter stale token.
-      recoverTransportWithFreshToken: (correlationId) => this.connectOcp(correlationId),
+      // Silent progress: banner only; do not open OcpSignInProgress Dialog.
+      recoverTransportWithFreshToken: (correlationId) =>
+        this.connectOcp({
+          correlationId,
+          progressUiSurface: "silent",
+        }),
     });
     this.accountLogoutOrchestration = new AccountLogoutOrchestrationService({
       readOcpSession: () => {
@@ -791,9 +874,13 @@ export class AccountBootstrapFacade {
     await this.setLocalVideoMutedById(callId, false);
   }
 
-  private trackSipRegistrationState(event: { type: string }): void {
+  private trackSipRegistrationState(event: {
+    type: string;
+    profileKey?: unknown;
+  }): void {
     if (event.type === "AccountSessionActivated") {
       this.accountSessionActive = true;
+      void this.activateExternalServicesRuntime(event.profileKey);
       return;
     }
 
@@ -824,12 +911,38 @@ export class AccountBootstrapFacade {
       this.sipSessionRegistered = false;
       this.sipTransportConnected = false;
       this.accountSessionActive = false;
+      this.deps.externalServicesComposition?.invalidateLifecycle();
       return;
     }
 
     if (event.type === "UnregistrationSucceeded") {
       this.sipSessionRegistered = false;
       this.sipTransportConnected = false;
+    }
+  }
+
+  private async activateExternalServicesRuntime(
+    profileKeyRaw: unknown,
+  ): Promise<void> {
+    const composition = this.deps.externalServicesComposition;
+    if (composition === undefined) {
+      return;
+    }
+    try {
+      const accountKey =
+        typeof profileKeyRaw === "string" && profileKeyRaw.length > 0
+          ? createSettingsAccountKey(profileKeyRaw)
+          : await this.resolveSettingsAccountKey();
+      const settings = await this.loadUserSettingsForAccountKey(accountKey);
+      composition.activateProfile(accountKey, settings.externalServices);
+    } catch (error: unknown) {
+      this.deps.logger.warn("external_services_profile_activation_failed", {
+        featureId: "F-031",
+        boundedContext: "Integration",
+        operation: "activate_external_services_profile",
+        result: "failed",
+        code: error instanceof Error ? error.name : "unknown",
+      });
     }
   }
 
@@ -1357,6 +1470,185 @@ export class AccountBootstrapFacade {
       contactCount: exportResult.value.contactCount,
       savedFileName: saveResult.savedFileName,
     });
+  }
+
+  async importOperatorPreferences(
+    correlationId?: CorrelationId,
+  ): Promise<Result<OperatorPreferencesImportOutcome, PlatformError>> {
+    if (this.preferencesFileGateway === null) {
+      return err(
+        createPlatformError("operation_failed", "Preferences file gateway is unavailable"),
+      );
+    }
+
+    const dialogResult = await this.preferencesFileGateway.openImportDialog();
+    if (dialogResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (dialogResult.kind === "error") {
+      return err(createPlatformError("operation_failed", dialogResult.reason));
+    }
+
+    const importResult = await this.importOperatorPreferencesUseCase.execute({
+      jsonContents: dialogResult.contents,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+    if (isErr(importResult)) {
+      return importResult;
+    }
+
+    await this.applyHeadsetUserSettings(importResult.value.settings);
+    this.deps.externalServicesComposition?.replaceActiveSettings(
+      importResult.value.settings.externalServices,
+    );
+
+    return ok({
+      kind: "imported",
+      settings: importResult.value.settings,
+      sourceProfileKey: importResult.value.sourceProfileKey,
+      sourceAppVersion: importResult.value.sourceAppVersion,
+    });
+  }
+
+  async exportOperatorPreferences(
+    input: Readonly<{ correlationId?: CorrelationId; appVersion?: string | null }> = {},
+  ): Promise<Result<OperatorPreferencesExportOutcome, PlatformError>> {
+    if (this.preferencesFileGateway === null) {
+      return err(
+        createPlatformError("operation_failed", "Preferences file gateway is unavailable"),
+      );
+    }
+
+    const exportResult = await this.exportOperatorPreferencesUseCase.execute({
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+      ...(input.appVersion !== undefined ? { appVersion: input.appVersion } : {}),
+    });
+    if (isErr(exportResult)) {
+      return exportResult;
+    }
+
+    const saveResult = await this.preferencesFileGateway.saveExportDialog({
+      contents: exportResult.value.jsonContents,
+      suggestedFileName: buildPreferencesExportFileName(),
+    });
+    if (saveResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (saveResult.kind === "error") {
+      return err(createPlatformError("operation_failed", saveResult.reason));
+    }
+
+    return ok({
+      kind: "exported",
+      savedFileName: saveResult.savedFileName,
+      profileKey: exportResult.value.profileKey,
+    });
+  }
+
+  async importExternalServiceCollection(
+    correlationId?: CorrelationId,
+  ): Promise<Result<ExternalServiceCollectionImportOutcome, PlatformError>> {
+    if (this.externalServicesCollectionFileGateway === null) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Services collection file gateway is unavailable",
+        ),
+      );
+    }
+    const composition = this.deps.externalServicesComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Services runtime is unavailable.",
+          { reason: "external_services_unavailable" },
+        ),
+      );
+    }
+
+    const dialogResult =
+      await this.externalServicesCollectionFileGateway.openImportDialog();
+    if (dialogResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (dialogResult.kind === "error") {
+      return err(createPlatformError("operation_failed", dialogResult.reason));
+    }
+
+    try {
+      const importResult = await composition.importExternalServiceCollection({
+        jsonContents: dialogResult.contents,
+        ...(correlationId !== undefined ? { correlationId } : {}),
+      });
+      if (isErr(importResult)) {
+        return importResult;
+      }
+
+      return ok({
+        kind: "imported",
+        collection: importResult.value.collection,
+        settings: importResult.value.settings,
+        settingsRevision: importResult.value.settingsRevision,
+      });
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async exportExternalServiceCollection(
+    collectionId: ExternalServiceCollectionId,
+    correlationId?: CorrelationId,
+  ): Promise<Result<ExternalServiceCollectionExportOutcome, PlatformError>> {
+    if (this.externalServicesCollectionFileGateway === null) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Services collection file gateway is unavailable",
+        ),
+      );
+    }
+    const composition = this.deps.externalServicesComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Services runtime is unavailable.",
+          { reason: "external_services_unavailable" },
+        ),
+      );
+    }
+
+    try {
+      const exportResult = await composition.exportExternalServiceCollection({
+        collectionId,
+        ...(correlationId !== undefined ? { correlationId } : {}),
+      });
+      if (isErr(exportResult)) {
+        return exportResult;
+      }
+
+      const saveResult =
+        await this.externalServicesCollectionFileGateway.saveExportDialog({
+          contents: exportResult.value.jsonContents,
+          suggestedFileName: exportResult.value.suggestedFileName,
+        });
+      if (saveResult.kind === "cancelled") {
+        return ok({ kind: "cancelled" });
+      }
+      if (saveResult.kind === "error") {
+        return err(createPlatformError("operation_failed", saveResult.reason));
+      }
+
+      return ok({
+        kind: "exported",
+        savedFileName: saveResult.savedFileName,
+        collectionId: exportResult.value.collectionId,
+        collectionName: exportResult.value.collectionName,
+      });
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
   }
 
   saveSavedAccountProfile(
@@ -2277,6 +2569,9 @@ export class AccountBootstrapFacade {
     if (accountKey === activeKey) {
       this.sipRecoveryOrchestration.applyRecoverySettings(validated.value);
       await this.callEngine.refreshAutoAnswerSchedules();
+      this.deps.externalServicesComposition?.replaceActiveSettings(
+        validated.value.externalServices,
+      );
     }
     return validated.value;
   }
@@ -2984,14 +3279,16 @@ export class AccountBootstrapFacade {
 
   /**
    * - Purpose: finish post-call appeal (apply reserved status or Ready).
+   * - Inputs: optional correlation + callType (UI internal default; SDK uses "sdk").
    */
   finishOcpPostCallAppeal(
     input: Readonly<{
       correlationId?: CorrelationId;
+      callType?: "internal" | "external" | "sdk";
     }> = {},
   ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
     return this.ocpIntegration.finishPostCallAppeal.execute({
-      callType: "internal",
+      callType: input.callType ?? "internal",
       ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
     });
   }
@@ -3054,12 +3351,20 @@ export class AccountBootstrapFacade {
     return this.ocpIntegration.projectionHub.getCampaignProjection();
   }
 
+  getOcpCallContextSnapshot(): ReturnType<
+    OcpIntegrationComposition["projectionHub"]["getCallOcpContextProjection"]
+  > {
+    return this.ocpIntegration.projectionHub.getCallOcpContextProjection();
+  }
+
   subscribeOcpProjections(listener: () => void): () => void {
     return this.ocpIntegration.projectionHub.subscribe(listener);
   }
 
-  clearOcpActiveCampaign(): void {
-    this.ocpIntegration.projectionHub.clearActiveCampaign();
+  clearOcpActiveCampaign(
+    reasonCode: "accepted" | "rejected" = "accepted",
+  ): void {
+    this.ocpIntegration.clearCampaignAndPublish(reasonCode);
   }
 
   /**
@@ -3344,6 +3649,8 @@ export class AccountBootstrapFacade {
           login?: string;
           accountKey?: SettingsAccountKey;
           correlationId?: CorrelationId;
+          /** Default modal; transport auto-recovery must pass silent. */
+          progressUiSurface?: "modal" | "silent";
         }>
       | CorrelationId,
   ): Promise<Result<void, PlatformError>> {
@@ -3351,6 +3658,7 @@ export class AccountBootstrapFacade {
       typeof input === "string" ? input : input?.correlationId;
     const scopedInput =
       typeof input === "object" && input !== undefined ? input : undefined;
+    const progressUiSurface = scopedInput?.progressUiSurface ?? "modal";
     const usesLoginPickerScope =
       scopedInput !== undefined &&
       (scopedInput.login !== undefined || scopedInput.accountKey !== undefined);
@@ -3438,6 +3746,7 @@ export class AccountBootstrapFacade {
       login,
       apiKey,
       correlationId: attemptCorrelationId,
+      progressUiSurface,
     });
 
     if (isErr(signInResult)) {
@@ -3594,10 +3903,13 @@ export class AccountBootstrapFacade {
         : [];
     this.ocpIntegration.projectionHub.setAuthorizationProgress(
       applyAuthorizationExecutionStage(
-        {
-          ...clearAuthorizationProgress(),
-          completedExecutionStages: completed,
-        },
+        withAuthorizationProgressUiSurface(
+          {
+            ...clearAuthorizationProgress(),
+            completedExecutionStages: completed,
+          },
+          "modal",
+        ),
         firstStage,
         correlationId,
       ),
@@ -3890,8 +4202,8 @@ export class AccountBootstrapFacade {
   }
 
   /**
-   * - Purpose: external operator status change with callType external.
-   * - Inputs: ready|break target and reason id (future ExternalCommandRouter).
+   * - Purpose: external operator status change (host = external, SDK = sdk).
+   * - Inputs: ready|break target and reason id (future ExternalCommandRouter / DI-07).
    * - Outputs: ChangeOperatorStatus Use Case result.
    */
   changeOcpStatusFromHost(
@@ -3900,12 +4212,13 @@ export class AccountBootstrapFacade {
       reasonId: number;
       intent?: "auto" | "apply" | "reserve";
       correlationId?: CorrelationId;
+      callType?: "external" | "sdk";
     }>,
   ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
     return this.ocpIntegration.changeOperatorStatus.execute({
       targetStatus: input.targetStatus,
       reasonId: input.reasonId,
-      callType: "external",
+      callType: input.callType ?? "external",
       ...(input.intent !== undefined ? { intent: input.intent } : {}),
       ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
     });
@@ -4116,8 +4429,108 @@ export class AccountBootstrapFacade {
   }
 
   dispose(): void {
+    this.deps.externalServicesComposition?.dispose();
     this.sipRecoveryOrchestration.dispose();
     this.ocpIntegration.dispose();
+  }
+
+  /**
+   * Synthetic F-031 entry for tests and WU-04; real post-store binder lands in WU-11.
+   */
+  handleExternalServicesCommittedEvent(
+    event: DomainEvent,
+    snapshot: ExternalServicesProductSnapshot,
+  ): void {
+    this.deps.externalServicesComposition?.handleCommittedEvent(event, snapshot);
+  }
+
+  getExternalServicesWaitingJobs() {
+    return this.deps.externalServicesComposition?.getWaitingJobs() ?? [];
+  }
+
+  cancelExternalServiceQueuedJob(jobId: string): boolean {
+    return this.deps.externalServicesComposition?.cancelExternalServiceQueuedJob(jobId) ?? false;
+  }
+
+  runExternalServiceRequestNow(
+    input: RunExternalServiceRequestNowInput,
+  ): Promise<ExternalServiceExecutionResult> {
+    const composition = this.deps.externalServicesComposition;
+    if (composition === undefined) {
+      return Promise.resolve({
+        kind: "error",
+        category: "validation",
+        status: null,
+        durationMs: 0,
+        body: "",
+        bodyTruncated: false,
+        code: "external_services_unavailable",
+        jsonValidity: "not_applicable",
+      });
+    }
+    return composition.runExternalServiceRequestNow(input);
+  }
+
+  async saveExternalServicesSettings(
+    externalServices: ExternalServicesSettings,
+    expectedSettingsRevision?: number,
+  ): Promise<Result<SaveExternalServicesSettingsOutcome, PlatformError>> {
+    const composition = this.deps.externalServicesComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Services runtime is unavailable.",
+          { reason: "external_services_unavailable" },
+        ),
+      );
+    }
+    try {
+      const profileKey = await this.resolveSettingsAccountKey();
+      const input: SaveExternalServicesSettingsInput = {
+        profileKey,
+        externalServices,
+        ...(expectedSettingsRevision !== undefined
+          ? { expectedSettingsRevision }
+          : {}),
+      };
+      return await composition.saveExternalServicesSettings(input);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async queryExternalServices(
+    input: Omit<QueryExternalServicesInput, "profileKey"> & {
+      profileKey?: SettingsAccountKey;
+    } = {},
+  ): Promise<Result<QueryExternalServicesOutcome, PlatformError>> {
+    const composition = this.deps.externalServicesComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Services runtime is unavailable.",
+          { reason: "external_services_unavailable" },
+        ),
+      );
+    }
+    try {
+      const profileKey =
+        input.profileKey ?? (await this.resolveSettingsAccountKey());
+      return await composition.queryExternalServices({
+        profileKey,
+        ...(input.journalLimit !== undefined
+          ? { journalLimit: input.journalLimit }
+          : {}),
+      });
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  getExternalServicesCompositionForTests(): ExternalServicesComposition | null {
+    return this.deps.externalServicesComposition ?? null;
   }
 
   notifyPeerConnectionAvailable(
@@ -4180,4 +4593,9 @@ const SIP_PASSWORD_REQUIRED_MESSAGE = "SIP password is required";
 function buildContactsCsvExportFileName(): string {
   const datePart = new Date().toISOString().slice(0, 10);
   return `contacts-export-${datePart}.csv`;
+}
+
+function buildPreferencesExportFileName(): string {
+  const datePart = new Date().toISOString().slice(0, 10);
+  return `omnicall-preferences-${datePart}.json`;
 }

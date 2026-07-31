@@ -14,6 +14,7 @@ type UseSessionLogoutActionsInput = Readonly<{
 export type UseSessionLogoutActionsResult = Readonly<{
   shell: ReturnType<typeof deriveSessionLogoutShell>;
   confirmationModalOpen: boolean;
+  delayedJobsWaiting?: boolean;
   handleEndSession: () => void;
   handleConfirmLogout: () => void;
   handleCancelLogout: () => void;
@@ -32,6 +33,7 @@ export function useSessionLogoutActions(
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [logoutInProgress, setLogoutInProgress] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [delayedJobsWaiting, setDelayedJobsWaiting] = useState(false);
 
   const shell = useMemo(
     () =>
@@ -65,13 +67,15 @@ export function useSessionLogoutActions(
       return;
     }
 
-    if (shell.logoutConfirmationRequired) {
+    const hasWaitingJobs = facade?.getExternalServicesWaitingJobs().length !== 0;
+    setDelayedJobsWaiting(hasWaitingJobs);
+    if (shell.logoutConfirmationRequired || hasWaitingJobs) {
       setConfirmationModalOpen(true);
       return;
     }
 
     void executeLogout();
-  }, [executeLogout, shell.endSessionDisabledReason, shell.logoutConfirmationRequired]);
+  }, [executeLogout, facade, shell.endSessionDisabledReason, shell.logoutConfirmationRequired]);
 
   const handleConfirmLogout = useCallback((): void => {
     setConfirmationModalOpen(false);
@@ -89,6 +93,7 @@ export function useSessionLogoutActions(
   return {
     shell,
     confirmationModalOpen,
+    delayedJobsWaiting,
     handleEndSession,
     handleConfirmLogout,
     handleCancelLogout,

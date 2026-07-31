@@ -45,9 +45,23 @@ Semantic names only:
 - `--color-border-subtle`, `--color-accent-primary`
 - `--space-xs` … `--space-xl`
 - `--radius-control`, `--radius-panel`
-- `--z-overlay`, `--z-modal`, `--z-toast`
+- `--z-overlay`, `--z-shell-modal-overlay`, `--z-shell-status-banner` (OCP reconnect banner above Settings), `--z-modal`, `--z-toast`
+- Shell chrome (frameless titlebar): `--shell-titlebar-controls-height`, `--shell-window-controls-safe-inline-start`, `--shell-window-controls-safe-inline-end`, `--incoming-call-banner-top`
 
 Migrate values from legacy globals without visual redesign in UI-1 (done via WU5).
+
+### Floating UI vs window controls (mandatory)
+
+Frameless shell owns custom window controls (Win/Linux trailing buttons; macOS traffic lights). Any **fixed** toast, banner, or compact overlay that can sit in a top corner **must** clear that chrome on all platforms:
+
+| Token / helper | Use |
+| --- | --- |
+| `--incoming-call-banner-top` | Vertical inset below titlebar (shared by incoming call, update banner, OCP connection banner, top toasts) |
+| `--shell-window-controls-safe-inline-start` | Horizontal inset for macOS traffic lights when the floating UI occupies the titlebar |
+| `--shell-window-controls-safe-inline-end` | Horizontal inset for Win/Linux window buttons when the floating UI occupies the titlebar |
+| `resolveNotificationToasterOffset` | Product Sonner `offset` **and** `mobileOffset`; top toasts use the shared vertical inset and the normal 24px horizontal edge, because they render below titlebar controls |
+
+Do **not** rely on Sonner’s default `mobileOffset` (16px) in the softphone shell. Prefer corner geometry over Sonner’s mobile full-bleed when the host is a narrow desktop window. `NotificationViewport.module.css` must also clamp the toaster and each toast to `100vw - 48px`; the compact shell is 360–420px, so a fixed Sonner width must never overflow during window-layout transitions.
 
 ## Primitives (`shared/ui/` — target)
 
@@ -101,6 +115,20 @@ Motion rules:
 - `data-testid` in component source.
 - Storybook story per primitive / critical widget.
 - Regenerate `docs/softphone/UI-Component-Catalog.md` via `npm run ui:catalog`.
+
+## Settings Nav Groups
+
+Applies to `SettingsSidebar` when `SETTINGS_NAV_TREE` contains a `group` (today: Integrations).
+
+- **Collapsed icon rail:** group renders as one icon (same centering as other leaves — no `nav-group` column layout while collapsed); children hidden; click → first enabled child; fully gated group uses soft disabled + reason tooltip.
+- **Expanded flyout:** always-open cluster — muted sentence-case section label + child rows aligned with top-level items (same icon column / padding / active rail). No accordion, chevron, nested inset card, or extra left indent under the parent icon. No `text-transform: uppercase` on group labels.
+- **Cluster separator:** the first top-level leaf after a group (OmniCall Kit) gets a top border + spacing so it does not read as a cluster child.
+- **Chrome toggle:** click on empty sidebar chrome (outside `data-settings-nav-interactive` / tooltip hosts) toggles expand/collapse; nav item clicks never toggle.
+- **Disabled:** soft muted color (not hard opacity collapse); `pointer-events: none` on the control; tooltip on the wrap; hover on wrap may show a subtle surface for tooltip affordance without looking enabled.
+- **OmniCall Kit:** top-level leaf below Integrations (ADR-0018) — never a group child.
+- **Canon refs:** ADR-AF-004 §4; Feature Registry F-016 / F-028 / F-031; `SettingsSidebar.test.tsx`.
+
+Do **not** reintroduce accordion collapse for ≤4 siblings. Prefer content-area tabs/hub only if a future group exceeds cluster density in the narrow settings rail.
 
 ## Settings Write Path
 

@@ -13,6 +13,7 @@ import {
   resolveOperatorStatusChangeModeFromProjection,
   resolveOperatorStatusColorVar,
   resolveOperatorStatusLabelKey,
+  resolveOperatorStatusOptionIsCurrent,
   resolvePostCallFinishAppealProjection,
   type OcpOperatorStatusLabelKey,
 } from "@application/index.js";
@@ -151,9 +152,15 @@ export function useOperatorStatusSelector(
     disabled: readyGuard.disabled,
     disabledReasonKey: readyGuard.reasonKey,
     testId: readyGuard.testId,
-    // Strict match only — Preparing / Ringing / Talking / unknown reasonId → no active option.
-    isCurrent:
-      operator.status === OperatorStatus.READY && operator.reasonId === reason.id,
+    // Idle Ready match, or busy/PCP booking via reserved* (see resolveOperatorStatusOptionIsCurrent).
+    isCurrent: resolveOperatorStatusOptionIsCurrent({
+      optionTarget: "ready",
+      optionReasonId: reason.id,
+      status: operator.status,
+      reasonId: operator.reasonId,
+      reservedStatus: operator.reservedStatus,
+      reservedReasonId: operator.reservedReasonId,
+    }),
   }));
 
   const breakItems = reasons.breakReasons.map((reason) => ({
@@ -163,8 +170,14 @@ export function useOperatorStatusSelector(
     disabled: false,
     disabledReasonKey: null,
     testId: null,
-    isCurrent:
-      operator.status === OperatorStatus.BREAK && operator.reasonId === reason.id,
+    isCurrent: resolveOperatorStatusOptionIsCurrent({
+      optionTarget: "break",
+      optionReasonId: reason.id,
+      status: operator.status,
+      reasonId: operator.reasonId,
+      reservedStatus: operator.reservedStatus,
+      reservedReasonId: operator.reservedReasonId,
+    }),
   }));
 
   const finishProjection = resolvePostCallFinishAppealProjection(
@@ -207,9 +220,15 @@ export function useOperatorStatusSelector(
     dropdownDisabledReasonKey: null,
     readyItems,
     breakItems,
-    isReconnecting: session.connectionState === "reconnecting",
-    isFailed: session.connectionState === "failed",
-    reconnectAttempt: session.reconnectAttempt,
+    isReconnecting:
+      session.transportRecoveryActive ||
+      session.connectionState === "reconnecting",
+    isFailed:
+      !session.transportRecoveryActive && session.connectionState === "failed",
+    reconnectAttempt:
+      session.transportRecoveryAttempt > 0
+        ? session.transportRecoveryAttempt
+        : session.reconnectAttempt,
     maxReconnectAttempts: OCP_MAX_RECONNECT_ATTEMPTS,
   };
 

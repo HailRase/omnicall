@@ -4,7 +4,7 @@ Related: **F-027**, **ADR-0008**, legacy analysis `video-integration/video-integ
 
 ## Goal
 
-Full behavioral video parity with legacy OS-1509, adapted to Axatalk layers — without copying Redux/MediaStream-in-store or dual mute paths.
+Full behavioral video parity with legacy OS-1509, adapted to OmniCall layers — without copying Redux/MediaStream-in-store or dual mute paths.
 
 ## Product UX: media mode (replaces global audioOnly)
 
@@ -55,7 +55,7 @@ Audio mute stays `Call.muted` (F-005). Video mute is separate.
 
 ## Legacy parity map (intent)
 
-| Legacy | Axatalk |
+| Legacy | OmniCall |
 | --- | --- |
 | `audioOnly` setting | Per-call mediaMode + Video call button |
 | `initialVideoMute` + post-connect cam-off | Domain `localVideoMuted` + adapter |

@@ -1,5 +1,5 @@
-import { mkdir, readFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ElectronSafeStorageSecretService } from "./ElectronSafeStorageSecretService.js";
@@ -24,7 +24,7 @@ vi.mock("electron", () => ({
 }));
 
 describe("ElectronSafeStorageSecretService", () => {
-  const secretsRoot = join(tmpdir(), `axatalk-secrets-test-${Date.now()}`);
+  const secretsRoot = join(tmpdir(), `omnicall-secrets-test-${Date.now()}`);
 
   afterEach(async () => {
     await rm(secretsRoot, { recursive: true, force: true });
@@ -64,6 +64,27 @@ describe("ElectronSafeStorageSecretService", () => {
     const loadResult = await service.loadSecret("missing@example.com", "sip-password");
 
     expect(loadResult).toEqual({ ok: true, value: null });
+  });
+
+  it("purges corrupt blob and returns secret_load_failed on decrypt error", async () => {
+    isEncryptionAvailableMock.mockReturnValue(true);
+    decryptStringMock.mockImplementation(() => {
+      throw new Error("decrypt_failed");
+    });
+
+    const service = new ElectronSafeStorageSecretService(secretsRoot);
+    const filePath = resolveSecretStorageFilePath(
+      secretsRoot,
+      "user@example.com",
+      "sip-password",
+    );
+    await mkdir(dirname(filePath), { recursive: true });
+    await writeFile(filePath, Buffer.from("not-valid-ciphertext"));
+
+    const loadResult = await service.loadSecret("user@example.com", "sip-password");
+
+    expect(loadResult).toEqual({ ok: false, reason: "secret_load_failed" });
+    await expect(readFile(filePath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("deletes secret blob", async () => {

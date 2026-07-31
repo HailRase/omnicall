@@ -11,7 +11,9 @@ export type SettingsSectionId =
   | "codecs"
   | "video"
   | "headset"
-  | "integrations";
+  | "integrations"
+  | "integrations-external-services"
+  | "integrations-sdk";
 
 export type SettingsNavLeaf = Readonly<{
   kind: "item";
@@ -104,6 +106,8 @@ export const SETTINGS_NAV_TREE: ReadonlyArray<SettingsNavNode> = [
     iconId: "settings.headset",
     testId: "settings-nav-headset",
   },
+  // Always-open cluster in expanded SettingsSidebar (no accordion). Collapsed rail
+  // shows group icon only. OmniCall Kit stays a top-level leaf below (ADR-0018).
   {
     kind: "group",
     id: "integrations-group",
@@ -118,7 +122,22 @@ export const SETTINGS_NAV_TREE: ReadonlyArray<SettingsNavNode> = [
         iconId: "settings.integrations.ocp",
         testId: "settings-nav-integrations-ocp",
       },
+      {
+        kind: "item",
+        id: "integrations-external-services",
+        labelKey: "settings.nav.integrations.externalServices",
+        iconId: "settings.integrations.external-services",
+        testId: "settings-nav-integrations-external-services",
+      },
     ],
+  },
+  // Top-level leaf immediately below Integrations (not a group child) — ADR-0018 / AF-004.
+  {
+    kind: "item",
+    id: "integrations-sdk",
+    labelKey: "settings.nav.integrations.sdk",
+    iconId: "settings.integrations.sdk",
+    testId: "settings-nav-integrations-sdk",
   },
 ];
 

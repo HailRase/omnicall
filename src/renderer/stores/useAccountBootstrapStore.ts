@@ -43,6 +43,12 @@ import {
   type MultiLineCallProjection,
 } from "@application/projections/telephony/multiLineCallProjection.js";
 import {
+  applyCallFocusSelectionIntent,
+  initialCallFocusProjection,
+  reduceCallFocusProjection,
+  type CallFocusProjection,
+} from "@application/projections/telephony/callFocusProjection.js";
+import {
   applyCallHistoryLoadError,
   applyCallHistoryLoaded,
   applyCallHistoryLoading,
@@ -95,6 +101,10 @@ import {
   initialCampaignEventProjection,
   type CampaignEventProjection,
 } from "@application/projections/integration/campaignEventProjection.js";
+import {
+  initialCallOcpContextProjection,
+  type CallOcpContextProjection,
+} from "@application/projections/integration/callOcpContextProjection.js";
 
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
@@ -104,6 +114,7 @@ type AccountBootstrapStore = Readonly<{
   multiCallProjection: MultiCallProjection;
   transferProjection: TransferProjection;
   multiLineCallProjection: MultiLineCallProjection;
+  callFocusProjection: CallFocusProjection;
   sipSessionHealthProjection: SipSessionHealthProjection;
   callHistoryProjection: CallHistoryProjection;
   contactsProjection: ContactsProjection;
@@ -114,8 +125,10 @@ type AccountBootstrapStore = Readonly<{
   ocpOperatorStatusProjection: OperatorStatusProjection;
   ocpReasonsProjection: OcpReasonsProjection;
   ocpCampaignEventProjection: CampaignEventProjection;
+  ocpCallContextProjection: CallOcpContextProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
+  setCallFocusSelection: (callId: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
   setIncomingRejectReasonRequired: (required: boolean) => void;
   setIncomingBreakReason: (reason: string | null) => void;
@@ -143,6 +156,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   multiCallProjection: initialMultiCallProjection(),
   transferProjection: initialTransferProjection(),
   multiLineCallProjection: initialMultiLineCallProjection(),
+  callFocusProjection: initialCallFocusProjection(),
   sipSessionHealthProjection: initialSipSessionHealthProjection(),
   callHistoryProjection: initialCallHistoryProjection(),
   contactsProjection: initialContactsProjection(),
@@ -153,6 +167,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   ocpOperatorStatusProjection: initialOperatorStatusProjection(),
   ocpReasonsProjection: initialOcpReasonsProjection(),
   ocpCampaignEventProjection: initialCampaignEventProjection(),
+  ocpCallContextProjection: initialCallOcpContextProjection(),
 
   bindFacade: (facade) => {
     facade.setHeadsetProjectionSources(
@@ -173,6 +188,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ocpOperatorStatusProjection: facade.getOcpOperatorSnapshot(),
         ocpReasonsProjection: facade.getOcpReasonsSnapshot(),
         ocpCampaignEventProjection: facade.getOcpCampaignSnapshot(),
+        ocpCallContextProjection: facade.getOcpCallContextSnapshot(),
       });
     };
     syncOcpProjections();
@@ -250,6 +266,11 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           state.incomingCallProjection,
           event,
         );
+        const callFocusProjection = reduceCallFocusProjection(
+          state.callFocusProjection,
+          event,
+          { multiLineCallProjection, incomingCallProjection },
+        );
         return {
           projection: reduceAccountBootstrapProjection(state.projection, event),
           callProjection: reduceCallProjection(state.callProjection, event),
@@ -261,6 +282,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
           transferProjection: reduceTransferProjection(state.transferProjection, event),
           multiLineCallProjection,
+          callFocusProjection,
           sipSessionHealthProjection: reduceSipSessionHealthProjection(
             state.sipSessionHealthProjection,
             event,
@@ -299,6 +321,18 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   setCallMode: (mode, dtmfPanelCallId = null) => {
     set((state) => ({
       callProjection: setDialpadMode(state.callProjection, mode, dtmfPanelCallId),
+    }));
+  },
+
+  setCallFocusSelection: (callId) => {
+    set((state) => ({
+      callFocusProjection: applyCallFocusSelectionIntent(
+        callId,
+        {
+          multiLineCallProjection: state.multiLineCallProjection,
+          incomingCallProjection: state.incomingCallProjection,
+        },
+      ),
     }));
   },
 

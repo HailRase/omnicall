@@ -15,12 +15,12 @@ Remote JSON consumed by in-app update checks (startup background + manual Settin
 
 ## Example
 
-See `docs/softphone/examples/update-manifest.json` (template). Published copy: `HailRase/axatalk-releases` → `update-manifest.json`.
+See `docs/softphone/examples/update-manifest.json` (template). Published copy: `HailRase/omnicall-releases` → `update-manifest.json`.
 
 Live manifest (public distribution repo):
 
 ```txt
-https://raw.githubusercontent.com/HailRase/axatalk-releases/main/update-manifest.json
+https://raw.githubusercontent.com/HailRase/omnicall-releases/main/update-manifest.json
 ```
 
 Operational guide: [`GitHub-Releases-Update-Guide.md`](GitHub-Releases-Update-Guide.md).

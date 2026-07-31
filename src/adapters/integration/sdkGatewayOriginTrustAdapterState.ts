@@ -1,0 +1,31 @@
+/**
+ * In-memory Origin trust mutations for LocalWsServerAdapter (DI-11).
+ */
+
+import {
+  allowSdkOrigin,
+  denySdkOrigin,
+  SDK_INTEGRATION_DEFAULTS,
+  type SdkOriginTrustEntry,
+} from "@domain/index.js";
+
+import type { SdkOriginTrustDecision } from "./sdkGatewayOriginTrustApprover.js";
+
+export function applySdkOriginTrustDecision(
+  entries: readonly SdkOriginTrustEntry[],
+  input: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+): readonly SdkOriginTrustEntry[] {
+  if (input.decision.decision === "cancel") {
+    return entries;
+  }
+  const settings = {
+    originsManaged: true as const,
+    origins: [...entries],
+    operatorModalTimeouts: SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts,
+  };
+  const next =
+    input.decision.decision === "allow"
+      ? allowSdkOrigin(settings, input.origin)
+      : denySdkOrigin(settings, input.origin);
+  return next?.origins ?? entries;
+}

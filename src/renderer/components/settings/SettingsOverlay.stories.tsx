@@ -14,9 +14,12 @@ const storyWindowControls: ShellWindowControlsViewModel = {
   platform: "linux",
   showNativeWindowControls: true,
   isShuttingDown: false,
+  maximizeEnabled: true,
+  isMaximized: false,
   onMinimize: () => undefined,
   onClose: () => undefined,
   onRestart: () => undefined,
+  onToggleMaximize: () => undefined,
 };
 
 const meta = {

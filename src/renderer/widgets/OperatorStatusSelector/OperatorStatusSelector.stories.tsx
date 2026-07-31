@@ -266,6 +266,26 @@ export const PostCallFinishAppealLight: Story = {
           isCurrent: false,
         },
       ],
+      breakItems: [
+        {
+          reasonId: 7,
+          label: "Lunch break",
+          targetStatus: "break",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: "ocp-break-reserved-current",
+          isCurrent: true,
+        },
+        {
+          reasonId: 8,
+          label: "Coffee",
+          targetStatus: "break",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: null,
+          isCurrent: false,
+        },
+      ],
     },
     finishAppeal: {
       visible: true,

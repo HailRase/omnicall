@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { deriveAccountPanelActionsShell } from "@application/projections/settings/deriveAccountPanelActionsShell.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { AccountPanel } from "../components/account/AccountPanel.js";
+import { OcpSignInProgress } from "../components/account/OcpSignInProgress.js";
 import { useAccountActions } from "../hooks/useAccountActions.js";
 import { useI18n } from "../i18n/index.js";
 
@@ -14,7 +15,7 @@ type AuthAccountShellProps = Readonly<{
 /**
  * - Purpose: compose account authorization panel with account actions hook.
  * - Inputs: facade, visibility, and disabled flags from auth shell.
- * - Outputs: presentational account panel when visible.
+ * - Outputs: presentational account panel when visible + global OCP progress overlay.
  */
 export function AuthAccountShell({
   facade,
@@ -38,36 +39,45 @@ export function AuthAccountShell({
         ? null
         : t(accountPanelShell.authorizeDisabledReason);
 
-  if (!visible) {
-    return null;
-  }
+  const progress = accountActions.authorizationProgress;
 
   return (
-    <AccountPanel
-      form={accountActions.form}
-      ocpDraft={accountActions.ocpDraft}
-      signInMode={accountActions.signInMode}
-      submitting={accountActions.submitting}
-      error={accountActions.error}
-      successKey={accountActions.successKey}
-      warningKey={accountActions.warningKey}
-      authorizationProgress={accountActions.authorizationProgress}
-      ocpSignInModalOpen={accountActions.ocpSignInModalOpen}
-      onOcpSignInDisconnect={accountActions.handleOcpSignInDisconnect}
-      onOcpSignInReconnect={accountActions.handleOcpSignInReconnect}
-      onOcpSignInSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
-      panelMode="newFull"
-      disabled={disabled}
-      authorizeDisabledReason={authorizeDisabledReason}
-      showOcpDomainField={accountActions.showOcpDomainField}
-      showOcpApiKeyField={accountActions.showOcpApiKeyField}
-      hasSavedOcpApiKey={accountActions.hasSavedOcpApiKey}
-      allowedRecoveryActions={accountActions.allowedRecoveryActions}
-      onRecoveryAction={accountActions.handleRecoveryAction}
-      onFieldChange={accountActions.updateField}
-      onOcpFieldChange={accountActions.updateOcpField}
-      onSignInModeChange={accountActions.setSignInMode}
-      onSubmit={accountActions.handleSubmit}
-    />
+    <>
+      <OcpSignInProgress
+        open={accountActions.ocpSignInModalOpen}
+        progress={progress}
+        reconnectEnabled={
+          progress.retryAvailable || progress.failedExecutionStage !== null
+        }
+        busy={accountActions.submitting}
+        density="comfortable"
+        onDisconnect={accountActions.handleOcpSignInDisconnect}
+        onReconnect={accountActions.handleOcpSignInReconnect}
+        onSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
+      />
+      {visible ? (
+        <AccountPanel
+          form={accountActions.form}
+          ocpDraft={accountActions.ocpDraft}
+          signInMode={accountActions.signInMode}
+          submitting={accountActions.submitting}
+          error={accountActions.error}
+          successKey={accountActions.successKey}
+          warningKey={accountActions.warningKey}
+          panelMode="newFull"
+          disabled={disabled}
+          authorizeDisabledReason={authorizeDisabledReason}
+          showOcpDomainField={accountActions.showOcpDomainField}
+          showOcpApiKeyField={accountActions.showOcpApiKeyField}
+          hasSavedOcpApiKey={accountActions.hasSavedOcpApiKey}
+          allowedRecoveryActions={accountActions.allowedRecoveryActions}
+          onRecoveryAction={accountActions.handleRecoveryAction}
+          onFieldChange={accountActions.updateField}
+          onOcpFieldChange={accountActions.updateOcpField}
+          onSignInModeChange={accountActions.setSignInMode}
+          onSubmit={accountActions.handleSubmit}
+        />
+      ) : null}
+    </>
   );
 }

@@ -5,13 +5,18 @@
 - **Developer guide (RU):** [`guides/Cursor-Agents-Guide.md`](guides/Cursor-Agents-Guide.md)
 - **Release / CI (RU):** [`guides/Developer-Release-CI-Guide.md`](guides/Developer-Release-CI-Guide.md)
 - **User guide (RU):** [`guides/User-Guide-RU.md`](guides/User-Guide-RU.md)
-- **Public distribution:** [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (installers + manifest — **not** source code)
+- **Public distribution:** [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (installers + manifest — **not** source code)
 - **Migration checklist:** [`guides/Distribution-Migration-Checklist.md`](guides/Distribution-Migration-Checklist.md)
 - Live snapshot: `docs/softphone/STATUS.md`
 - Task queue: `docs/softphone/TASK-QUEUE.md`
+- Bootstrap splash (single-stage `#boot-splash`): `docs/softphone/Bootstrap-Splash-Contract.md`
 - UI Kit plan: `docs/ui-kit/UI-KIT.md`
 - UI Kit visual canon: `docs/ui-kit/VISUAL-SPEC.md`
 - **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
+- **OmniCall Kit project:** `omnicall-kit/README.md` (incubation copy)
+- **OmniCall Kit GitHub (private):** https://github.com/HailRase/omnicall-kit — publishable protocol + kit
+- **Desktop SDK integration (F-011/P12):** `omnicall-kit-integration/README.md`
+- **OCP queue + campaign UI (F-028):** `docs/softphone/OCP-Call-Context.md`
 
 ## Commands (`.cursor/commands/`)
 
@@ -31,6 +36,9 @@
 | `/review` | WU gate reviewer |
 | `/rat-review` | RAT gate reviewer |
 | `/audit` | Holistic super reviewer |
+| `/sdk-project` | Execute one standalone SDK work unit |
+| `/sdk-integration` | Execute one desktop SDK integration work unit |
+| `/sdk-review` | Review one SDK or desktop integration work unit |
 
 ## Implementation agents
 
@@ -41,6 +49,8 @@
 | `/logic` | `.cursor/skills/domain-implementation-agent/SKILL.md` |
 | `/adapter` | `docs/softphone/real-integration/MASTER-AGENT-PROMPT.md` |
 | `/release` | `.cursor/skills/release-agent/SKILL.md` |
+| `/sdk-project` | `omnicall-kit/.cursor/skills/omnicall-kit-implementation/SKILL.md` |
+| `/sdk-integration` | `.cursor/skills/omnicall-kit-integration/SKILL.md` |
 
 Product implementation agents run **scope-intake** first. `/ui-kit` follows `docs/ui-kit/UI-KIT.md`; `/release` runs **release cut** only (not scope-intake).
 
@@ -92,7 +102,7 @@ Reviewers do not write production code or work-history.
 
 ## Skills index
 
-`scope-intake`, `ui-implementation-agent`, `ui-kit-component-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `icons`
+`scope-intake`, `ui-implementation-agent`, `ui-kit-component-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `omnicall-kit-integration`, `icons`
 
 ## User Cursor settings
 

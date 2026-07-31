@@ -8,17 +8,25 @@ import {
 } from "./callProjection.js";
 
 describe("callProjection", () => {
-  it("maps failed busy state", () => {
+  it("maps failed busy to idle with outgoing failure notification", () => {
+    const occurredAt = "2026-07-23T12:00:00.000Z";
     const projection = reduceCallProjection(initialCallProjection(), {
       type: "CallFailed",
       callId: "call-1",
       reason: "busy",
       details: "busy",
       correlationId: createCorrelationId(),
-      occurredAt: new Date().toISOString(),
+      occurredAt,
     });
 
-    expect(projection.uiState).toBe("failedBusy");
+    expect(projection.state).toBe("Idle");
+    expect(projection.uiState).toBe("idle");
+    expect(projection.activeCallId).toBeNull();
+    expect(projection.lastOutgoingFailure).toEqual({
+      reason: "busy",
+      callId: "call-1",
+      occurredAt,
+    });
   });
 
   it("clears tone indicator when tone stops", () => {

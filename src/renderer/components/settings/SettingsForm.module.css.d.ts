@@ -1,6 +1,8 @@
 declare const classes: {
   readonly actionRow: string;
   readonly blockHint: string;
+  readonly contentColumn: string;
+  readonly contentColumnNarrow: string;
   readonly error: string;
   readonly fieldDescription: string;
   readonly fieldLabel: string;
@@ -9,6 +11,7 @@ declare const classes: {
   readonly fieldValue: string;
   readonly languageSelectField: string;
   readonly panelStack: string;
+  readonly panelStackFull: string;
   readonly sectionCard: string;
   readonly sectionTitle: string;
   readonly segmentOption: string;
@@ -17,6 +20,8 @@ declare const classes: {
   readonly settingBlock: string;
   readonly settingBlockDisabled: string;
   readonly settingsGroup: string;
+  readonly stackedForm: string;
+  readonly stackedFormActions: string;
   readonly toggleDescription: string;
   readonly toggleLabel: string;
   readonly toggleRow: string;

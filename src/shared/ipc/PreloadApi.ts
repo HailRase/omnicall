@@ -5,6 +5,12 @@ import type {
   AppShutdownCancelPayload,
 } from "./AppShutdownContract.js";
 import type { ShellWindowLayoutPayload } from "./ShellWindowLayoutContract.js";
+import type {
+  ShellOperatorAttentionPayload,
+  ShellWindowRaisePayload,
+  ShellWindowRaiseResponse,
+} from "./ShellWindowRaiseContract.js";
+import type { ShellTelephonyBusyPayload } from "./ShellTelephonyBusyContract.js";
 import type { OpenExternalUrlPayload, OpenExternalUrlResponse } from "./OpenExternalUrlContract.js";
 import type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";
 import type { ShellWindowControlResponse } from "./ShellWindowControlContract.js";
@@ -19,6 +25,11 @@ import type {
   ContactsCsvSaveExportDialogResponse,
 } from "./ContactsCsvFileContract.js";
 import type {
+  PreferencesOpenImportDialogResponse,
+  PreferencesSaveExportDialogPayload,
+  PreferencesSaveExportDialogResponse,
+} from "./PreferencesFileContract.js";
+import type {
   SecretStorageOperation,
   SecretStorageResponse,
 } from "./SecretStorageContract.js";
@@ -27,6 +38,31 @@ import type {
   SetPendingDisplaySourcePayload,
   SetPendingDisplaySourceResponse,
 } from "./DisplayCaptureContract.js";
+import type {
+  SdkBrokerClientSessionEndedIpcPayload,
+  SdkBrokerReadyIpcPayload,
+  SdkBrokerReadyIpcResponse,
+  SdkBrokerReplyIpcPayload,
+  SdkBrokerReplyIpcResponse,
+  SdkBrokerRequestIpcPayload,
+} from "./SdkBrokerContract.js";
+import type {
+  SdkGatewayPublishEventIpcPayload,
+  SdkGatewayPublishEventIpcResponse,
+} from "./SdkGatewayEventContract.js";
+import type {
+  SdkGatewaySettingsOperation,
+  SdkGatewaySettingsResponse,
+} from "./SdkGatewaySettingsContract.js";
+import type {
+  ExternalServicesHttpRequestDto,
+  ExternalServicesHttpResponseDto,
+} from "./ExternalServicesHttpContract.js";
+import type {
+  ExternalServicesCollectionOpenImportDialogResponse,
+  ExternalServicesCollectionSaveExportDialogPayload,
+  ExternalServicesCollectionSaveExportDialogResponse,
+} from "./ExternalServicesCollectionFileContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -43,11 +79,32 @@ export type SoftphonePreloadApi = Readonly<{
   requestAppRestart: () => Promise<ShellWindowControlResponse>;
   minimizeWindow: () => Promise<ShellWindowControlResponse>;
   closeWindow: () => Promise<ShellWindowControlResponse>;
+  toggleMaximizeWindow: () => Promise<ShellWindowControlResponse>;
+  getWindowMaximized: () => Promise<
+    Readonly<{ ok: true; maximized: boolean } | { ok: false; reason?: string }>
+  >;
+  onWindowMaximizedChanged: (handler: (maximized: boolean) => void) => () => void;
   applyShellWindowLayout: (payload: ShellWindowLayoutPayload) => Promise<void>;
+  /** ADR-0013: raise softphone above other apps (telephony / consent). */
+  raiseShellWindow: (
+    payload: ShellWindowRaisePayload,
+  ) => Promise<ShellWindowRaiseResponse>;
+  /** ADR-0013: mirror telephony busy for SDK window:hide deny. */
+  setShellTelephonyBusy: (
+    payload: ShellTelephonyBusyPayload,
+  ) => Promise<Readonly<{ ok: boolean; reason?: "invalid_payload" }>>;
+  /** Main → renderer: SDK pairing / Origin trust needs operator decision. */
+  onShellOperatorAttention: (
+    handler: (payload: ShellOperatorAttentionPayload) => void,
+  ) => () => void;
   openContactsCsvImportDialog: () => Promise<ContactsCsvOpenImportDialogResponse>;
   saveContactsCsvExportDialog: (
     payload: ContactsCsvSaveExportDialogPayload,
   ) => Promise<ContactsCsvSaveExportDialogResponse>;
+  openPreferencesImportDialog: () => Promise<PreferencesOpenImportDialogResponse>;
+  savePreferencesExportDialog: (
+    payload: PreferencesSaveExportDialogPayload,
+  ) => Promise<PreferencesSaveExportDialogResponse>;
   setHeadsetPreferredDeviceId: (
     deviceId: string | null,
   ) => Promise<Readonly<{ ok: boolean }>>;
@@ -55,6 +112,42 @@ export type SoftphonePreloadApi = Readonly<{
   setPendingDisplaySource: (
     payload: SetPendingDisplaySourcePayload,
   ) => Promise<SetPendingDisplaySourceResponse>;
+  /** DI-02: subscribe to main→renderer SDK broker product requests. */
+  onSdkBrokerRequest: (
+    handler: (payload: SdkBrokerRequestIpcPayload) => void,
+  ) => () => void;
+  /** DI-02: reply to a pending SDK broker request. */
+  replySdkBrokerRequest: (
+    payload: SdkBrokerReplyIpcPayload,
+  ) => Promise<SdkBrokerReplyIpcResponse>;
+  /** DI-02: signal Application composition readiness for product broker traffic. */
+  setSdkBrokerReady: (
+    payload: SdkBrokerReadyIpcPayload,
+  ) => Promise<SdkBrokerReadyIpcResponse>;
+  /**
+   * DI-07: subscribe to authenticated SDK client socket end (pending-logout clear only).
+   */
+  onSdkClientSessionEnded: (
+    handler: (payload: SdkBrokerClientSessionEndedIpcPayload) => void,
+  ) => () => void;
+  /** DI-05: publish redacted public SDK event for per-client gateway fan-out. */
+  publishSdkGatewayEvent: (
+    payload: SdkGatewayPublishEventIpcPayload,
+  ) => Promise<SdkGatewayPublishEventIpcResponse>;
+  /** DI-09: Settings operational invoke for local SDK gateway (no secrets). */
+  invokeSdkGatewaySettings: (
+    operation: SdkGatewaySettingsOperation,
+  ) => Promise<SdkGatewaySettingsResponse>;
+  /** F-031: execute one outbound External Services HTTP request in main. */
+  executeExternalServiceHttp: (
+    request: ExternalServicesHttpRequestDto,
+  ) => Promise<ExternalServicesHttpResponseDto>;
+  /** F-031: open JSON dialog for single-collection import. */
+  openExternalServicesCollectionImportDialog: () => Promise<ExternalServicesCollectionOpenImportDialogResponse>;
+  /** F-031: save JSON dialog for single-collection export. */
+  saveExternalServicesCollectionExportDialog: (
+    payload: ExternalServicesCollectionSaveExportDialogPayload,
+  ) => Promise<ExternalServicesCollectionSaveExportDialogResponse>;
 }>;
 
 declare global {

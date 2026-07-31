@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   buildContactDirectory,
@@ -8,7 +8,6 @@ import {
   deriveIncomingCallSessionCardVisible,
   deriveResumeMultiCallDisabledReason,
   resolveDialpadCallIntent,
-  resolveOutgoingInProgressCallId,
   resolveFullscreenVideoSession,
 } from "@application/index.js";
 
@@ -49,7 +48,9 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     transferProjection,
     multiLineCallProjection,
     callVideoMediaUiProjection,
+    callFocusProjection,
     setCallMode,
+    setCallFocusSelection,
     setIncomingUiState,
   } = useSoftphoneProjections();
 
@@ -198,132 +199,10 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   }, [activeCallControlsProjection.resumeDisabledReason, multiCallProjection]);
 
   const [numberEntryOverlayOpen, setNumberEntryOverlayOpen] = useState(false);
-  const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
-  const trackedIncomingCallIdRef = useRef<string | null>(null);
-  const trackedOutgoingCallIdRef = useRef<string | null>(null);
-  const preOutgoingSelectionRef = useRef<string | null>(null);
-  const userSelectedCallIdRef = useRef<string | null>(null);
+  const selectedCallId = callFocusProjection.focusedCallId;
 
   useEffect(() => {
-    // Incoming UI selection wins over outgoing auto-select while ringing.
-    if (incomingCallId !== null) {
-      return;
-    }
-
-    const outgoingCallId = resolveOutgoingInProgressCallId({
-      lines: callLinesShell.lines,
-      incomingCallId,
-    });
-
-    if (outgoingCallId === null) {
-      const endedOutgoingId = trackedOutgoingCallIdRef.current;
-      trackedOutgoingCallIdRef.current = null;
-      if (endedOutgoingId === null) {
-        return;
-      }
-
-      const establishedOutgoing = callLinesShell.lines.find(
-        (line) =>
-          line.callId === endedOutgoingId &&
-          (line.state === "Active" || line.state === "Held"),
-      );
-      if (establishedOutgoing !== undefined) {
-        userSelectedCallIdRef.current = endedOutgoingId;
-        setSelectedCallId(endedOutgoingId);
-        preOutgoingSelectionRef.current = null;
-        return;
-      }
-
-      const previousSelection = preOutgoingSelectionRef.current;
-      preOutgoingSelectionRef.current = null;
-      if (
-        previousSelection !== null &&
-        callLinesShell.lines.some((line) => line.callId === previousSelection)
-      ) {
-        userSelectedCallIdRef.current = previousSelection;
-        setSelectedCallId(previousSelection);
-      }
-      return;
-    }
-
-    const isNewOutgoing = trackedOutgoingCallIdRef.current !== outgoingCallId;
-    trackedOutgoingCallIdRef.current = outgoingCallId;
-    if (!isNewOutgoing) {
-      return;
-    }
-    if (userSelectedCallIdRef.current !== outgoingCallId) {
-      preOutgoingSelectionRef.current = userSelectedCallIdRef.current;
-    }
-    userSelectedCallIdRef.current = outgoingCallId;
-    setSelectedCallId(outgoingCallId);
-  }, [callLinesShell.lines, incomingCallId]);
-
-  useEffect(() => {
-    if (incomingCallId === null) {
-      const endedIncomingId = trackedIncomingCallIdRef.current;
-      trackedIncomingCallIdRef.current = null;
-      if (endedIncomingId === null) {
-        return;
-      }
-
-      // Answered incoming becomes established — keep headset/UI focus on it (Q6=A).
-      const answeredLine = callLinesShell.lines.find(
-        (line) =>
-          line.callId === endedIncomingId &&
-          (line.state === "Active" ||
-            line.state === "Held" ||
-            line.state === "Connecting"),
-      );
-      if (answeredLine !== undefined) {
-        userSelectedCallIdRef.current = endedIncomingId;
-        setSelectedCallId(endedIncomingId);
-        return;
-      }
-
-      // Rejected/missed — restore pre-incoming operator selection when still alive.
-      const previousUserSelection = userSelectedCallIdRef.current;
-      if (previousUserSelection !== null) {
-        const lineStillExists = callLinesShell.lines.some(
-          (line) => line.callId === previousUserSelection,
-        );
-        if (lineStillExists) {
-          setSelectedCallId(previousUserSelection);
-          return;
-        }
-        userSelectedCallIdRef.current = null;
-      }
-      return;
-    }
-    const isNewIncoming = trackedIncomingCallIdRef.current !== incomingCallId;
-    trackedIncomingCallIdRef.current = incomingCallId;
-    if (!isNewIncoming) {
-      return;
-    }
-    setSelectedCallId(incomingCallId);
-  }, [callLinesShell.lines, incomingCallId]);
-
-  useEffect(() => {
-    if (selectedCallId === null) {
-      return;
-    }
-    const lineStillExists = callLinesShell.lines.some((line) => line.callId === selectedCallId);
-    const incomingStillExists = incomingCallId === selectedCallId;
-    if (!lineStillExists && !incomingStillExists) {
-      const previousUserSelection = userSelectedCallIdRef.current;
-      if (
-        previousUserSelection !== null &&
-        previousUserSelection !== selectedCallId &&
-        callLinesShell.lines.some((line) => line.callId === previousUserSelection)
-      ) {
-        setSelectedCallId(previousUserSelection);
-        return;
-      }
-      setSelectedCallId(null);
-    }
-  }, [callLinesShell.lines, incomingCallId, selectedCallId]);
-
-  useEffect(() => {
-    facade.setHeadsetSelectedCallId(userSelectedCallIdRef.current);
+    facade.setHeadsetSelectedCallId(selectedCallId);
   }, [facade, selectedCallId]);
 
   const hasEstablishedCall = callLinesShellWithSyncBusy.lines.some(
@@ -410,8 +289,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
         callId === incomingCallId &&
         line.primaryAction === "answer"
       ) {
-        userSelectedCallIdRef.current = callId;
-        setSelectedCallId(callId);
+        setCallFocusSelection(callId);
         return;
       }
       // Outbound Connecting/Ringing and established lines: select only.
@@ -420,18 +298,16 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
         callLinesActions.handleAnswerLine(callId);
         return;
       }
-      userSelectedCallIdRef.current = callId;
-      setSelectedCallId(callId);
+      setCallFocusSelection(callId);
     },
-    [callLinesActions, callLinesShell.lines, incomingCallId],
+    [callLinesActions, callLinesShell.lines, incomingCallId, setCallFocusSelection],
   );
 
   const selectIncomingCall = useCallback((): void => {
     if (incomingCallId !== null) {
-      userSelectedCallIdRef.current = incomingCallId;
-      setSelectedCallId(incomingCallId);
+      setCallFocusSelection(incomingCallId);
     }
-  }, [incomingCallId]);
+  }, [incomingCallId, setCallFocusSelection]);
 
   const handleDialpadCall = useCallback((): void => {
     const intent = resolveDialpadCallIntent(dialedNumber, historyNumbers[0] ?? null);

@@ -22,7 +22,40 @@ describe("authorizationProgressProjection", () => {
       failureKind: null,
       failureCode: null,
       stageStartedAtMs: null,
+      uiSurface: "modal",
     });
+  });
+
+  it("clears completed stages when preparing a new attempt", () => {
+    const ready = applyAuthorizationProgressStage(
+      initialAuthorizationProgressProjection(),
+      "ready",
+      "corr-ready",
+    );
+    expect(ready.completedExecutionStages).toHaveLength(5);
+
+    const preparing = applyAuthorizationProgressStage(ready, "preparing", "corr-2");
+    expect(preparing.stage).toBe("preparing");
+    expect(preparing.completedExecutionStages).toEqual([]);
+    expect(preparing.executionStage).toBeNull();
+  });
+
+  it("removes the active stage from a stale completed checklist", () => {
+    const ready = applyAuthorizationProgressStage(
+      initialAuthorizationProgressProjection(),
+      "ready",
+      "corr-ready",
+    );
+    const token = applyAuthorizationExecutionStage(
+      ready,
+      "requesting_authorization_token",
+      "corr-reconnect",
+      1_000,
+    );
+    expect(token.completedExecutionStages).not.toContain(
+      "requesting_authorization_token",
+    );
+    expect(token.executionStage).toBe("requesting_authorization_token");
   });
 
   it("tracks completed execution stages and the exact timeout stage", () => {

@@ -19,7 +19,10 @@
   --font-weight-semibold: 600;
   --line-height-ui: 1.5;
 
-  /* Shell chrome (frameless titlebar + macOS traffic lights) */
+  /* Shell chrome (frameless titlebar + macOS traffic lights).
+     Floating toasts/banners that can sit in top corners must clear these insets
+     on Win/Linux/macOS — see UI-Design-System.md «Floating UI vs window controls»
+     and resolveNotificationToasterOffset (Sonner offset + mobileOffset). */
   --shell-titlebar-controls-height: 34px;
   --shell-mac-traffic-lights-width: 68px;
   --shell-frameless-controls-width: 144px;
@@ -33,6 +36,7 @@
   --shell-mac-traffic-light-close: #ff5f57;
   --shell-mac-traffic-light-minimize: #febc2e;
   --shell-mac-traffic-light-restart: #28c840;
+  --shell-mac-traffic-light-maximize: #28c840;
   --shell-mac-traffic-light-glyph: rgb(0 0 0 / 55%);
   --shell-mac-traffic-light-restart-glyph: rgb(0 0 0 / 65%);
 
@@ -41,6 +45,8 @@
   --z-shell-route-overlay: 0;
   --z-shell-dialpad-panel: 5;
   --z-shell-modal-overlay: 10;
+  /* Above Settings fullscreen; below Dialog/modals (OCP reconnect banner). */
+  --z-shell-status-banner: 20;
   --z-modal: 200;
   /* Menus/selects nested above dialogs; below toasts/tooltips */
   --z-popover: 250;
@@ -54,7 +60,7 @@
 
   color-scheme: light;
 
-  /* Surfaces */
+  /* Surfaces — keep # hex in sync with src/shared/platform/startupSplashColors.ts */
   --color-bg-app: #f3f6fb;
   --color-bg-surface: #ffffff;
   --color-bg-surface-elevated: #ffffff;
@@ -109,6 +115,14 @@
   --color-accent-primary-hover: #4580c9;
   --color-accent-primary-active: #3565b5;
   --color-text-on-accent: #ffffff;
+
+  /*
+   * Brand splash cyan (single-stage #boot-splash mark).
+   * Sync: startupSplashColors.ts, index.html #boot-splash — mid = #42AAFF
+   */
+  --color-brand-splash-from: #6bc4ff;
+  --color-brand-splash-mid: #42aaff;
+  --color-brand-splash-to: #2a8fd9;
 
   /* Overlay */
   --color-overlay-scrim: rgb(26 35 50 / 35%);
@@ -171,6 +185,7 @@
   --shell-mac-traffic-light-close: #ff5f57;
   --shell-mac-traffic-light-minimize: #febc2e;
   --shell-mac-traffic-light-restart: #28c840;
+  --shell-mac-traffic-light-maximize: #28c840;
   --shell-mac-traffic-light-glyph: rgb(0 0 0 / 55%);
   --shell-mac-traffic-light-restart-glyph: rgb(0 0 0 / 65%);
 
@@ -221,6 +236,11 @@
   --color-accent-primary-hover: #5a8fd9;
   --color-accent-primary-active: #3d6fc0;
   --color-text-on-accent: #ffffff;
+
+  /* Brand splash cyan stays the same in dark theme (product mark, not UI accent). */
+  --color-brand-splash-from: #6bc4ff;
+  --color-brand-splash-mid: #42aaff;
+  --color-brand-splash-to: #2a8fd9;
 
   /* Overlay */
   --color-overlay-scrim: rgb(8 12 20 / 55%);

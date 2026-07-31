@@ -99,7 +99,7 @@ export function useOcpCampaignModal(
         return;
       }
 
-      facade.clearOcpActiveCampaign();
+      facade.clearOcpActiveCampaign(action === "accept" ? "accepted" : "rejected");
       setSubmitting(false);
       setPendingAction(null);
     },

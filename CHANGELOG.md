@@ -1,11 +1,135 @@
 # Changelog
 
-All notable user-visible changes to **Axatalk** are documented here.
+All notable user-visible changes to **OmniCall** are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
-Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
+Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
+
+## [1.2.0] - 2026-07-31
+
+### Added
+
+- **F-031** External Services: profile-scoped outbound HTTP automations under Settings →
+  Integrations → External Services (Postman-like collections workspace, Run now, journal,
+  template variables, per-trigger delay queue). Isolated from SIP/OCP/SDK control paths
+  (ADR-0022 / ADR-0023). Nested config round-trips in F-030 preferences export/import
+  (journal excluded). Schema **v13** trigger bindings `{ eventType, delaySeconds }` (0–180).
+- Settings → Integrations always-open nav cluster (OCP Module + External Services);
+  OmniCall Kit remains a separate top-level leaf.
+- Settings-only work-area fill maximize via layout-owned `setBounds` (OS maximize disabled).
+
+### Fixed
+
+- **F-028** OCP auto-recovery banner stays sticky across brief reconnect flaps during
+  `recoverWithFreshToken`.
+- Lint blockers in OCP transport recovery tests and shell maximizable resolver for release
+  preflight.
+
+## [1.1.2] - 2026-07-28
+
+### Fixed
+
+- `build:protocol` uses `tsc -b … --force` (valid with project references). Fixes `npm ci`/`postinstall` failure from invalid `tsc --force` without `--build` on the `v1.1.1` tag run.
+
+## [1.1.1] - 2026-07-28
+
+### Fixed
+
+- Release/CI preflight builds `@softomnitel/omnicall-protocol` after `npm ci` (`build:protocol` / `postinstall`) so Vitest can resolve the package `dist/` entry. Unblocks installer publish after the failed `v1.1.0` tag run.
+
+## [1.1.0] - 2026-07-28
+
+### Added
+
+- **F-011 / ADR-0021** Shared-desk SDK call control: any paired client with Origin-matrix
+  grants may answer/reject/hangup/hold/mute (and originate); informational ownership only.
+  Granular matrix permissions `call.answer|reject|hangup|hold|mute` plus umbrella
+  `call.control` (includes DTMF). No SDK transfer/conference. Origin matrix write path
+  normalizes `call.control` = AND(granular) so hand-edited IPC/settings blobs cannot leave
+  umbrella true while a granular row is false.
+
+### Fixed
+
+- **LF-060 / F-016** Toast viewport stays inside the BrowserWindow through compact↔Settings resize: Sonner width is clamped to the available shell, top toasts clear the titlebar, and edge insets stay at 24px.
+- **LF-060 / F-016** Product toasts no longer overlap frameless window controls in the compact shell: Sonner `mobileOffset` mirrors chrome-safe insets, and the softphone viewport keeps corner placement under Sonner’s `max-width: 600px` mobile path (Win/Linux/macOS).
+- **F-011 / DI-04+DI-09** Corrupt Electron `safeStorage` pairing blobs no longer crash Settings (`sdk-gateway:settings-invoke` / `secret_load_failed`): pairing store purges bad index/client secrets and continues; Settings IPC returns structured `{ ok:false }`; SIP/account secrets still fail hard. Re-pair required after purge.
+
+## [1.0.0] - 2026-07-27
+
+### Changed
+
+- **Brand / MAJOR:** product is **OmniCall** (author SoftOmniTel); `appId` `com.softomnitel.omnicall`; installers `OmniCall-*`; distribution `HailRase/omnicall-releases` (`OMNICALL_RELEASES_TOKEN`). Previous product/SDK names and package scopes are retired.
+- **SDK / protocol packages:** `@softomnitel/omnicall-kit` (OmniCall Kit) and `@softomnitel/omnicall-protocol` (OmniCall Protocol); public API `OmniCallClient` / `createOmniCallClient` (breaking rename of the previous client factory/class).
+- **Protocol paths:** `/omnicall/v1/discovery` and `/omnicall/v1/ws` (breaking path prefix change).
+- **Env:** `OMNICALL_SDK_GATEWAY`, `OMNICALL_SDK_ALLOWED_ORIGINS` (breaking rename of previous `*_SDK_*` env keys).
+- **Storage:** app data under `userData/omnicall`; preferences export format `omnicall.preferences`.
+
+### Added
+
+- One-shot migration from pre-rebrand userData into OmniCall storage; preferences import accepts the previous format id; update-banner dismiss migrates the previous localStorage key.
+
+## [0.15.0] - 2026-07-27
+
+### Added
+
+- **F-011 / ADR-0013** SDK `client.window.hide({ expectedRevision })`: privileged Origin-matrix
+  grant, deny while ringing/connecting/established (`conflict`), minimal tray Show recovery
+  while SDK-hidden; Settings matrix toggle `window.hide` (default off).
+
+## [0.14.0] - 2026-07-26
+
+### Added
+
+- **F-028** Campaign single-modal FSM: `idle` → `preview_offered` / `progressive_offered`; second preview held in `pendingPreview` until accept/reject; promote emits Cleared then Offered (no dual modal). Contract: `OCP-Call-Context.md`, ADR-0019.
+- **F-011 / ADR-0020** Snapshot recovery: additive `calls[].acdContext` (MainCallIDInfo wire) under `ocp.acd_context.read`; `queueLabel` unchanged for redacted clients.
+
+### Changed
+
+- Second OCP preview no longer supersedes the open modal (held until idle); protocol `reasonCode: superseded` retained for compatibility but not emitted for that path.
+
+## [0.13.0] - 2026-07-26
+
+### Added
+
+- **F-028 / LF-037…040** OCP call context: имя очереди ACD на входящем/активном звонке (`CallOcpContextProjection` + `CallContextBadges`); progressive campaign — только бейджи; preview campaign — компактная модалка по центру с blur; пустая очередь = прямой/внутренний (без бейджа). Контракт: `docs/softphone/OCP-Call-Context.md`.
+- **F-030** Перенос настроек оператора: Settings → General → экспорт/импорт portable JSON (`omnicall.preferences` v1) без паролей, API-ключей и SDK pairing; device id сбрасываются; на новой версии приложения недостающие поля поднимаются через `migrateUserSettings` с дефолтами (даунгрейд схемы/formatVersion — fail closed).
+- Root SDK connect ceremony modal: Origin TOFU → pairing stepper (blur overlay поверх любого shell route); для уже trusted Origin — только pairing.
+- Waiting Cancel в ceremony (без blacklist); gateway cancel pending on disconnect + Origin leave-allowed; TTL sweeper для orphaned pairing/TOFU.
+- SDK login activate: `account:activate-profile` принимает `login` (+ optional `mode`); consent modal с выбором SIP/OCP; idempotent same-client; reauthorize для другого clientId; `logout_required` informational modal.
+- Global OCP sign-in progress overlay: один `OcpSignInProgress` на shell (dialpad / contacts / history / settings), auto-open по live `authorizationProgress` (в т.ч. SDK OCP activate); density `compact` на главном окне и `comfortable` в settings.
+- Compact OCP progress: статус этапа только иконками (без «Ожидает/Выполняется/…»); tooltip ошибки сохранён.
+- SDK activate consent: компактный footer Cancel▾ (Запретить сайту) + Allow; Deny синхронизирует matrix в Settings Trusted sites.
+
+### Changed
+
+- **F-016 / LF-002** Bootstrap splash bounce: чуть быстрее (1000ms), плавнее цикл (linear + seamless keyframes); settle без телепорта (freeze текущего pose → ease to rest); тень без animated `filter: blur`; progress-тики дешевле — без смены single-stage контракта.
+- Pairing / TOFU больше не открывают Settings и не показываются callout’ами в OmniCall Kit card; Settings остаётся policy (trusted/blocked/matrix/revoke).
+- Disconnect mid-TOFU больше не пишет Origin в blacklist (`cancel` ≠ Deny).
+- Убран Settings «Временный доступ к профилю» / temporary `profileRef` grant; `account.activate` поднимается из Origin matrix + `sdk:permission-changed`.
+- OCP progress Dialog снят с `AccountPanel` / Settings mount — только shell host, чтобы overlay не пропадал при закрытых Settings.
+### Fixed
+
+- SDK `window.show`: софтфон поднимается поверх других приложений (restore/show/focus/`moveTop` + краткий always-on-top pulse с восстановлением прежнего pin), а не только мигает в панели задач Windows (ADR-0013).
+- Входящий/исходящий звонок, SDK Origin trust (TOFU), pairing и activate-consent поднимают окно тем же native helper.
+- Activate consent raise: dedupe по `attentionId` на эпизод (как pairingRequestId), а не по origin+profile — повторный запрос после Cancel снова поднимает окно.
+
+## [0.12.0] - 2026-07-21
+
+### Added
+
+- SDK Origin TOFU: первое подключение неизвестного Origin показывает modal Allow/Deny.
+- Чёрный список Origin с Unblock (restore matrix для ранее allowed; first-Deny → unknown).
+- Per-Origin capability matrix в Settings → Integrations → OmniCall Kit.
+- Consent modal на каждый `account.activateProfile` (когда matrix разрешает activate).
+- Pre-auth доступ к Settings → OmniCall Kit (OCP Module по-прежнему gated).
+
+### Changed
+
+- SDK gateway всегда слушает loopback (toggle enable в Settings убран; kill-switch только `OMNICALL_SDK_GATEWAY=0`).
+- Origin trust хранится machine-common (`sdk-origin-trust.json`); blacklist побеждает env seed.
+- Схема UserSettings v11 (миграция `enabled`/flat allowlist → trust states + matrix).
 
 ## [0.11.2] - 2026-07-19
 
@@ -227,7 +351,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - F-022: video-кодеки в настройках — future-only (read-only, без reorder/toggle)
 - F-022: порядок audio-кодеков применяется на новых RTC-сессиях (JsSIP adapter, dual-layer apply)
-- Публичный README и структурированные release notes на `axatalk-releases` (автогенерация из `distribution/CHANGELOG.md`)
+- Публичный README и структурированные release notes на `omnicall-releases` (автогенерация из `distribution/CHANGELOG.md`)
 
 ### Fixed
 
@@ -285,8 +409,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Changed
 
-- Публикация релизов на публичный `axatalk-releases` (тест пайплайна дистрибуции)
-- Фильтр assets: только установщики `Axatalk-{version}-*`, без `win-unpacked`
+- Публикация релизов на публичный `omnicall-releases` (тест пайплайна дистрибуции)
+- Фильтр assets: только установщики `OmniCall-{version}-*`, без `win-unpacked`
 
 ## [0.0.2] - 2026-07-01
 
@@ -309,7 +433,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Added
 
-- Initial Axatalk distribution (Windows, macOS, Linux installers)
+- Initial OmniCall distribution (Windows, macOS, Linux installers)
 - F-020 manual in-app update check (manifest on `main`, no auto-install)
 - F-019 packaging via electron-builder and GitHub Actions
 
@@ -317,7 +441,16 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.11.2...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.2.0...main
+[1.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.2.0
+[1.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.2
+[1.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.1
+[1.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.0
+[1.0.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.0.0
+[0.15.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.15.0
+[0.14.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.14.0
+[0.13.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.13.0
+[0.12.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.12.0
 [0.11.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.2
 [0.11.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.1
 [0.11.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.0

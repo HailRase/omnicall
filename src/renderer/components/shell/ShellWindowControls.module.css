@@ -68,6 +68,29 @@
   background: var(--shell-mac-traffic-light-restart);
 }
 
+.traffic-light-maximize:hover:not(:disabled) {
+  background: var(--shell-mac-traffic-light-maximize);
+}
+
+.mac-os-restart-after-traffic-lights {
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  background: transparent;
+}
+
+.mac-os-restart-after-traffic-lights:hover:not(:disabled) {
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.mac-os-restart-after-traffic-lights svg {
+  width: 14px;
+  height: 14px;
+}
+
 .traffic-light-restart-glyph {
   opacity: 0.72;
   transition:

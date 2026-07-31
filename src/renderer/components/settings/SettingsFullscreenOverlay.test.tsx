@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { deriveSettingsNavigationAvailability } from "@application/index.js";
@@ -122,38 +122,35 @@ describe("SettingsFullscreenOverlay", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("plays exit animation before unmounting when closed", () => {
+  it("unmounts immediately when closed", () => {
     const onClose = vi.fn();
+    const onVisibleChange = vi.fn();
 
     const { container, rerender } = render(
       <SettingsFullscreenOverlay
         open
         onClose={onClose}
         windowControls={settingsOverlayWindowControlsTestDefaults}
+        onVisibleChange={onVisibleChange}
       >
         <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
+
+    expect(onVisibleChange).toHaveBeenLastCalledWith(true);
 
     rerender(
       <SettingsFullscreenOverlay
         open={false}
         onClose={onClose}
         windowControls={settingsOverlayWindowControlsTestDefaults}
+        onVisibleChange={onVisibleChange}
       >
         <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
 
-    const overlay = container.querySelector('[data-testid="settings-overlay"]');
-    expect(overlay).not.toBeNull();
-    expect(overlay).toHaveAttribute("data-closing", "true");
-
-    const panel = overlay?.querySelector("section");
-    if (panel !== null && panel !== undefined) {
-      fireEvent.animationEnd(panel);
-    }
-
     expect(container.querySelector('[data-testid="settings-overlay"]')).toBeNull();
+    expect(onVisibleChange).toHaveBeenLastCalledWith(false);
   });
 });

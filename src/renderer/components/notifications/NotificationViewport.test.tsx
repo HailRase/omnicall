@@ -324,7 +324,7 @@ describe("NotificationViewport", () => {
     expect(getComputedStyle(toaster as Element).pointerEvents).toBe("auto");
   });
 
-  it("offsets top placement below shell window controls", async () => {
+  it("keeps top placement below the titlebar and at the compact shell edge", async () => {
     render(
       <NotificationViewport
         placement="top-right"
@@ -344,6 +344,34 @@ describe("NotificationViewport", () => {
     expect(toaster.style.getPropertyValue("--offset-top")).toBe(
       "var(--incoming-call-banner-top)",
     );
+    expect(toaster.style.getPropertyValue("--offset-right")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe(
+      "var(--incoming-call-banner-top)",
+    );
+    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe("24px");
+  });
+
+  it("mirrors chrome-safe mobile offsets for bottom placement under Sonner mobile width", async () => {
+    render(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="stacked"
+        durationMs={10_000}
+        maxVisible={3}
+        items={[baseItem]}
+        onDismiss={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector("[data-sonner-toaster]")).not.toBeNull();
+    });
+
+    const toaster = document.querySelector("[data-sonner-toaster]") as HTMLElement;
+    expect(toaster.style.getPropertyValue("--offset-bottom")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-bottom")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe("24px");
   });
 
 });

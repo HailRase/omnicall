@@ -1,0 +1,37 @@
+{
+  "date": "2026-07-20T21:12:12.336Z",
+  "mode": "packaged-process-node-ws",
+  "note": "Node ws client against packaged Electron gateway — not browser Playwright E2E",
+  "approvedOrigin": "http://127.0.0.1:8765",
+  "cells": [
+    {
+      "id": "packaged.discovery",
+      "result": "PASS",
+      "detail": "desktopVersion=0.11.2"
+    },
+    {
+      "id": "packaged.hostile_origin",
+      "result": "PASS",
+      "detail": "upgrade denied (error:ECONNRESET)"
+    },
+    {
+      "id": "packaged.approved_origin_connect",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged.incompatible_version",
+      "result": "PASS",
+      "detail": "closed with zero product messages"
+    },
+    {
+      "id": "packaged.current_handshake",
+      "result": "PASS",
+      "detail": "server-hello pairingRequired; no product state"
+    }
+  ],
+  "summary": {
+    "passCount": 5,
+    "failCount": 0,
+    "total": 5
+  }
+}

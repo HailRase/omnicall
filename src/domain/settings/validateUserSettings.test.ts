@@ -24,6 +24,30 @@ describe("validateUserSettings", () => {
     }
   });
 
+  it("accepts empty External Services defaults at schema v13", () => {
+    const result = validateUserSettings(createDefaultUserSettings());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(13);
+      expect(result.value.externalServices.collections).toEqual([]);
+    }
+  });
+
+  it("rejects malformed current-schema External Services with a field path", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      externalServices: { collections: [{ id: "invalid" }] },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain(
+        "externalServices.collections[0].id_invalid_uuid",
+      );
+    }
+  });
+
   it("defaults headsetPreferredDeviceId to null when missing", () => {
     const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
     delete payload["headsetPreferredDeviceId"];

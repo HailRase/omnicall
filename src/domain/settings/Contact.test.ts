@@ -6,7 +6,7 @@ const validInput = {
   displayName: "Alex Supervisor",
   primaryPhone: "+12025550100",
   secondaryPhone: "1001",
-  company: "Axata",
+  company: "SoftOmniTel",
   notes: "VIP",
 } as const;
 
@@ -21,7 +21,7 @@ describe("createContact", () => {
     expect(result.value.displayName).toBe("Alex Supervisor");
     expect(result.value.primaryPhone).toBe("+12025550100");
     expect(result.value.secondaryPhone).toBe("1001");
-    expect(result.value.company).toBe("Axata");
+    expect(result.value.company).toBe("SoftOmniTel");
     expect(result.value.notes).toBe("VIP");
     expect(result.value.id).toMatch(/^contact_/);
   });

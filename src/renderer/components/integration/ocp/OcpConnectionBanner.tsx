@@ -14,9 +14,10 @@ export type OcpConnectionBannerProps = Readonly<{
 }>;
 
 /**
- * - Purpose: non-blocking OCP reconnect/failed banner under shell chrome.
+ * - Purpose: global OCP reconnect/failed banner (shell overlay layer).
  * - Inputs: visibility, mode, attempt counters, retry callback.
- * - Outputs: Alert with localized copy and optional Retry control.
+ * - Outputs: compact two-line Alert that fits the main softphone width.
+ * - Note: sole user surface for unexpected-drop auto-recovery (`uiSurface: silent`).
  */
 export function OcpConnectionBanner({
   visible,
@@ -31,17 +32,18 @@ export function OcpConnectionBanner({
     return null;
   }
 
+  // Primary line = status (must wrap fully on ~360px). Secondary = product label.
   const title =
-    mode === "reconnecting"
-      ? t("ocp.connection.reconnectingTitle")
-      : t("ocp.connection.failedTitle");
-  const message =
     mode === "reconnecting"
       ? t("ocp.connection.reconnecting", {
           attempt: reconnectAttempt,
           max: maxReconnectAttempts,
         })
       : t("ocp.connection.failed");
+  const subtitle =
+    mode === "reconnecting"
+      ? t("ocp.connection.reconnectingTitle")
+      : t("ocp.connection.failedTitle");
 
   return (
     <div
@@ -55,11 +57,14 @@ export function OcpConnectionBanner({
         data-testid="ocp-connection-banner"
         data-mode={mode}
       >
-        <AppIcon id="connection.retry" decorative size={16} preferAnimated={false} />
-        <AlertTitle>{title}</AlertTitle>
-        <AlertDescription data-testid="ocp-connection-banner-message">
-          {message}
-        </AlertDescription>
+        <AppIcon id="connection.retry" decorative size={14} preferAnimated={false} />
+        <AlertTitle
+          className={styles.title}
+          data-testid="ocp-connection-banner-message"
+        >
+          {title}
+        </AlertTitle>
+        <AlertDescription className={styles.message}>{subtitle}</AlertDescription>
         {mode === "failed" ? (
           <div className={styles.actions}>
             <Button

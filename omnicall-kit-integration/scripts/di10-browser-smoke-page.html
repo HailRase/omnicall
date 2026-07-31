@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DI-10 browser smoke</title>
+  </head>
+  <body>
+    <pre id="out">starting…</pre>
+    <script>
+      const out = document.getElementById("out");
+      const lines = [];
+      function log(line) {
+        lines.push(line);
+        out.textContent = lines.join("\n");
+        fetch("/report", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ lines }),
+        }).catch(() => {});
+      }
+
+      async function run() {
+        const ws = new WebSocket("ws://127.0.0.1:17341/omnicall/v1/ws");
+        await new Promise((resolve, reject) => {
+          ws.addEventListener("open", () => resolve(), { once: true });
+          ws.addEventListener(
+            "error",
+            () => reject(new Error("ws_error")),
+            { once: true },
+          );
+          setTimeout(() => reject(new Error("ws_timeout")), 5000);
+        });
+        log("PASS packaged.browser_ws_open");
+
+        let messages = 0;
+        ws.addEventListener("message", (event) => {
+          messages += 1;
+          log(`message:${String(event.data).slice(0, 120)}`);
+        });
+
+        ws.send(
+          JSON.stringify({
+            protocolVersion: 1,
+            kind: "handshake",
+            type: "sdk:client-hello",
+            protocolMin: 1,
+            protocolMax: 1,
+            sdkVersion: "0.0.0-di10-browser",
+            application: { name: "di10-browser-smoke", version: "0.0.0" },
+            requestedCapabilities: ["session.read.redacted"],
+            clientNonce: "Y2xpZW50bm9uY2UxMjM",
+            occurredAt: new Date().toISOString(),
+          }),
+        );
+
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error("hello_timeout")), 5000);
+          ws.addEventListener(
+            "message",
+            (event) => {
+              clearTimeout(timer);
+              try {
+                const parsed = JSON.parse(String(event.data));
+                if (parsed.type === "sdk:server-hello" && parsed.pairingRequired === true) {
+                  log("PASS packaged.browser_handshake");
+                  resolve();
+                  return;
+                }
+                log(`FAIL unexpected:${parsed.type}`);
+                reject(new Error("unexpected_hello"));
+              } catch (error) {
+                reject(error);
+              }
+            },
+            { once: true },
+          );
+        });
+
+        ws.close();
+        log(`DONE messages=${messages}`);
+        fetch("/done", { method: "POST", body: "ok" }).catch(() => {});
+      }
+
+      run().catch((error) => {
+        log(`FAIL ${error instanceof Error ? error.message : String(error)}`);
+        fetch("/done", { method: "POST", body: "fail" }).catch(() => {});
+      });
+    </script>
+  </body>
+</html>

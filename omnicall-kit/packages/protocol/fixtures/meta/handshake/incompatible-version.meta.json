@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "incompatible_version",
+  "notes": "protocolVersion 99 is outside package authored range"
+}

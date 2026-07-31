@@ -4,33 +4,12 @@ import { useI18n } from "../../i18n/index.js";
 import { Toaster } from "../ui/sonner/index.js";
 import type { ToastPlacement } from "../ui/types.js";
 import type { NotificationStacking } from "@application/index.js";
-import type { ToasterProps } from "../ui/sonner/Sonner.js";
 import {
   NOTIFICATION_TOASTER_ID,
   useNotificationSonnerSync,
 } from "./useNotificationSonnerSync.js";
+import { resolveNotificationToasterOffset } from "./resolveNotificationToasterOffset.js";
 import styles from "./NotificationViewport.module.css";
-
-const NOTIFICATION_EDGE_OFFSET_PX = 24;
-const NOTIFICATION_EDGE_OFFSET_SAFE_START =
-  "calc(24px + var(--shell-window-controls-safe-inline-start))";
-const NOTIFICATION_EDGE_OFFSET_SAFE_END =
-  "calc(24px + var(--shell-window-controls-safe-inline-end))";
-
-function resolveNotificationToasterOffset(
-  placement: ToastPlacement,
-): NonNullable<ToasterProps["offset"]> {
-  if (placement.startsWith("top")) {
-    return {
-      top: "var(--incoming-call-banner-top)",
-      right: NOTIFICATION_EDGE_OFFSET_SAFE_END,
-      bottom: NOTIFICATION_EDGE_OFFSET_PX,
-      left: NOTIFICATION_EDGE_OFFSET_SAFE_START,
-    };
-  }
-
-  return NOTIFICATION_EDGE_OFFSET_PX;
-}
 
 export type NotificationViewportProps = Readonly<{
   placement: ToastPlacement;
@@ -55,6 +34,7 @@ export function NotificationViewport({
   onDismiss,
 }: NotificationViewportProps): JSX.Element {
   const { t, language } = useI18n();
+  const chromeSafeOffset = resolveNotificationToasterOffset(placement);
 
   useNotificationSonnerSync({
     items,
@@ -71,7 +51,8 @@ export function NotificationViewport({
         visibleToasts={stacking === "single" ? 1 : maxVisible}
         expand={false}
         gap={14}
-        offset={resolveNotificationToasterOffset(placement)}
+        offset={chromeSafeOffset}
+        mobileOffset={chromeSafeOffset}
         closeButton
         containerAriaLabel={t("notifications.viewport.ariaLabel")}
         toastOptions={{

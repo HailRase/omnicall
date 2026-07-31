@@ -51,6 +51,13 @@ export class ElectronSafeStorageSecretService {
       if (isMissingFileError(error)) {
         return { ok: true, value: null };
       }
+      // Corrupt / foreign-key blob: purge so callers are not stuck on perpetual
+      // secret_load_failed. Still report failure (SIP UX treats this as recover).
+      try {
+        await rm(filePath, { force: true });
+      } catch {
+        // Best-effort; reason remains secret_load_failed.
+      }
       return { ok: false, reason: "secret_load_failed" };
     }
   }

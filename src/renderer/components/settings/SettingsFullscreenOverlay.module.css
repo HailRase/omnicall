@@ -31,6 +31,12 @@
   animation: settingsBackdropOut 220ms ease-in forwards;
 }
 
+.backdrop-holding {
+  animation: none;
+  opacity: 1;
+  pointer-events: none;
+}
+
 .panel {
   position: relative;
   z-index: 1;
@@ -83,6 +89,16 @@
   animation: settingsPanelSlideOut 280ms cubic-bezier(0.64, 0, 0.78, 0) forwards;
 }
 
+/*
+ * Close motion is owned by BrowserWindow bounds (ShellWindowLayout). Keep the
+ * panel fully opaque for the hold duration so underlay chrome does not flash.
+ */
+.panel-holding {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
 @keyframes settingsBackdropIn {
   from {
     opacity: 0;
@@ -130,8 +146,10 @@
 @media (prefers-reduced-motion: reduce) {
   .backdrop,
   .backdrop-exiting,
+  .backdrop-holding,
   .panel,
-  .panel-exiting {
+  .panel-exiting,
+  .panel-holding {
     animation: none;
   }
 }

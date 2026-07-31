@@ -17,6 +17,7 @@ import type { Logger } from "@ports/index.js";
 import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
 import { createHeadsetGateway } from "./createHeadsetGateway.js";
+import { createExternalServicesCompositionForBootstrap } from "./createExternalServicesCompositionForBootstrap.js";
 import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSettingsRepository.js";
 import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
 import { createRealBootstrapContactRepository } from "./createRealBootstrapContactRepository.js";
@@ -210,6 +211,30 @@ export function createRealAccountBootstrap(
       logger: createBootstrapLogger({ featureId: "F-028", boundedContext: "Integration" }),
     });
 
+  const externalServicesComposition =
+    options.externalServicesComposition ??
+    createExternalServicesCompositionForBootstrap({
+      mode: "real",
+      logger: createBootstrapLogger({ featureId: "F-031", boundedContext: "Integration" }),
+      settingsRepository,
+      ...(options.profilesStorageRoot !== undefined
+        ? { profilesStorageRoot: options.profilesStorageRoot }
+        : {}),
+      ...(options.filesystem !== undefined ? { filesystem: options.filesystem } : {}),
+      ...(options.outboundHttp !== undefined
+        ? { outboundHttp: options.outboundHttp }
+        : {}),
+      ...(options.externalServicesJournalRepository !== undefined
+        ? { journalRepository: options.externalServicesJournalRepository }
+        : {}),
+      ...(options.externalServicesClock !== undefined
+        ? { clock: options.externalServicesClock }
+        : {}),
+      ...(options.externalServicesUuidGenerator !== undefined
+        ? { uuidGenerator: options.externalServicesUuidGenerator }
+        : {}),
+    });
+
   const facade = new AccountBootstrapFacade({
     telephonyGateway: configuredTelephonyGateway,
     mediaGateway,
@@ -231,9 +256,19 @@ export function createRealAccountBootstrap(
     ...(options.contactCsvFileGateway !== undefined
       ? { contactCsvFileGateway: options.contactCsvFileGateway }
       : {}),
+    ...(options.preferencesFileGateway !== undefined
+      ? { preferencesFileGateway: options.preferencesFileGateway }
+      : {}),
+    ...(options.externalServicesCollectionFileGateway !== undefined
+      ? {
+          externalServicesCollectionFileGateway:
+            options.externalServicesCollectionFileGateway,
+        }
+      : {}),
     ...(options.secretStoragePort !== undefined
       ? { secretStoragePort: options.secretStoragePort }
       : {}),
+    externalServicesComposition,
     hostIntegrationGateway,
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });

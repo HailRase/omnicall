@@ -39,6 +39,65 @@ describe("ShellWindowControls", () => {
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
+  it("renders macOS maximize traffic light in settings mode with restart beside it", () => {
+    render(
+      <ShellWindowControls
+        platform="darwin"
+        showNativeWindowControls={true}
+        isShuttingDown={false}
+        maximizeEnabled={true}
+        isMaximized={false}
+        onMinimize={vi.fn()}
+        onClose={vi.fn()}
+        onRestart={vi.fn()}
+        onToggleMaximize={vi.fn()}
+      />,
+    );
+
+    const controls = screen.getByTestId("shell-window-controls");
+    const testIds = Array.from(
+      controls.querySelectorAll('[data-testid^="control-window-"]'),
+      (node) => node.getAttribute("data-testid"),
+    );
+
+    expect(testIds).toEqual([
+      "control-window-close",
+      "control-window-minimize",
+      "control-window-maximize",
+      "control-window-restart",
+    ]);
+    expect(screen.getByLabelText("Развернуть на весь экран")).toBeInTheDocument();
+  });
+
+  it("renders minimize, maximize, restart, and close on frameless platforms in settings", () => {
+    render(
+      <ShellWindowControls
+        platform="linux"
+        showNativeWindowControls={true}
+        isShuttingDown={false}
+        maximizeEnabled={true}
+        isMaximized={false}
+        onMinimize={vi.fn()}
+        onClose={vi.fn()}
+        onRestart={vi.fn()}
+        onToggleMaximize={vi.fn()}
+      />,
+    );
+
+    const controls = screen.getByTestId("shell-window-controls");
+    const testIds = Array.from(
+      controls.querySelectorAll('[data-testid^="control-window-"]'),
+      (node) => node.getAttribute("data-testid"),
+    );
+
+    expect(testIds).toEqual([
+      "control-window-minimize",
+      "control-window-maximize",
+      "control-window-restart",
+      "control-window-close",
+    ]);
+  });
+
   it("renders minimize, restart, and close on frameless platforms", () => {
     render(
       <ShellWindowControls
@@ -54,8 +113,7 @@ describe("ShellWindowControls", () => {
     const controls = screen.getByTestId("shell-window-controls");
     const testIds = Array.from(
       controls.querySelectorAll('[data-testid^="control-window-"]'),
-      (node) =>
-      node.getAttribute("data-testid"),
+      (node) => node.getAttribute("data-testid"),
     );
 
     expect(testIds).toEqual([
@@ -74,13 +132,16 @@ describe("ShellWindowControls", () => {
         platform="win32"
         showNativeWindowControls={true}
         isShuttingDown={true}
+        maximizeEnabled={true}
         onMinimize={vi.fn()}
         onClose={vi.fn()}
         onRestart={vi.fn()}
+        onToggleMaximize={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("control-window-minimize")).toBeDisabled();
+    expect(screen.getByTestId("control-window-maximize")).toBeDisabled();
     expect(screen.getByTestId("control-window-restart")).toBeDisabled();
     expect(screen.getByTestId("control-window-close")).toBeDisabled();
   });
@@ -119,5 +180,43 @@ describe("ShellWindowControls", () => {
 
     await user.click(screen.getByTestId("control-window-restart"));
     expect(onRestart).toHaveBeenCalledTimes(1);
+  });
+
+  it("invokes maximize toggle and shows restore label when maximized", async () => {
+    const user = userEvent.setup();
+    const onToggleMaximize = vi.fn();
+
+    const { rerender } = render(
+      <ShellWindowControls
+        platform="win32"
+        showNativeWindowControls={true}
+        isShuttingDown={false}
+        maximizeEnabled={true}
+        isMaximized={false}
+        onMinimize={vi.fn()}
+        onClose={vi.fn()}
+        onRestart={vi.fn()}
+        onToggleMaximize={onToggleMaximize}
+      />,
+    );
+
+    await user.click(screen.getByTestId("control-window-maximize"));
+    expect(onToggleMaximize).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <ShellWindowControls
+        platform="win32"
+        showNativeWindowControls={true}
+        isShuttingDown={false}
+        maximizeEnabled={true}
+        isMaximized={true}
+        onMinimize={vi.fn()}
+        onClose={vi.fn()}
+        onRestart={vi.fn()}
+        onToggleMaximize={onToggleMaximize}
+      />,
+    );
+
+    expect(screen.getByLabelText("Восстановить размер окна настроек")).toBeInTheDocument();
   });
 });

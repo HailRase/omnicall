@@ -140,6 +140,39 @@ describe("CallEngine", () => {
     vi.useRealTimers();
   });
 
+  it("rejects outbound makeCall before events when SIP is not registered", async () => {
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const media = new MockMediaGateway();
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+    });
+    await telephony.unregister(createCorrelationId());
+
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const result = await engine.makeCall({
+      phoneNumber: createPhoneNumber("1"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.message).toBe("SIP not registered for outbound call");
+    expect(telephony.getMakeCallCommands()).toHaveLength(0);
+    expect(publishedTypes).not.toContain("OutgoingCallRequested");
+    expect(publishedTypes).not.toContain("CallFailed");
+  });
+
   it("maps rejected failures to failed tone", async () => {
     const events = new InMemoryDomainEventBus();
     const media = new MockMediaGateway();
@@ -839,6 +872,39 @@ describe("CallEngine", () => {
     }
     expect(hangupResult.value.state).toBe("Ended");
     expect(telephony.getHangupCalls()).toEqual(["active-3"]);
+  });
+
+  it("publishes CallEnded once when hangup also notifies session ended", async () => {
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+      hangupNotifiesEnded: true,
+    });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    telephony.setCallEndedHandler(async (notification) => {
+      await engine.handleCallEnded(notification.callId, notification.correlationId);
+    });
+
+    const callId = createCallId("active-hangup-once");
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550199"),
+    });
+
+    const hangupResult = await engine.hangupCall({ callId });
+    expect(hangupResult.ok).toBe(true);
+    expect(publishedTypes.filter((type) => type === "CallEnded")).toHaveLength(1);
+    expect(publishedTypes).toContain("CallHangupRequested");
   });
 
   it("returns hold failure when gateway rejects command", async () => {

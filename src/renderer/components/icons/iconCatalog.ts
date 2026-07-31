@@ -6,6 +6,7 @@ import {
   AudioLines,
   Bell,
   BellOff,
+  Blocks,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -40,11 +41,15 @@ import {
   PhoneOutgoing,
   Pencil,
   Play,
+  Plus,
   RefreshCcw,
   RotateCcw,
   Server,
   Settings,
+  Send,
   SlidersHorizontal,
+  Square,
+  SquareStack,
   Trash2,
   User,
   UserRoundPlus,
@@ -55,6 +60,7 @@ import {
   Maximize2,
   Minimize2,
   Plug,
+  Webhook,
   X,
 } from "lucide-react";
 import {
@@ -99,6 +105,8 @@ export type IconSemanticId =
   | "shell.diagnostics"
   | "shell.restart"
   | "shell.window.minimize"
+  | "shell.window.maximize"
+  | "shell.window.restore"
   | "shell.window.close"
   | "shell.nav.back"
   | "shell.contacts"
@@ -115,6 +123,12 @@ export type IconSemanticId =
   | "settings.headset"
   | "settings.integrations"
   | "settings.integrations.ocp"
+  | "settings.integrations.external-services"
+  | "settings.integrations.external-services.send"
+  | "settings.integrations.external-services.add"
+  | "settings.integrations.external-services.panelExpand"
+  | "settings.integrations.external-services.panelCollapse"
+  | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
   | "settings.nav.collapse"
@@ -137,8 +151,10 @@ export type IconSemanticId =
   | "call.transfer"
   | "call.incoming"
   | "call.outgoing"
+  | "call.queue"
   | "call.phone-off"
   | "overlay.close"
+  | "bootstrap.mark"
   | "dial.call"
   | "dial.videoCall"
   | "dial.delete"
@@ -159,6 +175,8 @@ export type IconSemanticId =
   | "updates.available"
   | "notification.success"
   | "notification.error"
+  | "sdk.permission.allowed"
+  | "sdk.permission.denied"
   | "account.authProgress.status.completed"
   | "account.authProgress.status.active"
   | "account.authProgress.status.pending"
@@ -200,6 +218,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.shell.window.minimize",
     defaultSize: 16,
     usage: ["ShellWindowControls: control-window-minimize"],
+  },
+  "shell.window.maximize": {
+    static: Square,
+    defaultLabelKey: "icons.shell.window.maximize",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-maximize"],
+  },
+  "shell.window.restore": {
+    static: SquareStack,
+    defaultLabelKey: "icons.shell.window.restore",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-maximize (restore)"],
   },
   "shell.window.close": {
     static: X,
@@ -304,6 +334,45 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.ocp",
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-ocp"],
+  },
+  "settings.integrations.external-services": {
+    static: Webhook,
+    defaultLabelKey: "icons.settings.integrations.externalServices",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-external-services"],
+  },
+  "settings.integrations.external-services.send": {
+    static: Send,
+    defaultLabelKey: "icons.settings.integrations.externalServices.send",
+    defaultSize: 14,
+    usage: ["ExternalServicesRequestEditor: external-services-run-now"],
+  },
+  "settings.integrations.external-services.add": {
+    static: Plus,
+    defaultLabelKey: "icons.settings.integrations.externalServices.add",
+    defaultSize: 14,
+    usage: [
+      "ExternalServicesSidebar: external-services-create-collection",
+      "ExternalServicesSidebar: quick-add request",
+    ],
+  },
+  "settings.integrations.external-services.panelExpand": {
+    static: Maximize2,
+    defaultLabelKey: "icons.settings.integrations.externalServices.panelExpand",
+    defaultSize: 14,
+    usage: ["ExternalServicesResponsePane: expand"],
+  },
+  "settings.integrations.external-services.panelCollapse": {
+    static: Minimize2,
+    defaultLabelKey: "icons.settings.integrations.externalServices.panelCollapse",
+    defaultSize: 14,
+    usage: ["ExternalServicesResponsePane: collapse"],
+  },
+  "settings.integrations.sdk": {
+    static: Blocks,
+    defaultLabelKey: "icons.settings.integrations.sdk",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-sdk"],
   },
   "settings.notifications": {
     static: Bell,
@@ -453,6 +522,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 20,
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard"],
   },
+  "call.queue": {
+    static: Headphones,
+    defaultLabelKey: "icons.call.queue",
+    defaultSize: 12,
+    usage: ["CallContextBadges: queue-info-label"],
+  },
   "call.outgoing": {
     static: Phone,
     animated: PhoneIcon,
@@ -478,7 +553,15 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "TransferPanel: control-cancel-transfer",
       "UpdateAvailableBanner: update-available-banner-later",
       "VideoFullscreenModal",
+      "SdkModuleSettingsOriginAddressEditor: cancel",
     ],
+  },
+  "bootstrap.mark": {
+    static: Phone,
+    animated: PhoneIcon,
+    defaultLabelKey: "bootstrap.brand",
+    defaultSize: 36,
+    usage: ["BootstrapSplashShell"],
   },
   "dial.call": {
     static: PhoneOutgoing,
@@ -537,13 +620,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: CheckIcon,
     defaultLabelKey: "icons.action.confirm",
     defaultSize: 20,
-    usage: ["TransferPanel: control-attended-transfer"],
+    usage: [
+      "TransferPanel: control-attended-transfer",
+      "SdkModuleSettingsOriginAddressEditor: save",
+    ],
   },
   "action.edit": {
     static: Pencil,
     defaultLabelKey: "icons.action.edit",
     defaultSize: 16,
-    usage: ["ContactDetailsPanel: contacts-edit"],
+    usage: [
+      "ContactDetailsPanel: contacts-edit",
+      "SdkModuleSettingsOriginAddressEditor: edit",
+    ],
   },
   "action.retry": {
     static: RotateCcw,
@@ -576,6 +665,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: [
       "Select: select-trigger-chevron",
       "OverwriteSavedAccountCredentialsConfirmationModal: more-actions",
+      "Accordion: AccordionTrigger chevron",
     ],
   },
   "ui.sidebar.toggle": {
@@ -613,6 +703,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.overlay.close",
     defaultSize: 16,
     usage: ["NotificationViewport: error toast icon"],
+  },
+  "sdk.permission.allowed": {
+    static: CircleCheck,
+    animated: CircleCheckIcon,
+    defaultLabelKey: "settings.integrations.sdk.permission.allowed",
+    defaultSize: 16,
+    usage: ["SdkModuleSettingsOriginMatrix: allowed permission chip"],
+  },
+  "sdk.permission.denied": {
+    static: CircleX,
+    defaultLabelKey: "settings.integrations.sdk.permission.denied",
+    defaultSize: 16,
+    usage: ["SdkModuleSettingsOriginMatrix: denied permission chip"],
   },
   "account.authProgress.status.completed": {
     static: CircleCheck,

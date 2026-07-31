@@ -1,6 +1,6 @@
 # Distribution migration checklist
 
-Перенос дистрибуции с `HailRase/softphone-electron` на публичный [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases).
+Перенос дистрибуции с `HailRase/softphone-electron` на публичный [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases).
 
 **Цель:** код приватно; пользователи видят только установщики + `update-manifest.json` + README.
 
@@ -10,11 +10,11 @@
 
 | # | Было | Стало | Статус |
 | --- | --- | --- | --- |
-| 1 | Релизы на `softphone-electron` | Релизы только на `axatalk-releases` | ☑ CI `release.yml` → axatalk-releases |
-| 2 | Manifest raw URL → `softphone-electron/...` | → `axatalk-releases/main/update-manifest.json` | ☑ `.env.production` |
-| 3 | `axatalk-releases` пустой | README + manifest + Releases | ☑ v0.0.1; v0.0.2 — CI по тегу (re-push) |
-| 4 | `softphone-electron` публичный | **Private** (после v0.0.2 на axatalk-releases) | ☐ вручную Settings |
-| 5 | Клиенты 0.0.1 — старый manifest URL | v0.0.2 с `main` уже с axatalk-releases URL; 0.0.3 — опц. для 0.0.1 | ☐ после шага 4 |
+| 1 | Релизы на `softphone-electron` | Релизы только на `omnicall-releases` | ☑ CI `release.yml` → omnicall-releases |
+| 2 | Manifest raw URL → `softphone-electron/...` | → `omnicall-releases/main/update-manifest.json` | ☑ `.env.production` |
+| 3 | `omnicall-releases` пустой | README + manifest + Releases | ☑ v0.0.1; v0.0.2 — CI по тегу (re-push) |
+| 4 | `softphone-electron` публичный | **Private** (после v0.0.2 на omnicall-releases) | ☐ вручную Settings |
+| 5 | Клиенты 0.0.1 — старый manifest URL | v0.0.2 с `main` уже с omnicall-releases URL; 0.0.3 — опц. для 0.0.1 | ☐ после шага 4 |
 
 ---
 
@@ -23,11 +23,11 @@
 В private repo появляются:
 
 - `scripts/distribution-config.mjs`
-- `scripts/sync-release-manifest.mjs` (URL → `axatalk-releases`)
+- `scripts/sync-release-manifest.mjs` (URL → `omnicall-releases`)
 - `scripts/push-distribution-repo.mjs`
 - `scripts/migrate-distribution-releases.mjs`
 - `distribution/README.md`, `distribution/update-manifest.json`
-- `.github/workflows/release.yml` (publish → `axatalk-releases`)
+- `.github/workflows/release.yml` (publish → `omnicall-releases`)
 - `.github/workflows/migrate-distribution.yml`
 
 ```bash
@@ -39,7 +39,7 @@ npm run release:preflight
 ## Шаг 2. Создать PAT для CI
 
 1. GitHub → **Settings** → **Developer settings** → **Fine-grained tokens** → **Generate**.
-2. Repository access: **Only** `HailRase/axatalk-releases`.
+2. Repository access: **Only** `HailRase/omnicall-releases`.
 3. Permissions: **Contents** → Read and write.
 4. Если `softphone-electron` уже **private** — добавьте второй PAT с **Read** на `softphone-electron` для миграции, либо используйте classic token с `repo` на оба.
 
@@ -47,16 +47,16 @@ npm run release:preflight
 
 | Secret | Значение |
 | --- | --- |
-| `AXATALK_RELEASES_TOKEN` | PAT с **write** только на `axatalk-releases` |
+| `OMNICALL_RELEASES_TOKEN` | PAT с **write** только на `omnicall-releases` |
 
 **Важно:** для миграции CI **не** подставляет этот токен в скачивание из `softphone-electron`.  
-Скачивание идёт через `github.token` (тот же репозиторий). Запись — через `AXATALK_RELEASES_TOKEN`.
+Скачивание идёт через `github.token` (тот же репозиторий). Запись — через `OMNICALL_RELEASES_TOKEN`.
 
 Локально (если source уже private):
 
 ```bash
 set SOURCE_GITHUB_TOKEN=ghp_...read_softphone...
-set DISTRIBUTION_GITHUB_TOKEN=ghp_...write_axatalk_releases...
+set DISTRIBUTION_GITHUB_TOKEN=ghp_...write_omnicall_releases...
 node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
 ```
 
@@ -73,7 +73,7 @@ node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
 ### Вариант B — локально (нужен `gh` CLI)
 
 ```bash
-# PAT с read softphone-electron + write axatalk-releases (или два токена — см. выше)
+# PAT с read softphone-electron + write omnicall-releases (или два токена — см. выше)
 set SOURCE_GITHUB_TOKEN=ghp_...
 set DISTRIBUTION_GITHUB_TOKEN=ghp_...
 npm run release:sync-manifest
@@ -82,17 +82,17 @@ node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
 
 ### Проверка
 
-- [ ] https://github.com/HailRase/axatalk-releases/releases — теги `v0.0.1`, `v0.0.2`
+- [ ] https://github.com/HailRase/omnicall-releases/releases — теги `v0.0.1`, `v0.0.2`
 - [ ] В каждом релизе только `.exe`, `.msi`, `.dmg`, `.AppImage` (и опц. `.deb`) — **без** `.blockmap`, `latest.yml`
-- [ ] https://github.com/HailRase/axatalk-releases/blob/main/README.md
-- [ ] https://raw.githubusercontent.com/HailRase/axatalk-releases/main/update-manifest.json → `latestVersion: "0.0.2"`
+- [ ] https://github.com/HailRase/omnicall-releases/blob/main/README.md
+- [ ] https://raw.githubusercontent.com/HailRase/omnicall-releases/main/update-manifest.json → `latestVersion: "0.0.2"`
 - [ ] Прямые ссылки из manifest открываются (не 404)
 
 ---
 
 ## Шаг 4. Сделать `softphone-electron` приватным
 
-**Только после** успешной миграции на `axatalk-releases`.
+**Только после** успешной миграции на `omnicall-releases`.
 
 1. `softphone-electron` → Settings → Danger Zone → **Change visibility** → Private.
 2. Collaborators: команда + боты CI.
@@ -101,7 +101,7 @@ node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
 Проверка в инкогнито:
 
 - [ ] `softphone-electron` — 404 / Private
-- [ ] `axatalk-releases` — Releases скачиваются без логина
+- [ ] `omnicall-releases` — Releases скачиваются без логина
 
 ---
 
@@ -120,7 +120,7 @@ git tag v0.0.3
 git push origin v0.0.3
 ```
 
-CI опубликует на `axatalk-releases` автоматически.
+CI опубликует на `omnicall-releases` автоматически.
 
 ---
 
@@ -131,7 +131,7 @@ CI опубликует на `axatalk-releases` автоматически.
 3. `npm run release:sync-manifest`
 4. Commit → push `main`
 5. `git tag vX.Y.Z` → `git push origin vX.Y.Z`
-6. CI: build в private → publish в **axatalk-releases**
+6. CI: build в private → publish в **omnicall-releases**
 7. Проверить manifest raw URL и Releases
 
 **Теги** остаются на **обоих** репозиториях (private — триггер CI; public — дистрибуция).
@@ -142,7 +142,7 @@ CI опубликует на `axatalk-releases` автоматически.
 
 Только публичные ссылки:
 
-- Скачать: https://github.com/HailRase/axatalk-releases/releases/latest
+- Скачать: https://github.com/HailRase/omnicall-releases/releases/latest
 - Инструкция: README в том же репозитории
 
 **Не** давать ссылку на `softphone-electron`.
@@ -153,10 +153,10 @@ CI опубликует на `axatalk-releases` автоматически.
 
 | Симптом | Решение |
 | --- | --- |
-| Publish job failed: secret | Добавить `AXATALK_RELEASES_TOKEN` |
+| Publish job failed: secret | Добавить `OMNICALL_RELEASES_TOKEN` |
 | 404 на manifest | `push-distribution-repo` / migrate workflow |
 | 404 на installer | Имена в manifest vs файлы в Release |
-| Migrate 401 Bad credentials (download) | `AXATALK_RELEASES_TOKEN` использовался для **скачивания** source | `SOURCE_GITHUB_TOKEN=github.token`, перезапустить |
-| Migrate 401 on axatalk-releases | Неверный/просроченный PAT или нет **Contents read+write** | Пересоздать fine-grained PAT на `axatalk-releases`; обновить secret; шаг **Verify distribution token** в workflow |
-| Publish 403 integration | `softprops` used `github.token`, not PAT | `publish-distribution-release.mjs` + `AXATALK_RELEASES_TOKEN` |
+| Migrate 401 Bad credentials (download) | `OMNICALL_RELEASES_TOKEN` использовался для **скачивания** source | `SOURCE_GITHUB_TOKEN=github.token`, перезапустить |
+| Migrate 401 on omnicall-releases | Неверный/просроченный PAT или нет **Contents read+write** | Пересоздать fine-grained PAT на `omnicall-releases`; обновить secret; шаг **Verify distribution token** в workflow |
+| Publish 403 integration | `softprops` used `github.token`, not PAT | `publish-distribution-release.mjs` + `OMNICALL_RELEASES_TOKEN` |
 | Старые клиенты не видят обновления | Release cut 0.0.3+ с новым `.env.production` |

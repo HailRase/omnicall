@@ -78,6 +78,12 @@ export type {
   ContactCsvFileGateway,
   ContactCsvImportDialogResult,
 } from "./settings/ContactCsvFileGateway.js";
+export type {
+  PreferencesExportDialogInput,
+  PreferencesExportDialogResult,
+  PreferencesFileGateway,
+  PreferencesImportDialogResult,
+} from "./settings/PreferencesFileGateway.js";
 export type { FileSystemPort } from "./filesystem/FileSystemPort.js";
 export type {
   SecretStoragePort,
@@ -85,6 +91,9 @@ export type {
 } from "./secrets/SecretStoragePort.js";
 export {
   OCP_PROXY_API_KEY_SECRET_ID,
+  SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
+  SDK_PAIRED_CLIENT_SECRET_ID_PREFIX,
+  SDK_PAIRING_SCOPE_KEY,
   SIP_PASSWORD_SECRET_ID,
   createSecretStorageScopeKey,
 } from "./secrets/SecretStoragePort.js";
@@ -92,6 +101,28 @@ export type {
   EmitSoftPhoneBreakReasonCommand,
   HostIntegrationGateway,
 } from "./integration/HostIntegrationGateway.js";
+export type {
+  ExternalClientGateway,
+  ExternalClientGatewayStatus,
+  ExternalGatewayValidationFailure,
+  ExternalGatewayValidationResult,
+  ExternalGatewayValidationSuccess,
+} from "./integration/ExternalClientGateway.js";
+export type {
+  BrokerProductRequest,
+  BrokerRequestFailure,
+  BrokerRequestResult,
+  BrokerRequestSuccess,
+  MainToRendererBrokerPort,
+} from "./integration/MainToRendererBrokerPort.js";
+export type {
+  ExternalCommandContext,
+  ExternalCommandHandler,
+  ExternalHandlerFailure,
+  ExternalHandlerResult,
+  ExternalHandlerSuccess,
+  ExternalQueryHandler,
+} from "./integration/ExternalCommandHandler.js";
 export type { OcpGateway, Unsubscribe } from "./integration/OcpGateway.js";
 export type { OcpOperatorReadModel } from "./integration/OcpOperatorReadModel.js";
 export type { OcpReasonsCachePort } from "./integration/OcpReasonsCachePort.js";
@@ -102,6 +133,30 @@ export type {
   OcpProxyAuthenticateOutcome,
   OcpProxyAuthenticatePort,
 } from "./integration/OcpProxyAuthenticatePort.js";
+export type {
+  ExternalServicesCollectionExportDialogInput,
+  ExternalServicesCollectionExportDialogResult,
+  ExternalServicesCollectionFileGateway,
+  ExternalServicesCollectionImportDialogResult,
+} from "./integration/ExternalServicesCollectionFileGateway.js";
+export type {
+  ExternalServicesJournalRepository,
+} from "./integration/ExternalServicesJournalRepository.js";
+export {
+  EXTERNAL_SERVICES_JOURNAL_MAX_ENTRIES,
+} from "./integration/ExternalServicesJournalRepository.js";
+export type {
+  OutboundHttpErrorCode,
+  OutboundHttpPort,
+  OutboundHttpRequest,
+  OutboundHttpResult,
+} from "./integration/OutboundHttpPort.js";
+export {
+  OUTBOUND_HTTP_ERROR_CODES,
+  OUTBOUND_HTTP_TIMEOUT_MS,
+} from "./integration/OutboundHttpPort.js";
+export type { Clock } from "./shared/Clock.js";
+export type { UuidGenerator } from "./shared/UuidGenerator.js";
 export type { DndReadModel } from "./settings/DndReadModel.js";
 export type { Logger, LogContext, LogEntry, LogLevel } from "./logging/index.js";
 export type {

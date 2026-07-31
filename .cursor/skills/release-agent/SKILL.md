@@ -1,7 +1,7 @@
 ---
 name: release-agent
 description: >-
-  Release cut agent for Axatalk: SemVer bump, CHANGELOG, manifest sync, tag push,
+  Release cut agent for OmniCall: SemVer bump, CHANGELOG, manifest sync, tag push,
   CI verification. Use with /release command. Does not implement product features.
 ---
 
@@ -40,7 +40,7 @@ Distribution release orchestration (F-019, F-020). **Not** a feature implementat
 6. **Manifest:** `npm run release:sync-manifest`.
 7. **Commit** `chore(release): cut vX.Y.Z` on `main`.
 8. **Tag:** `git tag vX.Y.Z`, `git push origin main`, `git push origin vX.Y.Z` (ask user if push not requested).
-9. **Verify:** Actions Release workflow; **axatalk-releases** Release + raw manifest on distribution repo.
+9. **Verify:** Actions Release workflow; **omnicall-releases** Release + raw manifest on distribution repo.
 10. **Docs:** update `STATUS.md` Release train; `work-history/…`.
 
 ## Never
@@ -62,7 +62,7 @@ Include: new version, tag URL, Actions run URL, manifest URL, verification check
 | --- | --- |
 | `npm run release:preflight` | test + lint + typecheck + registry |
 | `npm run release:sync-manifest` | manifest JSON from `package.json` |
-| `npm run release:push-distribution` | push README, manifest, changelog to axatalk-releases |
+| `npm run release:push-distribution` | push README, manifest, changelog to omnicall-releases |
 | `npm run release:update-notes` | set GitHub Release body from `distribution/CHANGELOG.md` |
 | `npm run release:backfill-notes` | backfill release bodies (`--dry-run` to preview) |
 | `npm run release:migrate-distribution` | migrate historical releases (local, needs `gh`) |

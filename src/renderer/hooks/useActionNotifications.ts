@@ -1,5 +1,10 @@
 import { useEffect, useRef } from "react";
-import type { ActiveCallControlsProjection, HeadsetFaultReason } from "@application/index.js";
+import type {
+  ActiveCallControlsProjection,
+  HeadsetFaultReason,
+  OutgoingFailureNotification,
+  OutgoingFailureNotificationReason,
+} from "@application/index.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { TranslationKey } from "../i18n/messages.js";
 import type {
@@ -23,6 +28,7 @@ type UseActionNotificationsInput = Readonly<{
     projection: ActiveCallControlsProjection;
     onRetry: () => void;
   }>;
+  outgoingFailure: OutgoingFailureNotification | null;
   dtmfError: string | null;
   transferFailure: string | null;
   logoutErrorMessage: string | null;
@@ -34,6 +40,21 @@ type UseActionNotificationsInput = Readonly<{
     occurredAt: string | null;
   }>;
 }>;
+
+function mapOutgoingFailureMessageKey(
+  reason: OutgoingFailureNotificationReason,
+): TranslationKey {
+  switch (reason) {
+    case "busy":
+      return "notification.outgoing.failed.busy";
+    case "rejected":
+      return "notification.outgoing.failed.rejected";
+    case "unavailable":
+      return "notification.outgoing.failed.unavailable";
+    case "failed":
+      return "notification.outgoing.failed.generic";
+  }
+}
 
 function buildAccountErrorDescriptor(
   error: AccountAuthorizationErrorProjection,
@@ -99,6 +120,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     accountFeedback,
     onOpenSystemState,
     callControls,
+    outgoingFailure,
     dtmfError,
     transferFailure,
     logoutErrorMessage,
@@ -188,6 +210,18 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       },
     });
   }, [lastOperationError, notify, retryCallOperation]);
+
+  useEffect(() => {
+    if (outgoingFailure === null) {
+      return;
+    }
+    notify({
+      level: "error",
+      messageKey: mapOutgoingFailureMessageKey(outgoingFailure.reason),
+      module: "telephony",
+      functionId: "call.outgoing",
+    });
+  }, [notify, outgoingFailure]);
 
   useEffect(() => {
     if (dtmfError === null) {

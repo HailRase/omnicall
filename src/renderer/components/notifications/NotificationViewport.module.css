@@ -4,4 +4,74 @@
 
 .viewport :global([data-sonner-toaster]) {
   pointer-events: auto;
+  /*
+   * Sonner's default --width is wider than the smallest supported shell.
+   * Keep both its viewport and individual toast inside the BrowserWindow while
+   * the window animates between compact and Settings layouts.
+   */
+  --notification-viewport-width: min(
+    var(--width),
+    calc(100vw - 2 * var(--space-lg))
+  );
+  width: var(--notification-viewport-width);
+  transition:
+    width 180ms ease-out,
+    right 180ms ease-out,
+    left 180ms ease-out;
+}
+
+/*
+ * Softphone compact shell is 360–420px wide. Sonner treats max-width: 600px as
+ * "mobile" and forces full-bleed left+right, which ignores corner placement.
+ * Keep desktop corner geometry and constrain the toast itself to the available
+ * BrowserWindow width. Window controls sit above top toasts, not alongside them.
+ */
+@media (max-width: 600px) {
+  .viewport :global([data-sonner-toaster]) {
+    width: var(--notification-viewport-width);
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="right"]) {
+    right: var(--mobile-offset-right);
+    left: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="left"]) {
+    left: var(--mobile-offset-left);
+    right: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="center"]) {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .viewport :global([data-sonner-toaster] [data-sonner-toast]) {
+    width: var(--notification-viewport-width);
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="right"] [data-sonner-toast]) {
+    right: 0;
+    left: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="left"] [data-sonner-toast]) {
+    left: 0;
+    right: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-y-position="top"]) {
+    top: var(--mobile-offset-top);
+  }
+
+  .viewport :global([data-sonner-toaster][data-y-position="bottom"]) {
+    bottom: var(--mobile-offset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport :global([data-sonner-toaster]) {
+    transition: none;
+  }
 }

@@ -1,4 +1,14 @@
 export {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  type AccordionContentProps,
+  type AccordionItemProps,
+  type AccordionProps,
+  type AccordionTriggerProps,
+} from "./accordion/index.js";
+export {
   Alert,
   AlertAction,
   AlertDescription,

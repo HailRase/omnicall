@@ -140,7 +140,7 @@ describe("loadUserSettingsWithLegacyMigration", () => {
   });
 
   it("does not destroy composite bucket when legacy file is corrupt", async () => {
-    const root = await mkdtemp(join(tmpdir(), "axatalk-migrate-corrupt-"));
+    const root = await mkdtemp(join(tmpdir(), "omnicall-migrate-corrupt-"));
     const filesystem = new NodeFileSystemAdapter();
     const compositeSettings: UserSettings = {
       ...createDefaultUserSettings(),
@@ -169,7 +169,7 @@ describe("loadUserSettingsWithLegacyMigration", () => {
   });
 
   it("returns defaults when legacy is corrupt and composite bucket is missing", async () => {
-    const root = await mkdtemp(join(tmpdir(), "axatalk-migrate-legacy-corrupt-"));
+    const root = await mkdtemp(join(tmpdir(), "omnicall-migrate-legacy-corrupt-"));
     const filesystem = new NodeFileSystemAdapter();
 
     try {

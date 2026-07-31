@@ -1,0 +1,13 @@
+{
+  "name": "@softomnitel/example-crm-pairing-lite",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fake-peer CRM pairing example for @softomnitel/omnicall-kit (not published)",
+  "exports": {
+    ".": "./src/crm-app.ts"
+  },
+  "dependencies": {
+    "@softomnitel/omnicall-kit": "0.1.0"
+  }
+}

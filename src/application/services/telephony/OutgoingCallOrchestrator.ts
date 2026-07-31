@@ -28,6 +28,11 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
+import {
+  createSipNotRegisteredCause,
+  SIP_NOT_REGISTERED_OUTBOUND_MESSAGE,
+  SIP_NOT_REGISTERED_REASON,
+} from "@shared/telephony/sipOutboundErrors.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
 import type { CallVideoMediaProjection } from "../../projections/media/CallVideoMediaProjection.js";
@@ -78,6 +83,25 @@ export class OutgoingCallOrchestrator {
     );
     if (isErr(blockResult)) {
       return err(blockResult.error);
+    }
+
+    if (!this.deps.telephonyGateway.isRegistered()) {
+      this.deps.logger.warn("outgoing_call_rejected_not_registered", {
+        correlationId,
+        featureId: "F-003",
+        boundedContext: "Telephony",
+        operation: "make_call",
+        previousState: "Idle",
+        nextState: "Idle",
+        result: SIP_NOT_REGISTERED_REASON,
+      });
+      return err(
+        createPlatformError(
+          "operation_failed",
+          SIP_NOT_REGISTERED_OUTBOUND_MESSAGE,
+          createSipNotRegisteredCause(),
+        ),
+      );
     }
 
     const holdAllResult = await this.deps.multiCallPolicyService.holdAllActiveLines(
@@ -270,8 +294,27 @@ export class OutgoingCallOrchestrator {
     correlationId: CorrelationId,
     details: string,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
-    const failedTransition = applyCallTransition(call, "failed");
-    const failedCall = failedTransition.transition.ok ? failedTransition.call : call;
+    // Local hangup during Connecting may already have published CallEnded and
+    // untracked; makeCall's progress wait then settles with call_ended_before_answer.
+    // Skip CallFailed so OCP/history see a single terminal outcome.
+    const tracked = this.deps.callTracker.getTrackedCall(call.id);
+    if (!tracked.ok) {
+      this.deps.logger.info("outgoing_call_fail_skipped_already_finalized", {
+        correlationId,
+        featureId: "F-003",
+        boundedContext: "Telephony",
+        operation: "make_call",
+        previousState: call.state,
+        nextState: call.state,
+        result: "already_finalized",
+        normalizedError: details,
+      });
+      this.deps.videoMediaProjection.remove(call.id);
+      return err(createPlatformError("operation_failed", details));
+    }
+
+    const failedTransition = applyCallTransition(tracked.value, "failed");
+    const failedCall = failedTransition.transition.ok ? failedTransition.call : tracked.value;
     const reason = mapCallFailureReason(details);
 
     this.deps.eventPublisher.publish(

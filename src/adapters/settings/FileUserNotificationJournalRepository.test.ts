@@ -41,7 +41,7 @@ afterEach(async () => {
 
 describe("FileUserNotificationJournalRepository", () => {
   it("persists sanitized entries and prunes records older than rolling 24 hours", async () => {
-    const root = await mkdtemp(join(tmpdir(), "axatalk-notification-journal-"));
+    const root = await mkdtemp(join(tmpdir(), "omnicall-notification-journal-"));
     roots.push(root);
     const filesystem = new NodeFileSystemAdapter();
     const first = new FileUserNotificationJournalRepository({

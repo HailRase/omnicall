@@ -10,6 +10,9 @@ if (rootElement === null) {
   throw new Error("Renderer root element was not found");
 }
 
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+document.documentElement.setAttribute("data-theme", prefersDark ? "dark" : "light");
+
 createRoot(rootElement).render(
   <StrictMode>
     <App />

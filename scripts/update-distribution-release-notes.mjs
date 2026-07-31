@@ -1,5 +1,5 @@
 /**
- * Set or refresh the GitHub Release body on axatalk-releases from distribution/CHANGELOG.md.
+ * Set or refresh the GitHub Release body on omnicall-releases from distribution/CHANGELOG.md.
  */
 
 import {
@@ -17,7 +17,7 @@ import { DISTRIBUTION_REPO } from './distribution-config.mjs';
 function readToken() {
   const raw =
     process.env.DISTRIBUTION_GITHUB_TOKEN ??
-    process.env.AXATALK_RELEASES_TOKEN ??
+    process.env.OMNICALL_RELEASES_TOKEN ??
     process.env.GITHUB_TOKEN;
   if (typeof raw !== 'string') {
     return '';
@@ -38,7 +38,7 @@ if (typeof tag !== 'string' || !/^v\d+\.\d+\.\d+$/.test(tag)) {
   process.exit(1);
 }
 
-const title = `Axatalk ${tag}`;
+const title = `OmniCall ${tag}`;
 const notes = generateDistributionReleaseNotes(tag);
 const version = versionFromTag(tag);
 const hasEntry = parsePublicChangelogEntry(version) !== null;

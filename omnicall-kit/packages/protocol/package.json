@@ -1,0 +1,49 @@
+{
+  "name": "@softomnitel/omnicall-protocol",
+  "version": "0.1.0",
+  "description": "OmniCall local protocol v1 runtime schemas, inferred types, and compatibility fixtures",
+  "type": "module",
+  "private": false,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./fixtures/*": "./fixtures/*"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "fixtures",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "clean": "node -e \"import('node:fs').then((fs)=>fs.promises.rm('dist',{recursive:true,force:true}))\""
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HailRase/omnicall-kit.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/HailRase/omnicall-kit#readme",
+  "bugs": {
+    "url": "https://github.com/HailRase/omnicall-kit/issues"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  }
+}

@@ -14,6 +14,9 @@ export interface AppLifecycleGateway {
   requestRestart(): Promise<ShellWindowControlResponse>;
   requestClose(): Promise<ShellWindowControlResponse>;
   minimizeWindow(): Promise<ShellWindowControlResponse>;
+  toggleMaximizeWindow(): Promise<ShellWindowControlResponse>;
+  getWindowMaximized(): Promise<Readonly<{ ok: true; maximized: boolean } | { ok: false }>>;
+  onWindowMaximizedChanged(handler: (maximized: boolean) => void): () => void;
   onBeforeClose(handler: (payload: AppShutdownPayload) => void): () => void;
   acknowledgeShutdown(
     correlationId: AppShutdownPayload["correlationId"],

@@ -7,6 +7,13 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseShellWindowMaximizedChangedPayload } from "@shared/ipc/ShellWindowMaximizedContract.js";
+import {
+  parseShellOperatorAttentionPayload,
+  parseShellWindowRaisePayload,
+  parseShellWindowRaiseResponse,
+} from "@shared/ipc/ShellWindowRaiseContract.js";
+import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
 import { parseProfilesStorageRootResponse } from "@shared/ipc/ProfilesStorageContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import type { OpenExternalUrlResponse } from "@shared/ipc/OpenExternalUrlContract.js";
@@ -20,6 +27,11 @@ import {
   parseContactsCsvSaveExportDialogResponse,
 } from "@shared/ipc/ContactsCsvFileContract.js";
 import {
+  parsePreferencesOpenImportDialogResponse,
+  parsePreferencesSaveExportDialogPayload,
+  parsePreferencesSaveExportDialogResponse,
+} from "@shared/ipc/PreferencesFileContract.js";
+import {
   parseSecretStorageOperation,
   parseSecretStorageResponse,
 } from "@shared/ipc/SecretStorageContract.js";
@@ -28,6 +40,30 @@ import {
   parseSetPendingDisplaySourcePayload,
   parseSetPendingDisplaySourceResponse,
 } from "@shared/ipc/DisplayCaptureContract.js";
+import {
+  parseSdkBrokerAckResponse,
+  parseSdkBrokerClientSessionEndedIpcPayload,
+  parseSdkBrokerReadyIpcPayload,
+  parseSdkBrokerReplyIpcPayload,
+  parseSdkBrokerRequestIpcPayload,
+} from "@shared/ipc/SdkBrokerContract.js";
+import {
+  parseSdkGatewayPublishEventIpcPayload,
+  parseSdkGatewayPublishEventIpcResponse,
+} from "@shared/ipc/SdkGatewayEventContract.js";
+import {
+  parseSdkGatewaySettingsOperation,
+  parseSdkGatewaySettingsResponse,
+} from "@shared/ipc/SdkGatewaySettingsContract.js";
+import {
+  parseExternalServicesHttpRequestDto,
+  parseExternalServicesHttpResponseDto,
+} from "@shared/ipc/ExternalServicesHttpContract.js";
+import {
+  parseExternalServicesCollectionOpenImportDialogResponse,
+  parseExternalServicesCollectionSaveExportDialogPayload,
+  parseExternalServicesCollectionSaveExportDialogResponse,
+} from "@shared/ipc/ExternalServicesCollectionFileContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -157,6 +193,33 @@ const softphoneApi: SoftphonePreloadApi = {
   requestAppRestart: () => ipcRenderer.invoke(IPC_CHANNELS.appRequestRestart),
   minimizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.shellWindowMinimize),
   closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.shellWindowClose),
+  toggleMaximizeWindow: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.shellWindowToggleMaximize),
+  getWindowMaximized: async () => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowGetMaximized,
+    );
+    if (typeof response !== "object" || response === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    const candidate = response as Record<string, unknown>;
+    if (candidate["ok"] === true && typeof candidate["maximized"] === "boolean") {
+      return { ok: true as const, maximized: candidate["maximized"] };
+    }
+    return { ok: false as const, reason: "invalid_response" };
+  },
+  onWindowMaximizedChanged: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseShellWindowMaximizedChangedPayload(payload);
+      if (parsed !== null) {
+        handler(parsed.maximized);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.shellWindowMaximizedChanged, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.shellWindowMaximizedChanged, listener);
+    };
+  },
   applyShellWindowLayout: async (payload) => {
     const parsed = parseShellWindowLayoutPayload(payload);
     if (parsed === null) {
@@ -164,6 +227,53 @@ const softphoneApi: SoftphonePreloadApi = {
     }
 
     await ipcRenderer.invoke(IPC_CHANNELS.shellApplyWindowLayout, parsed);
+  },
+  raiseShellWindow: async (payload) => {
+    const parsed = parseShellWindowRaisePayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowRaise,
+      parsed,
+    );
+    const parsedResponse = parseShellWindowRaiseResponse(response);
+    if (parsedResponse === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    return parsedResponse;
+  },
+  setShellTelephonyBusy: async (payload) => {
+    const parsed = parseShellTelephonyBusyPayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellTelephonyBusy,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      !("ok" in response) ||
+      typeof response.ok !== "boolean"
+    ) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    return { ok: response.ok };
+  },
+  onShellOperatorAttention: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseShellOperatorAttentionPayload(payload);
+      if (parsed === null) {
+        return;
+      }
+      handler(parsed);
+    };
+    ipcRenderer.on(IPC_CHANNELS.shellOperatorAttention, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.shellOperatorAttention, listener);
+    };
   },
   openContactsCsvImportDialog: async () => {
     const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.contactsCsvOpenImportDialog);
@@ -184,6 +294,30 @@ const softphoneApi: SoftphonePreloadApi = {
       parsedPayload,
     );
     const parsed = parseContactsCsvSaveExportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  openPreferencesImportDialog: async () => {
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.preferencesOpenImportDialog);
+    const parsed = parsePreferencesOpenImportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  savePreferencesExportDialog: async (payload) => {
+    const parsedPayload = parsePreferencesSaveExportDialogPayload(payload);
+    if (parsedPayload === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.preferencesSaveExportDialog,
+      parsedPayload,
+    );
+    const parsed = parsePreferencesSaveExportDialogResponse(response);
     if (parsed === null) {
       return { ok: false, reason: "invalid_response" };
     }
@@ -221,6 +355,139 @@ const softphoneApi: SoftphonePreloadApi = {
       parsedPayload,
     );
     const parsed = parseSetPendingDisplaySourceResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  onSdkBrokerRequest: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseSdkBrokerRequestIpcPayload(payload);
+      if (parsed !== null) {
+        handler(parsed);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.sdkBrokerRequest, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.sdkBrokerRequest, listener);
+    };
+  },
+  replySdkBrokerRequest: async (payload) => {
+    const parsed = parseSdkBrokerReplyIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkBrokerReply,
+      parsed,
+    );
+    return parseSdkBrokerAckResponse(response) ?? { ok: false };
+  },
+  setSdkBrokerReady: async (payload) => {
+    const parsed = parseSdkBrokerReadyIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkBrokerSetReady,
+      parsed,
+    );
+    return parseSdkBrokerAckResponse(response) ?? { ok: false };
+  },
+  onSdkClientSessionEnded: (handler) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: unknown,
+    ): void => {
+      const parsed = parseSdkBrokerClientSessionEndedIpcPayload(payload);
+      if (parsed !== null) {
+        handler(parsed);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.sdkBrokerClientSessionEnded, listener);
+    return () => {
+      ipcRenderer.removeListener(
+        IPC_CHANNELS.sdkBrokerClientSessionEnded,
+        listener,
+      );
+    };
+  },
+  publishSdkGatewayEvent: async (payload) => {
+    const parsed = parseSdkGatewayPublishEventIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false, delivered: 0 };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkGatewayPublishEvent,
+      parsed,
+    );
+    return (
+      parseSdkGatewayPublishEventIpcResponse(response) ?? {
+        ok: false,
+        delivered: 0,
+      }
+    );
+  },
+  invokeSdkGatewaySettings: async (operation) => {
+    const parsed = parseSdkGatewaySettingsOperation(operation);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_operation" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkGatewaySettingsInvoke,
+      parsed,
+    );
+    return (
+      parseSdkGatewaySettingsResponse(response) ?? {
+        ok: false,
+        reason: "invalid_response",
+      }
+    );
+  },
+  executeExternalServiceHttp: async (request) => {
+    const parsed = parseExternalServicesHttpRequestDto(request);
+    if (parsed === null) {
+      return {
+        kind: "network_error",
+        code: "unknown",
+        durationMs: 0,
+        message: "Invalid External Services HTTP payload.",
+      };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalServicesHttpExecute,
+      parsed,
+    );
+    return (
+      parseExternalServicesHttpResponseDto(response) ?? {
+        kind: "network_error",
+        code: "unknown",
+        durationMs: 0,
+        message: "Invalid External Services HTTP IPC response.",
+      }
+    );
+  },
+  openExternalServicesCollectionImportDialog: async () => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalServicesCollectionOpenImportDialog,
+    );
+    const parsed = parseExternalServicesCollectionOpenImportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  saveExternalServicesCollectionExportDialog: async (payload) => {
+    const parsedPayload = parseExternalServicesCollectionSaveExportDialogPayload(payload);
+    if (parsedPayload === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalServicesCollectionSaveExportDialog,
+      parsedPayload,
+    );
+    const parsed = parseExternalServicesCollectionSaveExportDialogResponse(response);
     if (parsed === null) {
       return { ok: false, reason: "invalid_response" };
     }

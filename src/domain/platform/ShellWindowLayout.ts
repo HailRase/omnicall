@@ -22,12 +22,22 @@ export type ShellWindowCompactDimensions = Readonly<{
 export const SHELL_WINDOW_LAYOUT = {
   compactDefaultWidth: 420,
   compactDefaultHeight: 625,
+  compactMinWidth: 360,
+  compactMinHeight: 560,
   settingsWidth: 1000,
+  settingsMinWidth: 1000,
+  settingsMinHeight: 560,
+  /** Retained for IPC contract compatibility; layout service always applies `0`. */
   animationDurationMs: 280,
   screenMargin: 16,
 } as const;
 
 export type ShellWindowLayoutEasing = "settings-open" | "settings-close";
+
+export type ShellWindowMinimumSize = Readonly<{
+  width: number;
+  height: number;
+}>;
 
 /**
  * - Purpose: resolve whether the shell window accepts user resize for a layout mode (F-016).
@@ -36,6 +46,39 @@ export type ShellWindowLayoutEasing = "settings-open" | "settings-close";
  */
 export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolean {
   return mode === "settings";
+}
+
+/**
+ * - Purpose: resolve whether OS BrowserWindow maximizable is enabled (F-016).
+ * - Inputs: compact, settings, or video-fullscreen layout mode.
+ * - Outputs: always false — work-area fill is layout-owned via setBounds, never OS maximize.
+ */
+export function resolveShellWindowMaximizable(
+  mode: ShellWindowLayoutMode,
+): boolean {
+  void mode;
+  return false;
+}
+
+/**
+ * - Purpose: resolve BrowserWindow minimum size for a layout mode (F-016).
+ * - Inputs: compact, settings, or video-fullscreen layout mode.
+ * - Outputs: minimum width/height for the active mode.
+ */
+export function resolveShellWindowMinimumSize(
+  mode: ShellWindowLayoutMode,
+): ShellWindowMinimumSize {
+  if (mode === "settings") {
+    return {
+      width: SHELL_WINDOW_LAYOUT.settingsMinWidth,
+      height: SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    };
+  }
+
+  return {
+    width: SHELL_WINDOW_LAYOUT.compactMinWidth,
+    height: SHELL_WINDOW_LAYOUT.compactMinHeight,
+  };
 }
 
 /**
@@ -50,12 +93,7 @@ export function resolveShellWindowTargetBounds(
   settingsSessionHeight: number,
 ): ShellWindowRectangle {
   if (mode === "video-fullscreen") {
-    return {
-      x: workArea.x,
-      y: workArea.y,
-      width: workArea.width,
-      height: workArea.height,
-    };
+    return computeWorkAreaBounds(workArea);
   }
 
   if (mode === "settings") {
@@ -72,6 +110,22 @@ export function resolveShellWindowTargetBounds(
     compactDimensions.height,
     SHELL_WINDOW_LAYOUT.screenMargin,
   );
+}
+
+/**
+ * - Purpose: fill the display work area without OS maximize (F-016 / F-027).
+ * - Inputs: display work area rectangle.
+ * - Outputs: bounds matching the work area.
+ */
+export function computeWorkAreaBounds(
+  workArea: ShellWindowWorkArea,
+): ShellWindowRectangle {
+  return {
+    x: workArea.x,
+    y: workArea.y,
+    width: workArea.width,
+    height: workArea.height,
+  };
 }
 
 /**
@@ -95,9 +149,9 @@ export function interpolateShellWindowBounds(
 }
 
 /**
- * - Purpose: map animation elapsed time to eased progress matching settings overlay CSS.
- * - Inputs: elapsed ms, duration ms, easing kind.
- * - Outputs: progress in 0..1.
+ * - Purpose: map animation elapsed time to eased progress for BrowserWindow layout (F-016).
+ * - Inputs: elapsed ms, duration ms, easing kind (open vs close).
+ * - Outputs: progress in 0..1 (settings overlay close hold uses the same duration).
  */
 export function resolveShellWindowAnimationProgress(
   elapsedMs: number,

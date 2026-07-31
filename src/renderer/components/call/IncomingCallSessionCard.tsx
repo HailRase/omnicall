@@ -1,9 +1,10 @@
 ﻿import clsx from "clsx";
 import type { JSX } from "react";
-import type { IncomingCallUiState } from "@application/index.js";
+import type { CallContextBadge, IncomingCallUiState } from "@application/index.js";
 import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCountdownLabel.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
+import { CallContextBadges } from "./CallContextBadges.js";
 import { IncomingCallRejectControl } from "./IncomingCallRejectControl.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import { TruncatedTextLine } from "./TruncatedTextLine.js";
@@ -22,6 +23,7 @@ export type IncomingCallSessionCardProps = Readonly<{
   rejectDisabledReason: string | null;
   /** When true, reject opens OCP without/with-break choice menu. */
   rejectChoiceEnabled?: boolean;
+  contextBadges?: ReadonlyArray<CallContextBadge>;
   onSelect: () => void;
   onAnswer: () => void;
   onAnswerWithVideo?: (() => void) | undefined;
@@ -68,6 +70,7 @@ export function IncomingCallSessionCard({
   videoAnswerDisabledReason = null,
   rejectDisabledReason,
   rejectChoiceEnabled = false,
+  contextBadges = [],
   onSelect,
   onAnswer,
   onAnswerWithVideo,
@@ -123,6 +126,7 @@ export function IncomingCallSessionCard({
             {hasName && callerNumber !== null ? (
               <TruncatedTextLine text={callerNumber} className={styles.secondaryNumber} />
             ) : null}
+            <CallContextBadges badges={contextBadges} density="compact" />
             <p className={styles.incomingHint} data-testid="incoming-call-status-label">
               {t("incoming.status.default")}
             </p>

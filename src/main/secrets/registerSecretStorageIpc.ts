@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { app, ipcMain } from "electron";
-import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
+import { resolveOmniCallProfilesStorageRoot } from "@infrastructure/bootstrap/resolveOmniCallProfilesStorageRoot.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
   parseSecretStorageOperation,
@@ -11,10 +11,10 @@ import { ElectronSafeStorageSecretService } from "./ElectronSafeStorageSecretSer
 /**
  * - Purpose: register main-process IPC for encrypted secret save, load, and delete.
  * - Inputs: Electron app userData path and validated secret storage operations.
- * - Outputs: ipcMain handler scoped to Axatalk secrets directory.
+ * - Outputs: ipcMain handler scoped to OmniCall secrets directory.
  */
 export function registerSecretStorageIpc(): void {
-  const storageRoot = resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
+  const storageRoot = resolveOmniCallProfilesStorageRoot(app.getPath("userData"));
   const secretsRoot = join(storageRoot, "secrets");
   const secretService = new ElectronSafeStorageSecretService(secretsRoot);
 

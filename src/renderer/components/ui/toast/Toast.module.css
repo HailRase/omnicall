@@ -14,12 +14,12 @@
 
 .viewport-top-right {
   top: var(--incoming-call-banner-top);
-  right: 0;
+  right: var(--shell-window-controls-safe-inline-end);
 }
 
 .viewport-top-left {
   top: var(--incoming-call-banner-top);
-  left: 0;
+  left: var(--shell-window-controls-safe-inline-start);
 }
 
 .viewport-bottom-right {

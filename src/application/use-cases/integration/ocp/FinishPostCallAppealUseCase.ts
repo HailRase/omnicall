@@ -32,7 +32,10 @@ export type FinishPostCallAppealInput = Readonly<{
 
 /**
  * Completes the appeal while in POST_CALL_PROCESSING.
- * Uses local reserved snapshot (last update_post_call_status) or defaults to Ready.
+ * Uses local reserved snapshot (last successful update_post_call_status /
+ * ChangeOperatorStatus reserve path) or defaults to Ready when booking is absent.
+ * Hosts (SDK CRM) must not finish from optimistic UI — confirm reserved projection
+ * / `kind: "reserved"` first (see operator-status-reservation guide).
  */
 export class FinishPostCallAppealUseCase {
   constructor(

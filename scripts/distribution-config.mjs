@@ -4,7 +4,7 @@
  */
 
 export const SOURCE_REPO = 'HailRase/softphone-electron';
-export const DISTRIBUTION_REPO = 'HailRase/axatalk-releases';
+export const DISTRIBUTION_REPO = 'HailRase/omnicall-releases';
 export const DISTRIBUTION_MANIFEST_PATH = 'update-manifest.json';
 export const DISTRIBUTION_MANIFEST_RAW_URL =
   `https://raw.githubusercontent.com/${DISTRIBUTION_REPO}/main/${DISTRIBUTION_MANIFEST_PATH}`;
@@ -14,8 +14,8 @@ export const DISTRIBUTION_RELEASES_URL =
 /** Installer extensions published to distribution releases (no blockmap/yml). */
 export const DISTRIBUTION_INSTALLER_EXTENSIONS = ['.exe', '.msi', '.dmg', '.AppImage', '.deb'];
 
-/** electron-builder artifactName prefix — excludes win-unpacked Axatalk.exe / elevate.exe. */
-export const DISTRIBUTION_INSTALLER_NAME_PREFIX = /^Axatalk-\d+\.\d+\.\d+-/;
+/** electron-builder artifactName prefix — excludes win-unpacked OmniCall.exe / elevate.exe. */
+export const DISTRIBUTION_INSTALLER_NAME_PREFIX = /^OmniCall-\d+\.\d+\.\d+-/;
 
 export function isDistributionInstallerFile(name) {
   return (

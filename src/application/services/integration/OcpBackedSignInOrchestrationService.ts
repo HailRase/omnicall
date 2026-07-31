@@ -19,7 +19,9 @@ import {
   clearAuthorizationProgress,
   mapAuthorizationFailureKind,
   mapAuthorizationFailureStage,
+  withAuthorizationProgressUiSurface,
   type AuthorizationProgressStage,
+  type AuthorizationProgressUiSurface,
   type OcpSignInExecutionStage,
 } from "../../projections/settings/authorizationProgressProjection.js";
 import type { OcpAuthenticateAndConnectService } from "./OcpAuthenticateAndConnectService.js";
@@ -36,6 +38,11 @@ export type OcpBackedSignInInput = Readonly<{
   login: string;
   apiKey: string;
   correlationId?: CorrelationId;
+  /**
+   * Shell surface for progress. Default `modal` (Login / SDK / modal Reconnect).
+   * Transport auto-recovery must pass `silent` (banner only).
+   */
+  progressUiSurface?: AuthorizationProgressUiSurface;
 }>;
 
 export type OcpAuthorizationRetryInput = Readonly<{
@@ -93,9 +100,12 @@ export class OcpBackedSignInOrchestrationService {
     const runId = correlationId;
     this.activeRunId = runId;
     this.deps.cancelTransportRecovery?.("sign_in_supersede");
+    const progressUiSurface = input.progressUiSurface ?? "modal";
 
     try {
-      if (!this.setProgress("preparing", correlationId, runId)) {
+      if (
+        !this.beginProgressAttempt(correlationId, runId, progressUiSurface)
+      ) {
         return this.cancelledResult();
       }
 
@@ -303,7 +313,11 @@ export class OcpBackedSignInOrchestrationService {
       ? clearAuthorizationProgress()
       : this.deps.projectionHub.getSessionProjection().authorizationProgress;
     this.deps.projectionHub.setAuthorizationProgress(
-      applyAuthorizationExecutionStage(base, executionStage, correlationId),
+      applyAuthorizationExecutionStage(
+        withAuthorizationProgressUiSurface(base, "modal"),
+        executionStage,
+        correlationId,
+      ),
     );
   }
 
@@ -443,6 +457,27 @@ export class OcpBackedSignInOrchestrationService {
   /**
    * @returns false when the run is no longer active (caller must not continue side effects).
    */
+  private beginProgressAttempt(
+    correlationId: CorrelationId,
+    runId: CorrelationId,
+    uiSurface: AuthorizationProgressUiSurface,
+  ): boolean {
+    if (!this.isCurrentRun(runId)) {
+      return false;
+    }
+    this.deps.projectionHub.setAuthorizationProgress(
+      applyAuthorizationProgressStage(
+        withAuthorizationProgressUiSurface(
+          clearAuthorizationProgress(),
+          uiSurface,
+        ),
+        "preparing",
+        correlationId,
+      ),
+    );
+    return true;
+  }
+
   private setProgress(
     stage: AuthorizationProgressStage,
     correlationId: CorrelationId,

@@ -33,6 +33,9 @@ Operators may share one PC but use different SIP accounts. Settings must persist
 
 - legacy operator platform multi-agent identity beyond SIP username alias (existing legacy operator platform path unchanged).
 - Cloud sync or server-side profile storage.
+- Copying `safeStorage` secrets between machines (remember-password stays PC-local).
+
+Portable **preferences** transfer (no secrets) is **F-030** — see `P11-Operator-Preferences-Export-Design.md`. It is not a substitute for cloud sync and must not write passwords into export JSON.
 
 ## Profile key (`SettingsAccountKey`)
 
@@ -50,7 +53,7 @@ Normalization helpers live in `src/domain/settings/` (pure functions, unit-teste
 
 ## Persistence layout
 
-Injected root: `{userData}/axatalk/profiles/` (exact path from Electron main or test temp dir).
+Injected root: `{userData}/omnicall/profiles/` (exact path from Electron main or test temp dir).
 
 ```txt
 profiles/

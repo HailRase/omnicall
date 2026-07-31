@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import type { CallLineCardViewModel } from "@application/index.js";
 import { IncomingCallSessionCard } from "../../components/call/IncomingCallSessionCard.js";
 import { MultiCallHoldAllIndicator } from "../../components/call/MultiCallHoldAllIndicator.js";
 import { CallIdleEmptyState } from "../../components/call/CallIdleEmptyState.js";
@@ -10,6 +11,7 @@ import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import { TransferSuccessOverlay } from "../../components/call/TransferSuccessOverlay.js";
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
+import { useCallContextBadges } from "../../hooks/useCallContextBadges.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import type { UseOcpRejectWithBreakResult } from "../../hooks/useOcpRejectWithBreak.js";
 import styles from "./CallContextShell.module.css";
@@ -24,10 +26,26 @@ type CallContextShellProps = Readonly<{
  * - Inputs: call feature shell bindings from useCallFeatureShell.
  * - Outputs: context zone markup; stays mounted when settings overlay opens.
  */
+function BoundCallSessionCard(
+  props: Readonly<{
+    line: CallLineCardViewModel;
+    isActive?: boolean;
+    showSelectionChrome?: boolean;
+    onClick?: () => void;
+  }>,
+): JSX.Element {
+  const contextBadges = useCallContextBadges(props.line.callId, props.line.displayName);
+  return <CallSessionCard {...props} contextBadges={contextBadges} />;
+}
+
 export function CallContextShell({
   bindings,
   ocpRejectWithBreak,
 }: CallContextShellProps): JSX.Element {
+  const incomingContextBadges = useCallContextBadges(
+    bindings.incomingCallProjection.callId,
+    bindings.incomingCallShell.identity.callerNumber,
+  );
   const {
     callProjection,
     multiCallProjection,
@@ -59,8 +77,7 @@ export function CallContextShell({
     callLinesShell.lines.some((line) => line.callId === callProjection.activeCallId);
 
   const showOutgoingCard =
-    (callProjection.state === "Connecting" || callProjection.state === "Failed") &&
-    !hasLineForActiveCall;
+    callProjection.state === "Connecting" && !hasLineForActiveCall;
 
   const isTransferMode = transferPanelShell.visible;
   const isTransferSuccessCelebration = transferSuccessCelebration.visible;
@@ -166,7 +183,7 @@ export function CallContextShell({
               />
               {unifiedSessionCard !== null ? (
                 <div className={styles.sessionBlockCard}>
-                  <CallSessionCard
+                  <BoundCallSessionCard
                     line={unifiedSessionCard}
                     isActive={
                       hasIncomingCall &&
@@ -201,6 +218,7 @@ export function CallContextShell({
               videoAnswerDisabledReason={incomingCallActions.videoAnswerDisabledReason}
               rejectDisabledReason={incomingCallActions.rejectDisabledReason}
               rejectChoiceEnabled={ocpRejectWithBreak.rejectChoiceEnabled}
+              contextBadges={incomingContextBadges}
               onSelect={selectIncomingCall}
               onAnswer={incomingCallActions.handleAnswerIncoming}
               onAnswerWithVideo={
@@ -224,7 +242,7 @@ export function CallContextShell({
 
               {singleNonIncomingLine !== null ? (
                 <div className={styles.singleCard}>
-                  <CallSessionCard
+                  <BoundCallSessionCard
                     line={singleNonIncomingLine}
                     isActive={
                       hasIncomingCall &&

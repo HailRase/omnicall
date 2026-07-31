@@ -170,7 +170,26 @@ export class OcpIntegrationComposition {
       eventPublisher: deps.eventPublisher,
       ocpGateway: deps.ocpGateway,
       isOcpAuthenticated,
+      getOcpUserLogin: () =>
+        this.projectionHub.getSessionProjection().authenticatedLogin,
       logger: deps.logger,
+      callContext: {
+        markPending: (callId, direction) => {
+          this.projectionHub.markCallOcpContextPending(callId, direction);
+        },
+        resolve: (callId, input) => {
+          this.projectionHub.resolveCallOcpContext(callId, input);
+        },
+        markUnavailable: (callId) => {
+          this.projectionHub.markCallOcpContextUnavailable(callId);
+        },
+        clear: (callId) => {
+          this.projectionHub.clearCallOcpContext(callId);
+        },
+      },
+      clearCampaignOnCallTerminal: () => {
+        this.clearCampaignAndPublish("call_ended");
+      },
     });
     this.dndBridge = new OcpDndBridgeService({
       eventPublisher: deps.eventPublisher,
@@ -234,6 +253,8 @@ export class OcpIntegrationComposition {
       eventPublisher: deps.eventPublisher,
       logger: deps.logger,
       getSessionDomain: () => this.projectionHub.getSessionProjection().domain,
+      applyCampaignOffer: (payload) =>
+        this.projectionHub.applyCampaignOffer(payload),
     });
     this.sipCascadeBridge = new OcpSipCascadeBridgeService({
       eventPublisher: deps.eventPublisher,
@@ -282,6 +303,26 @@ export class OcpIntegrationComposition {
 
   /** Cold-start OCP projections after intentional logout (LF-048 / ADR-AF-002). */
   resetProjectionsToIdleAfterUserLogout(): void {
+    const campaignId = this.projectionHub.getActiveCampaignId();
     this.projectionHub.resetToIdle();
+    if (campaignId !== null) {
+      this.sessionLifecycle.publishCampaignCleared(campaignId, "session_reset");
+    }
+  }
+
+  /**
+   * Clear visible campaign; promote pending preview when present.
+   * Publishes Cleared then Offered (promoted) for SDK clients.
+   */
+  clearCampaignAndPublish(
+    reasonCode: "accepted" | "rejected" | "call_ended" | "session_reset",
+  ): void {
+    const { clearedId, promoted } = this.projectionHub.clearActiveCampaign();
+    if (clearedId !== null) {
+      this.sessionLifecycle.publishCampaignCleared(clearedId, reasonCode);
+    }
+    if (promoted !== null) {
+      this.sessionLifecycle.publishCampaignOffered(promoted);
+    }
   }
 }

@@ -4,6 +4,7 @@
  * - Outputs: capped cancelable reconnect attempts with reconnecting projection (no stale token).
  *
  * ADR-AF-002: adapter must not schedule reconnect; this service owns the policy.
+ * Progress during auto-recovery is `uiSurface: "silent"` (banner only — not the sign-in Dialog).
  */
 
 import type { Logger } from "@ports/index.js";
@@ -15,11 +16,20 @@ import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import { ReconnectScheduler } from "@shared/scheduling/ReconnectScheduler.js";
 import type { OcpProjectionHub } from "../../read-models/OcpProjectionHub.js";
+import {
+  clearAuthorizationProgress,
+  withAuthorizationProgressUiSurface,
+} from "../../projections/settings/authorizationProgressProjection.js";
 
 const FEATURE_ID = "F-028";
 const BOUNDED_CONTEXT = "Integration";
 const DEFAULT_RECONNECT_DELAY_MS = 5_000;
 const DEFAULT_MAX_RECONNECT_ATTEMPTS = 6;
+
+const INTENTIONAL_CONNECT_CANCEL_REASONS = new Set([
+  "fresh_token_connect",
+  "sign_in_supersede",
+]);
 
 export type OcpTransportRecoveryDeps = Readonly<{
   ocpGateway: OcpGateway;
@@ -45,6 +55,11 @@ export class OcpTransportRecoveryService {
   private wasLive = false;
   private recovering = false;
   private disposed = false;
+  /**
+   * True while `recoverWithFreshToken` is running. Intentional close reasons must
+   * disarm drops without wiping the attempt budget (otherwise retries never cap).
+   */
+  private recoveryConnectInFlight = false;
   /**
    * When true, ignore disconnected/failed (intentional logout / Reconnect / fresh-token connect).
    * Cleared when a new socket reaches connecting|connected.
@@ -94,15 +109,27 @@ export class OcpTransportRecoveryService {
   }
 
   /**
-   * Cancel pending recovery (logout / terminate / superseding sign-in / Reconnect).
+   * Cancel pending recovery (logout / terminate / superseding user sign-in / Reconnect).
    * Clears wasLive and ignores further transport drops until the next connecting|connected.
+   *
+   * When called from an in-flight recovery connect (`fresh_token_connect` /
+   * `sign_in_supersede`), only disarms drop handling — attempt counter is preserved.
    */
   cancelAll(reason: string): void {
+    if (
+      this.recoveryConnectInFlight &&
+      INTENTIONAL_CONNECT_CANCEL_REASONS.has(reason)
+    ) {
+      this.disarmForIntentionalConnect(reason);
+      return;
+    }
+
     this.scheduler.cancelAll();
     this.recovering = false;
     this.reconnectAttempts = 0;
     this.wasLive = false;
     this.ignoreTransportDrops = true;
+    this.deps.projectionHub.clearTransportRecovery();
     this.deps.logger.info("ocp_transport_recovery_cancelled", {
       featureId: FEATURE_ID,
       boundedContext: BOUNDED_CONTEXT,
@@ -123,6 +150,37 @@ export class OcpTransportRecoveryService {
     }
   }
 
+  private disarmForIntentionalConnect(reason: string): void {
+    this.scheduler.cancelAll();
+    this.ignoreTransportDrops = true;
+    this.wasLive = false;
+    this.deps.logger.info("ocp_transport_recovery_disarmed_for_connect", {
+      featureId: FEATURE_ID,
+      boundedContext: BOUNDED_CONTEXT,
+      operation: "ocp_transport_recovery",
+      result: reason,
+      attempt: this.reconnectAttempts,
+    });
+  }
+
+  private seedSilentProgress(): void {
+    this.deps.projectionHub.setAuthorizationProgress(
+      withAuthorizationProgressUiSurface(
+        clearAuthorizationProgress(),
+        "silent",
+      ),
+    );
+  }
+
+  private clearSilentProgress(): void {
+    this.deps.projectionHub.setAuthorizationProgress(
+      withAuthorizationProgressUiSurface(
+        clearAuthorizationProgress(),
+        "silent",
+      ),
+    );
+  }
+
   private onServerState(state: OcpServerState): void {
     if (this.disposed || !this.enabled) {
       return;
@@ -131,9 +189,14 @@ export class OcpTransportRecoveryService {
     if (state === "connected" || state === "connecting") {
       // New intentional (or recovery) socket — resume unexpected-drop tracking.
       this.ignoreTransportDrops = false;
-      if (state === "connected") {
+      // During in-flight recovery, a brief WS `connected` must not reset the
+      // attempt budget or clear the banner (auth/HTTP may still fail next).
+      if (
+        state === "connected" &&
+        !this.recovering &&
+        !this.recoveryConnectInFlight
+      ) {
         this.reconnectAttempts = 0;
-        this.recovering = false;
         this.scheduler.cancelAll();
       }
       return;
@@ -165,14 +228,20 @@ export class OcpTransportRecoveryService {
         attempt: this.reconnectAttempts,
       });
       this.wasLive = false;
+      this.deps.projectionHub.markTransportRecoveryExhausted();
+      this.clearSilentProgress();
       return;
     }
 
     this.recovering = true;
     this.reconnectAttempts += 1;
     const attemptId = createCorrelationId();
-    this.deps.projectionHub.beginAttempt(attemptId);
-    this.deps.projectionHub.markServerReconnecting(attemptId);
+    // Keeps banner visible across disconnect→HTTP→connect; silent progress (no Dialog).
+    this.deps.projectionHub.beginTransportRecoveryAttempt(
+      attemptId,
+      this.reconnectAttempts,
+    );
+    this.seedSilentProgress();
 
     this.deps.logger.info("ocp_transport_recovery_scheduled", {
       correlationId: attemptId,
@@ -197,6 +266,8 @@ export class OcpTransportRecoveryService {
       return;
     }
 
+    this.seedSilentProgress();
+    this.recoveryConnectInFlight = true;
     try {
       const result = await this.deps.recoverWithFreshToken(attemptId);
       this.deps.logger.info("ocp_transport_recovery_completed", {
@@ -207,14 +278,22 @@ export class OcpTransportRecoveryService {
         result: result.ok ? "succeeded" : result.error.message,
         attempt: this.reconnectAttempts,
       });
-      if (!result.ok && this.reconnectAttempts < this.maxReconnectAttempts) {
+      if (result.ok) {
+        this.reconnectAttempts = 0;
+        this.recovering = false;
+        this.deps.projectionHub.clearTransportRecovery();
+        this.clearSilentProgress();
+        return;
+      }
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.recovering = false;
         this.scheduleRecovery();
         return;
       }
-      if (!result.ok) {
-        this.wasLive = false;
-      }
+      this.recovering = false;
+      this.wasLive = false;
+      this.deps.projectionHub.markTransportRecoveryExhausted();
+      this.clearSilentProgress();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "unknown_error";
       this.deps.logger.error("ocp_transport_recovery_threw", {
@@ -224,9 +303,12 @@ export class OcpTransportRecoveryService {
         operation: "ocp_transport_recovery",
         result: message,
       });
-      this.wasLive = false;
-    } finally {
       this.recovering = false;
+      this.wasLive = false;
+      this.deps.projectionHub.markTransportRecoveryExhausted();
+      this.clearSilentProgress();
+    } finally {
+      this.recoveryConnectInFlight = false;
     }
   }
 }

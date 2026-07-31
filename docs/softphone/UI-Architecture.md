@@ -27,7 +27,7 @@ styles/        tokens.css, globals.css; co-located *.module.css (UI-4 complete)
 | FSD layer | This repo | Notes |
 | --- | --- | --- |
 | app | `bootstrap/`, `App.tsx`, `stores/` | composition + global read models |
-| pages | `App` + `SoftphoneReadyShell` | single desktop surface |
+| pages | `App` + `BootstrapSplashShell` / `SoftphoneReadyShell` | single desktop surface; splash until bootstrap ready |
 | widgets | `shells/`, `SoftphoneLayout` | may keep `shells/` name in docs |
 | features | `hooks/use*Shell`, `hooks/use*Actions` | co-locate per feature when refactoring |
 | entities | **absent** | Domain/Application own entities |
@@ -57,9 +57,13 @@ PanelNav        — Call | History only (History full-screen when idle, no activ
 
 **Call-center rule:** Settings and Diagnostics open as **overlays**, not full panel replacement, while a call is established. Operator must keep line context.
 
+**Shell window layout transitions (F-016):** All layout modes (`compact` / `settings` / `video-fullscreen`) apply bounds instantly (`0ms`). `SettingsFullscreenOverlay` unmounts immediately on close. Compact restores bottom-right.
+
+**Settings work-area fill (F-016, not OS maximize):** Titlebar Maximize/Restore in settings toggles layout-owned `setBounds(workArea)` ↔ centered settings restore (`1000×session height`). OS `BrowserWindow.maximize` / `unmaximize` are never used (`maximizable` stays false in every mode). Closing settings from work-area fill goes directly to compact bottom-right with no intermediate centered restore frame. Same behavior on Windows, macOS, and Linux.
+
 **Shell routing (Phase 1+):** `HashRouter` wraps ready-state UI in `App.tsx`. `ShellNavigationController` keeps `SoftphoneLayout` mounted on a parent layout route; child hash routes (`/`, `/history`, `/contacts/*`) select panel state only via `ShellRoutePanelOutlet` in `OverlayLayer`. Typed navigation: `useShellNavigation` + `src/renderer/navigation/*`. Settings remain overlay-driven (`useOverlayShell`) until settings route alignment (Phase 5). Call state stays in Zustand projections — routes must not own telephony state.
 
-Modal flows (Radix Dialog v1): campaign. Incoming call: non-blocking `IncomingCallOverlay` banner in header zone (see `P03-Incoming-Call-UX-Design.md`). Settings v1: portal `Panel` without Radix.
+Modal flows (Radix Dialog v1): OCP campaign, OCP logout reason, OCP reject-break, **OCP sign-in progress** (global shell overlay — dialpad/contacts/history/settings; density compact vs settings), SDK connect ceremony, SDK activate consent. Incoming call: non-blocking `IncomingCallOverlay` banner in header zone (see `P03-Incoming-Call-UX-Design.md`). Settings v1: portal `Panel` without Radix.
 
 ## Hook Taxonomy
 
@@ -108,6 +112,7 @@ Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalo
 
 `App.tsx` stays a thin shell (< 60 lines). Feature wiring lives in `src/renderer/shells/`:
 
+- `BootstrapSplashShell` — presentational boot splash while `useAccountBootstrap` is `loading` / `error` (no facade/SIP)
 - `SoftphoneReadyShell` — post-bootstrap orchestration inside `SoftphoneLayout`
 - `SoftphoneShellHeader` — global header controls
 - SIP recovery UX: header (`SoftphoneShellHeader`) + settings system state panel — no dedicated recovery overlay shell.
@@ -115,6 +120,17 @@ Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalo
 - `CallFeatureShell` — split target: Context + Controls + Overlays widgets
 - `OperatorFeatureShell` — status selector, timer, logout modal
 - `AuthAccountShell` — account panel when auth allows
+
+### Bootstrap splash contract
+
+Canonical detail: [`Bootstrap-Splash-Contract.md`](./Bootstrap-Splash-Contract.md).
+
+1. **Single-stage loading:** only `#boot-splash` until settle — React drives it via `useBootSplashController` + `bootSplashDom` (no React loading splash).
+2. **Pre-React / loading:** `index.html` `#boot-splash` + `BrowserWindow.backgroundColor` from `startupSplashColors` (mid `#42AAFF`; sync `--color-brand-splash-*`).
+3. **Error:** dismiss HTML splash, then presentational `BootstrapSplashShell` (`variant="error"`, i18n `bootstrap.*`).
+4. **Ready:** after min visible dwell (if any) + settle, mount `SoftphoneReadyShell` under `#boot-splash`, then crossfade-exit splash (`beginBootSplashExit`); do not mount ReadyShell during composition/`initialize`.
+5. **Boundaries:** splash must not call Use Cases, SIP, Electron IPC, or repositories. Provisional `data-theme` from OS `prefers-color-scheme` may apply before settings hydrate. Min dwell must not delay `initialize`.
+6. **Motion:** CSS bounce on `#boot-splash` (`BOOTSTRAP_SPLASH_BOUNCE_MS` = 1000, `linear` + ballistic/parabolic Y samples for gravity). Min UI dwell `BOOTSTRAP_SPLASH_MIN_VISIBLE_MS` = 4000 before settle (skipped under `prefers-reduced-motion`). Settle via `settleSplashBallMotion` (freeze current pose → ease to rest) — never mid-air keyframe swap. No JS spring libs for production loading; keep `index.html` and `BootstrapSplashShell.module.css` in sync.
 
 Shells may use hooks and facades; components inside shells remain dumb.
 

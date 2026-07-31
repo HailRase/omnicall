@@ -1,10 +1,12 @@
 import type { DomainEvent } from "@domain/index.js";
 import {
+  createSettingsAccountKey,
   initialRegistrationState,
   normalizeSettingsAccountDomain,
   transitionRegistrationState,
   type PhoneStatus,
   type RegistrationState,
+  type SettingsAccountKey,
   type StartupResolution,
 } from "@domain/index.js";
 
@@ -23,6 +25,7 @@ export type AccountBootstrapProjection = Readonly<{
   sipUsername: string | null;
   sipDomain: string | null;
   sipServer: string | null;
+  profileKey: SettingsAccountKey | null;
   lastError: string | null;
   /** Local account session active (settings unlocked); independent of SIP-ready (ADR-AF-005). */
   hasActiveAccountSession: boolean;
@@ -35,6 +38,7 @@ export const initialAccountBootstrapProjection = (): AccountBootstrapProjection 
   sipUsername: null,
   sipDomain: null,
   sipServer: null,
+  profileKey: null,
   lastError: null,
   hasActiveAccountSession: false,
 });
@@ -166,14 +170,20 @@ function applyBootstrapEvent(
         sipUsername: null,
         sipDomain: null,
         sipServer: null,
+        profileKey: null,
         lastError: null,
         hasActiveAccountSession: false,
       };
     }
     case "AccountSessionActivated": {
+      const profileKey = event["profileKey"];
       return {
         ...projection,
         hasActiveAccountSession: true,
+        profileKey:
+          typeof profileKey === "string" && profileKey.length > 0
+            ? createSettingsAccountKey(profileKey)
+            : projection.profileKey,
       };
     }
     case "SipCredentialsReceived": {

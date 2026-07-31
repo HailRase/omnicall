@@ -30,7 +30,7 @@ const tempRoots: string[] = [];
 async function createTestRepository(
   initial?: Partial<InMemorySettingsState>,
 ): Promise<TestRepositoryContext> {
-  const root = await mkdtemp(join(tmpdir(), "axatalk-settings-"));
+  const root = await mkdtemp(join(tmpdir(), "omnicall-settings-"));
   tempRoots.push(root);
   const filesystem = new NodeFileSystemAdapter();
   const repository =

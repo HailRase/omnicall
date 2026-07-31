@@ -15,6 +15,8 @@ export const SETTINGS_NAV_SECTION_IDS = [
   "video",
   "headset",
   "integrations",
+  "integrations-external-services",
+  "integrations-sdk",
 ] as const;
 
 export type SettingsNavSectionId = (typeof SETTINGS_NAV_SECTION_IDS)[number];
@@ -60,6 +62,9 @@ export function deriveSettingsNavigationAvailability(
     SETTINGS_NAV_SECTION_IDS.map((sectionId) => {
       if (sectionId === "account") {
         return [sectionId, ACCOUNT_ALWAYS_ENABLED] as const;
+      }
+      if (sectionId === "integrations-sdk") {
+        return [sectionId, POST_AUTH_ENABLED] as const;
       }
       return [
         sectionId,

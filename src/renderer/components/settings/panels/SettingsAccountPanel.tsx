@@ -3,10 +3,6 @@ import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
-import {
-  initialAuthorizationProgressProjection,
-  type AuthorizationProgressProjection,
-} from "@application/projections/settings/authorizationProgressProjection.js";
 import type { OcpRecoveryAction, SipAccountInput } from "@application/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 import type { AccountUiSignInMode, OcpDraftFields } from "../../../hooks/accountActionsHelpers.js";
@@ -43,11 +39,6 @@ export type SettingsAccountPanelProps = Readonly<{
   hasSavedOcpApiKey: boolean;
   allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
   onRecoveryAction: (action: OcpRecoveryAction) => void;
-  authorizationProgress?: AuthorizationProgressProjection;
-  ocpSignInModalOpen?: boolean;
-  onOcpSignInDisconnect?: () => void;
-  onOcpSignInReconnect?: () => void;
-  onOcpSignInSuccessSettled?: () => void;
   canForgetSavedSipPassword?: boolean;
   onForgetSavedSipPassword?: () => void;
   deleteConfirmationOpen: boolean;
@@ -103,11 +94,6 @@ export function SettingsAccountPanel({
   hasSavedOcpApiKey,
   allowedRecoveryActions,
   onRecoveryAction,
-  authorizationProgress = initialAuthorizationProgressProjection(),
-  ocpSignInModalOpen = false,
-  onOcpSignInDisconnect,
-  onOcpSignInReconnect,
-  onOcpSignInSuccessSettled,
   canForgetSavedSipPassword = false,
   onForgetSavedSipPassword,
   deleteConfirmationOpen,
@@ -179,17 +165,6 @@ export function SettingsAccountPanel({
           hasSavedOcpApiKey={hasSavedOcpApiKey}
           allowedRecoveryActions={allowedRecoveryActions}
           onRecoveryAction={onRecoveryAction}
-          authorizationProgress={authorizationProgress}
-          ocpSignInModalOpen={ocpSignInModalOpen}
-          {...(onOcpSignInDisconnect !== undefined
-            ? { onOcpSignInDisconnect }
-            : {})}
-          {...(onOcpSignInReconnect !== undefined
-            ? { onOcpSignInReconnect }
-            : {})}
-          {...(onOcpSignInSuccessSettled !== undefined
-            ? { onOcpSignInSuccessSettled }
-            : {})}
           canForgetSavedSipPassword={canForgetSavedSipPassword}
           {...(onForgetSavedSipPassword !== undefined
             ? { onForgetSavedSipPassword }

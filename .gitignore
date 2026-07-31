@@ -22,3 +22,6 @@ Thumbs.db
 .env
 .env.*
 !.env.production
+
+# DI-10 browser smoke ephemeral profile
+omnicall-kit-integration/evidence/.di10-edge-profile/

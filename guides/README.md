@@ -1,4 +1,4 @@
-# Guides — Axatalk / Enterprise Softphone
+# Guides — OmniCall / Enterprise Softphone
 
 Единая папка **пользовательских и операционных руководств** (onboarding, установка, релизы, агенты Cursor).
 
@@ -14,7 +14,7 @@
 | Разработчик (релиз) | [`Developer-Release-CI-Guide.md`](Developer-Release-CI-Guide.md) | Версии, CI/CD, Linux-установщики |
 | Релиз / DevOps | [`RELEASE-PLAYBOOK.md`](RELEASE-PLAYBOOK.md) | Release cut, теги, manifest, проверки |
 | Релиз / DevOps | [`GitHub-Releases-Update-Guide.md`](GitHub-Releases-Update-Guide.md) | GitHub Releases и in-app проверка обновлений |
-| Релиз / DevOps | [`Distribution-Migration-Checklist.md`](Distribution-Migration-Checklist.md) | Private source → public axatalk-releases |
+| Релиз / DevOps | [`Distribution-Migration-Checklist.md`](Distribution-Migration-Checklist.md) | Private source → public omnicall-releases |
 | Релиз / интеграция | [`Manual-Update-Manifest.md`](Manual-Update-Manifest.md) | Контракт JSON manifest (F-020) |
 | UI-агент | [`Icon-Agent-Guide.md`](Icon-Agent-Guide.md) | Иконки Lucide, `AppIcon`, registry |
 | UI / logic (гарнитура F-012) | [`../docs/softphone/HEADSET-AGENT-ONBOARDING.md`](../docs/softphone/HEADSET-AGENT-ONBOARDING.md) | Слои, потоки mute/connect, Jabra vs Poly |

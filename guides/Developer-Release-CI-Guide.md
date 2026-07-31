@@ -1,4 +1,4 @@
-# Руководство разработчика: версии, релизы и CI/CD (Axatalk)
+# Руководство разработчика: версии, релизы и CI/CD (OmniCall)
 
 Понятная шпаргалка для тех, кто собирает установщики, выкладывает релизы и сопровождает проверку обновлений (F-019, F-020).
 
@@ -7,7 +7,7 @@
 | Репозиторий | Назначение |
 | --- | --- |
 | `HailRase/softphone-electron` | **Исходники** (целевое состояние: private), CI, агенты |
-| [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) | **Публично:** README, `update-manifest.json`, Releases (только установщики) |
+| [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) | **Публично:** README, `update-manifest.json`, Releases (только установщики) |
 
 Перенос и настройка: [`Distribution-Migration-Checklist.md`](Distribution-Migration-Checklist.md).
 
@@ -27,7 +27,7 @@
 | --- | --- | --- |
 | Версия приложения | `package.json` → `version` | `0.0.1` |
 | Версия в UI и «О программе» | Electron `app.getVersion()` | то же |
-| Имя установщика | `electron-builder.yml` + версия | `Axatalk-0.0.1-win-x64.exe` |
+| Имя установщика | `electron-builder.yml` + версия | `OmniCall-0.0.1-win-x64.exe` |
 | Git-тег релиза | отдельно, с префиксом `v` | `v0.0.1` |
 | `latestVersion` в manifest | `docs/softphone/release/update-manifest.json` | `0.0.1` (без `v`) |
 
@@ -61,8 +61,8 @@
 ### Push тега `v0.0.2`
 
 1. Job **preflight** один раз: test, lint, typecheck, registry.
-2. Три job'а **build** собирают установщики и **сразу загружают** их в Release на **axatalk-releases** (без GitHub Artifacts).
-3. Job **finalize-distribution** обновляет manifest на `axatalk-releases/main`.
+2. Три job'а **build** собирают установщики и **сразу загружают** их в Release на **omnicall-releases** (без GitHub Artifacts).
+3. Job **finalize-distribution** обновляет manifest на `omnicall-releases/main`.
 4. Ручная загрузка файлов **не нужна**, если CI зелёный.
 
 ### Run workflow без тега
@@ -155,8 +155,8 @@ npm run build:linux    # Linux → dist/linux/*.AppImage + *.deb
 
 На CI (Ubuntu) arch часто **`x86_64`** / **`amd64`**:
 
-- `Axatalk-0.0.1-linux-x86_64.AppImage`
-- `Axatalk-0.0.1-linux-amd64.deb`
+- `OmniCall-0.0.1-linux-x86_64.AppImage`
+- `OmniCall-0.0.1-linux-amd64.deb`
 
 Локально на другой ОС суффикс может отличаться — всегда смотрите `dist/linux/` перед правкой manifest.
 
@@ -189,7 +189,7 @@ npm run build:linux    # Linux → dist/linux/*.AppImage + *.deb
 
 | Симптом | Причина | Решение |
 | --- | --- | --- |
-| `Artifact storage quota has been hit` | Квота GitHub Artifacts исчерпана (старые failed runs) | Release **не использует Artifacts** с v0.1.0+ fix: direct upload в axatalk-releases. Удалите старые Artifacts: repo → **Actions** → **Artifacts** → Delete (освобождает quota за 6–12 ч) |
+| `Artifact storage quota has been hit` | Квота GitHub Artifacts исчерпана (старые failed runs) | Release **не использует Artifacts** с v0.1.0+ fix: direct upload в omnicall-releases. Удалите старые Artifacts: repo → **Actions** → **Artifacts** → Delete (освобождает quota за 6–12 ч) |
 | `ModuleNotFoundError: No module named 'PIL'` | На runner нет Pillow для `build:icons` | `scripts/requirements-build.txt` + шаг pip в `release.yml` |
 | `GH_TOKEN is not set` после blockmap | implicit publish electron-builder | `run-electron-builder.mjs`, не re-run старого workflow |
 | Re-run старого workflow | Берёт старый commit | **Run workflow** на актуальном `main` или новый тег |
@@ -211,7 +211,7 @@ npm run build:linux    # Linux → dist/linux/*.AppImage + *.deb
 
 ### «Двойной клик по .deb — карточка пакета, через ~5 сек окно само закрывается»
 
-Это **не баг Axatalk** и **не установка приложения**. Пользователь видит окно **Ubuntu App Center** (или GNOME Software): название, версия, описание, зависимости — и окно **само исчезает**, кнопку «Установить» нажать не успевают.
+Это **не баг OmniCall** и **не установка приложения**. Пользователь видит окно **Ubuntu App Center** (или GNOME Software): название, версия, описание, зависимости — и окно **само исчезает**, кнопку «Установить» нажать не успевают.
 
 **Почему так бывает**
 
@@ -227,7 +227,7 @@ npm run build:linux    # Linux → dist/linux/*.AppImage + *.deb
 
 ```bash
 cd ~/Downloads   # папка, куда скачан файл
-sudo apt install ./Axatalk-*-linux-amd64.deb
+sudo apt install ./OmniCall-*-linux-amd64.deb
 ```
 
 `./` обязателен: без него `apt` ищет пакет в репозиториях, а не локальный файл.
@@ -236,7 +236,7 @@ sudo apt install ./Axatalk-*-linux-amd64.deb
 
 ```bash
 sudo apt install gdebi
-gdebi ~/Downloads/Axatalk-*-linux-amd64.deb
+gdebi ~/Downloads/OmniCall-*-linux-amd64.deb
 ```
 
 Или: правый клик по `.deb` → «Открыть с помощью» → **GDebi Package Installer**.
@@ -251,7 +251,7 @@ sudo snap refresh snap-store
 
 Если после обновления окно всё равно закрывается — App Center для этого `.deb` не подходит; варианты A/B/C.
 
-### Если Axatalk уже установлен, но приложение закрывается через несколько секунд после запуска из меню
+### Если OmniCall уже установлен, но приложение закрывается через несколько секунд после запуска из меню
 
 Тогда это уже **падение Electron-процесса**, чаще на Ubuntu 24.04+:
 
@@ -262,7 +262,7 @@ sudo snap refresh snap-store
 **Диагностика** — запуск из терминала и просмотр ошибки:
 
 ```bash
-/opt/Axatalk/axatalk
+/opt/OmniCall/omnicall
 # или как в вашем .desktop Exec=
 ```
 
@@ -271,7 +271,7 @@ sudo snap refresh snap-store
 **Обход для проверки** (не для production по умолчанию):
 
 ```bash
-/opt/Axatalk/axatalk --no-sandbox
+/opt/OmniCall/omnicall --no-sandbox
 ```
 
 Если с флагом работает стабильно — проблема в sandbox/AppArmor; для релиза нужен корректный deb с AppArmor-профилем (electron-builder 26+) или документированный workaround.
@@ -300,8 +300,8 @@ electron-builder обычно тянет: `libgtk-3-0`, `libnss3`, `libxss1`, `l
 | `.github/workflows/ci.yml` | preflight на PR/push |
 | `.github/workflows/release.yml` | preflight + build + publish на тег |
 | `CHANGELOG.md` | заметки релиза |
-| `scripts/distribution-config.mjs` | константы axatalk-releases |
-| `distribution/README.md` | публикуется в корень axatalk-releases |
+| `scripts/distribution-config.mjs` | константы omnicall-releases |
+| `distribution/README.md` | публикуется в корень omnicall-releases |
 | `.github/workflows/migrate-distribution.yml` | миграция старых релизов |
 
 ---
@@ -309,8 +309,8 @@ electron-builder обычно тянет: `libgtk-3-0`, `libnss3`, `libxss1`, `l
 ## 12. Быстрые ссылки
 
 - Исходники (private): https://github.com/HailRase/softphone-electron  
-- **Пользовательские Releases:** https://github.com/HailRase/axatalk-releases/releases  
-- Manifest (raw): https://raw.githubusercontent.com/HailRase/axatalk-releases/main/update-manifest.json  
+- **Пользовательские Releases:** https://github.com/HailRase/omnicall-releases/releases  
+- Manifest (raw): https://raw.githubusercontent.com/HailRase/omnicall-releases/main/update-manifest.json  
 - Actions CI: https://github.com/HailRase/softphone-electron/actions/workflows/ci.yml  
 - Actions Release: https://github.com/HailRase/softphone-electron/actions/workflows/release.yml  
 - Migrate workflow: https://github.com/HailRase/softphone-electron/actions/workflows/migrate-distribution.yml  

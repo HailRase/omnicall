@@ -85,6 +85,8 @@ export {
   type DialpadDisabledContext,
   type DialpadMode,
   type DialpadUiState,
+  type OutgoingFailureNotification,
+  type OutgoingFailureNotificationReason,
 } from "./projections/telephony/callProjection.js";
 export {
   createActiveCallControlsProjection,
@@ -274,8 +276,29 @@ export {
   OCP_INTEGRATION_DEFAULTS,
   parseOcpIntegrationSettings,
   type OcpIntegrationSettings,
+  SDK_INTEGRATION_DEFAULTS,
+  parseSdkIntegrationSettings,
+  parseSdkOriginsDraft,
+  createDefaultSdkOriginCapabilityMatrix,
+  withMatrixCapability,
+  SDK_ORIGIN_MATRIX_CAPABILITY_IDS,
+  allowSdkOrigin,
+  denySdkOrigin,
+  parseExactSdkOrigin,
+  removeAllowedSdkOrigin,
+  renameAllowedSdkOrigin,
+  type SdkIntegrationSettings,
+  type SdkOriginCapabilityMatrix,
+  type SdkOriginMatrixCapabilityId,
+  type SdkOriginTrustEntry,
+  type SdkOriginTrustState,
   type UserSettings,
 } from "@domain/index.js";
+export {
+  persistSdkIntegrationSettings,
+  type PersistSdkIntegrationSettingsResult,
+  type SdkGatewaySettingsInvoker,
+} from "./settings/persistSdkIntegrationSettings.js";
 export type { HeadsetFaultReason } from "@domain/index.js";
 export {
   reorderAudioCodecs,
@@ -419,12 +442,14 @@ export {
   reduceOcpSessionFromServerState,
   reduceOcpSessionFromMessage,
   applyOcpSessionDomain,
+  applyOcpSessionAuthenticatedLogin,
   applyOcpAuthFeedback,
   clearOcpAuthFeedback,
   applyAuthorizationProgress,
   selectIsOcpConnected,
   selectOcpAuthFeedback,
   selectOcpDomain,
+  selectOcpAuthenticatedLogin,
   selectOcpServerState,
   selectOcpAuthorizationState,
   selectPrimaryRecoveryAction,
@@ -435,11 +460,18 @@ export {
 export {
   initialAuthorizationProgressProjection,
   applyAuthorizationProgressStage,
+  applyAuthorizationExecutionStage,
   clearAuthorizationProgress,
   mapAuthorizationFailureStage,
+  withAuthorizationProgressUiSurface,
   type AuthorizationProgressProjection,
   type AuthorizationProgressStage,
+  type AuthorizationProgressUiSurface,
 } from "./projections/settings/authorizationProgressProjection.js";
+export {
+  shouldOpenOcpSignInProgressModal,
+  isColdIdleAuthorizationProgress,
+} from "./projections/settings/shouldOpenOcpSignInProgressModal.js";
 export {
   isAuthorizationRetryableStage,
   resolveAuthorizationRetryStrategy,
@@ -489,15 +521,102 @@ export {
   resolveOperatorStatusChangeModeFromProjection,
   resolvePostCallFinishTarget,
   resolvePostCallFinishAppealProjection,
+  resolveOperatorStatusOptionIsCurrent,
   type OcpOperatorStatusLabelKey,
   type OperatorStatusChangeMode,
   type OperatorStatusValue,
   type OperatorStatusTone,
   type PostCallFinishTarget,
   type PostCallFinishAppealProjection,
+  type OperatorStatusOptionCurrentInput,
 } from "./projections/integration/operatorStatusPresentation.js";
 export { FinishPostCallAppealUseCase } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
 export type { FinishPostCallAppealInput } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
+export { SaveExternalServicesSettingsUseCase } from "./use-cases/integration/SaveExternalServicesSettingsUseCase.js";
+export type {
+  SaveExternalServicesSettingsInput,
+  SaveExternalServicesSettingsOutcome,
+} from "./use-cases/integration/SaveExternalServicesSettingsUseCase.js";
+export { QueryExternalServicesUseCase } from "./use-cases/integration/QueryExternalServicesUseCase.js";
+export type {
+  QueryExternalServicesInput,
+  QueryExternalServicesOutcome,
+  ExternalServicesCollectionView,
+} from "./use-cases/integration/QueryExternalServicesUseCase.js";
+export {
+  deriveExternalServicesCollectionsPanel,
+  deriveExternalServicesCollectionsFromSettings,
+  type ExternalServicesCollectionSummaryVm,
+  type ExternalServicesCollectionVariableVm,
+  type ExternalServicesCollectionsLoadState,
+  type ExternalServicesCollectionsPanelVm,
+} from "./projections/integration/deriveExternalServicesCollectionsPanel.js";
+export {
+  deriveExternalServicesJournalPanel,
+  deriveExternalServicesJournalFromOutcome,
+  EXTERNAL_SERVICES_JOURNAL_UI_LIMIT,
+  type ExternalServicesJournalHeaderVm,
+  type ExternalServicesJournalEntryVm,
+  type ExternalServicesJournalOutcomeVm,
+  type ExternalServicesJournalLoadState,
+  type ExternalServicesJournalPanelVm,
+} from "./projections/integration/deriveExternalServicesJournalPanel.js";
+export {
+  createExternalServiceCollection,
+  renameExternalServiceCollection,
+  toggleExternalServiceCollection,
+  deleteExternalServiceCollection,
+  duplicateExternalServiceCollection,
+  replaceExternalServiceCollectionVariables,
+  type ExternalServicesCollectionMutationError,
+  type ExternalServicesCollectionMutationResult,
+} from "./services/integration/external-services/mutateExternalServicesCollections.js";
+export {
+  createExternalServiceRequest,
+  renameExternalServiceRequest,
+  toggleExternalServiceRequest,
+  deleteExternalServiceRequest,
+  duplicateExternalServiceRequest,
+  replaceExternalServiceRequest,
+  type ExternalServicesRequestMutationError,
+  type ExternalServicesRequestMutationResult,
+} from "./services/integration/external-services/mutateExternalServicesRequests.js";
+export type {
+  ExternalServicesSettings,
+  ExternalServiceCollection,
+  ExternalServiceCollectionId,
+  ExternalServiceVariable,
+} from "@domain/index.js";
+export { EXTERNAL_SERVICES_DEFAULTS, MAX_EXTERNAL_SERVICE_NAME_LENGTH } from "@domain/index.js";
+export {
+  EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES,
+  EXTERNAL_SERVICE_VARIABLE_CATALOG,
+  EXTERNAL_SERVICE_VARIABLE_CATALOG_GROUPS,
+  formatExternalServiceVariableToken,
+  hasBlockingExternalServiceCollectionVariableIssues,
+  inspectExternalServiceCollectionVariableRows,
+  isExternalServiceSystemVariableName,
+  listExternalServiceVariableCatalogByGroup,
+  normalizeExternalServiceCollectionVariables,
+} from "@domain/index.js";
+export type {
+  ExternalServiceCollectionVariableRowInspection,
+  ExternalServiceCollectionVariableRowIssue,
+  ExternalServiceCollectionVariablesNormalizeError,
+  ExternalServiceVariableCatalogEntry,
+  ExternalServiceVariableCatalogGroupId,
+  NormalizeExternalServiceCollectionVariablesResult,
+} from "@domain/index.js";
+export { ExportExternalServiceCollectionUseCase } from "./use-cases/integration/ExportExternalServiceCollectionUseCase.js";
+export type {
+  ExportExternalServiceCollectionInput,
+  ExportExternalServiceCollectionOutcome,
+} from "./use-cases/integration/ExportExternalServiceCollectionUseCase.js";
+export { ImportExternalServiceCollectionUseCase } from "./use-cases/integration/ImportExternalServiceCollectionUseCase.js";
+export type {
+  ImportExternalServiceCollectionInput,
+  ImportExternalServiceCollectionOutcome,
+} from "./use-cases/integration/ImportExternalServiceCollectionUseCase.js";
 export {
   initialOcpReasonsProjection,
   reduceOcpReasonsFromPayload,
@@ -507,8 +626,30 @@ export {
   initialCampaignEventProjection,
   reduceCampaignEventFromPayload,
   clearCampaignEvent,
+  deriveCampaignOfferPhase,
   type CampaignEventProjection,
+  type CampaignOfferUiPhase,
+  type CampaignReduceOutcome,
+  type CampaignClearResult,
 } from "./projections/integration/campaignEventProjection.js";
+export {
+  initialCallOcpContextProjection,
+  markCallOcpContextPending,
+  resolveCallOcpContext,
+  markCallOcpContextUnavailable,
+  clearCallOcpContext,
+  type CallOcpContextProjection,
+  type CallOcpContextEntry,
+  type CallOcpContextDirection,
+  type CallOcpContextResolveState,
+  type CallOcpContextAcdWire,
+} from "./projections/integration/callOcpContextProjection.js";
+export {
+  deriveCallContextBadges,
+  type CallContextBadge,
+  type CallContextBadgeKind,
+  type DeriveCallContextBadgesInput,
+} from "./projections/integration/deriveCallContextBadges.js";
 export { OcpProjectionHub } from "./read-models/OcpProjectionHub.js";
 export { OcpIntegrationComposition } from "./services/integration/OcpIntegrationComposition.js";
 export {

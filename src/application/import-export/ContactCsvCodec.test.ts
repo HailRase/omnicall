@@ -13,7 +13,7 @@ const sampleContact: Contact = {
   displayName: "Alex Agent",
   primaryPhone: "+12025550100",
   secondaryPhone: "+12025550101",
-  company: "Axatalk",
+  company: "OmniCall",
   notes: "VIP",
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
@@ -39,7 +39,7 @@ describe("ContactCsvCodec", () => {
   it("parses quoted fields and case-insensitive headers", () => {
     const csv = [
       " DisplayName , PRIMARYPHONE , SecondaryPhone , Company , Notes ",
-      '"Alex Agent",+12025550100,,Axatalk,',
+      '"Alex Agent",+12025550100,,OmniCall,',
       '"Quoted, Name",+12025550102,,,"Note ""VIP"""',
     ].join("\n");
 
@@ -58,7 +58,7 @@ describe("ContactCsvCodec", () => {
   it("parses Excel-style semicolon-delimited CSV", () => {
     const csv = [
       "displayName;primaryPhone;secondaryPhone;company;notes",
-      "Alex Agent;+12025550100;;Axatalk;",
+      "Alex Agent;+12025550100;;OmniCall;",
     ].join("\n");
 
     const parsed = parseContactsCsv(csv);
@@ -72,7 +72,7 @@ describe("ContactCsvCodec", () => {
       displayName: "Alex Agent",
       primaryPhone: "+12025550100",
       secondaryPhone: "",
-      company: "Axatalk",
+      company: "OmniCall",
       notes: "",
     });
   });

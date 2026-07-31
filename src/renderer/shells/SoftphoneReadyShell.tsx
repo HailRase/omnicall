@@ -23,9 +23,16 @@ import { useVideoCallNotifications } from "../hooks/useVideoCallNotifications.js
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
+import { useShellWindowAttentionFromCalls } from "../hooks/useShellWindowAttentionFromCalls.js";
+import { useShellTelephonyBusyMirror } from "../hooks/useShellTelephonyBusyMirror.js";
+import { useShellWindowAttentionFromCampaign } from "../hooks/useShellWindowAttentionFromCampaign.js";
+import { useShellWindowAttentionFromSdk } from "../hooks/useShellWindowAttentionFromSdk.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
+import { usePreferencesTransferActions } from "../hooks/usePreferencesTransferActions.js";
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
+import { useSdkSettingsPanel } from "../hooks/useSdkSettingsPanel.js";
+import { useExternalServicesPanel } from "../hooks/useExternalServicesPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
 import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -48,8 +55,17 @@ import { OperatorStatusSelector } from "../widgets/OperatorStatusSelector/Operat
 import { OcpConnectionBanner } from "../components/integration/ocp/OcpConnectionBanner.js";
 import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaignEventModal.js";
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
+import { OcpSignInProgress } from "../components/account/OcpSignInProgress.js";
 import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
 import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
+import { SdkConnectCeremonyModal } from "../components/integration/SdkConnectCeremonyModal.js";
+import { SdkActivateProfileConsentModal } from "../components/integration/SdkActivateProfileConsentModal.js";
+import { useSdkConnectCeremony } from "../hooks/useSdkConnectCeremony.js";
+import {
+  sdkActivateConsentBridge,
+  subscribeSdkActivateConsent,
+} from "../bootstrap/sdkActivateConsentBridge.js";
+import type { SdkActivateConsentPending } from "@application/integration/DeferredSdkActivateConsent.js";
 import { useOcpCampaignModal } from "../hooks/useOcpCampaignModal.js";
 import { useOcpLogoutModal } from "../hooks/useOcpLogoutModal.js";
 import { useOcpRejectWithBreak } from "../hooks/useOcpRejectWithBreak.js";
@@ -111,6 +127,13 @@ function SoftphoneShellLayoutRoute({
   }, [overlayShell]);
   const shellNavigation = useShellNavigation();
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
+  /** Stays true through opaque close hold so shell chrome does not flash under the overlay. */
+  const [settingsOverlayVisible, setSettingsOverlayVisible] = useState(false);
+  const settingsChromeActive =
+    overlayShell.settingsOpen || settingsOverlayVisible;
+  const [activateConsentPending, setActivateConsentPending] =
+    useState<SdkActivateConsentPending | null>(null);
+  useEffect(() => subscribeSdkActivateConsent(setActivateConsentPending), []);
   const queryNotificationHistory = useCallback(
     (input: QueryUserNotificationJournalInput) =>
       facade.queryUserNotificationJournal(input),
@@ -187,6 +210,11 @@ function SoftphoneShellLayoutRoute({
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
   });
+  const preferencesTransfer = usePreferencesTransferActions({
+    facade,
+    currentVersion: appUpdate.snapshot.currentVersion,
+    onSettingsImported: settingsActions.applyUserSettingsSnapshot,
+  });
   const resolveNotificationTitle = useCallback(
     (descriptor: NotificationDescriptor): string =>
       resolveNotificationDescriptorTitle(descriptor, language),
@@ -245,8 +273,16 @@ function SoftphoneShellLayoutRoute({
   const ocpAuthFeedback = useAccountBootstrapStore(
     (state) => state.ocpSessionProjection.authFeedback,
   );
+  const ocpTransportRecoveryActive = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.transportRecoveryActive,
+  );
   useEffect(() => {
     if (ocpAuthFeedback === null) {
+      return;
+    }
+    // Auto-recovery already shows OcpConnectionBanner — skip duplicate token toasts.
+    if (ocpTransportRecoveryActive) {
+      facade.clearOcpAuthFeedback();
       return;
     }
     const messageKey = mapOcpAuthFeedbackToMessageKey(ocpAuthFeedback.reason);
@@ -263,13 +299,64 @@ function SoftphoneShellLayoutRoute({
       },
     });
     facade.clearOcpAuthFeedback();
-  }, [facade, notifications, ocpAuthFeedback, openSystemState]);
+  }, [
+    facade,
+    notifications,
+    ocpAuthFeedback,
+    ocpTransportRecoveryActive,
+    openSystemState,
+  ]);
   const ocpSettingsPanel = useOcpSettingsPanel({
     facade,
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
     onOpenAccountSettings: () => {
       overlayShell.openSettings("account");
     },
+  });
+  const sdkSettingsPanel = useSdkSettingsPanel({
+    facade,
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+  });
+  const externalServicesPanel = useExternalServicesPanel({
+    facade,
+    sectionActive:
+      overlayShell.settingsOpen &&
+      overlayShell.settingsSection === "integrations-external-services",
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+  });
+  useShellWindowAttentionFromCalls({
+    incomingCallProjection: callBindings.incomingCallProjection,
+    callProjection: callBindings.callProjection,
+  });
+  useShellTelephonyBusyMirror({
+    incomingCallProjection: callBindings.incomingCallProjection,
+    callProjection: callBindings.callProjection,
+    multiCallProjection: callBindings.multiCallProjection,
+  });
+  const ocpCampaignEventProjection = useAccountBootstrapStore(
+    (state) => state.ocpCampaignEventProjection,
+  );
+  useShellWindowAttentionFromCampaign({
+    campaignEventProjection: ocpCampaignEventProjection,
+  });
+  const { onRefresh: refreshSdkSnapshotForAttention } = sdkSettingsPanel;
+  useShellWindowAttentionFromSdk({
+    activateConsentPending,
+    refreshSdkSnapshot: refreshSdkSnapshotForAttention,
+  });
+  const sdkConnectCeremony = useSdkConnectCeremony({
+    pendingOriginTrust: sdkSettingsPanel.pendingOriginTrust,
+    pendingPairing: sdkSettingsPanel.pendingPairing,
+    busy: sdkSettingsPanel.busy,
+    isOriginAllowed: (origin) =>
+      sdkSettingsPanel.settings.origins.some(
+        (entry) => entry.origin === origin && entry.state === "allowed",
+      ) || sdkSettingsPanel.allowedOriginsLive.includes(origin),
+    onAllowOriginTrust: sdkSettingsPanel.onAllowOriginTrust,
+    onDenyOriginTrust: sdkSettingsPanel.onDenyOriginTrust,
+    onCancelOriginTrust: sdkSettingsPanel.onCancelOriginTrust,
+    onApprovePairing: sdkSettingsPanel.onApprovePairing,
+    onDenyPairing: sdkSettingsPanel.onDenyPairing,
   });
   const ocpLogoutModal = useOcpLogoutModal({
     facade,
@@ -330,6 +417,7 @@ function SoftphoneShellLayoutRoute({
       projection: callBindings.activeCallControlsProjection,
       onRetry: callBindings.callActions.handleRetryLastOperation,
     },
+    outgoingFailure: callBindings.callProjection.lastOutgoingFailure,
     dtmfError: callBindings.callProjection.lastDtmfError,
     transferFailure: callBindings.transferPanelShell.failureMessage,
     logoutErrorMessage: sessionLogoutActions.shell.logoutErrorMessage,
@@ -345,7 +433,10 @@ function SoftphoneShellLayoutRoute({
     eventPublisher: facade.eventPublisher,
     notifications,
   });
-  const windowControls = useShellWindowControls({ isShuttingDown });
+  const windowControls = useShellWindowControls({
+    isShuttingDown,
+    settingsOpen: settingsChromeActive,
+  });
 
   return (
     <SoftphoneLayout
@@ -357,7 +448,7 @@ function SoftphoneShellLayoutRoute({
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
             windowControls={windowControls}
-            suppressWindowControls={overlayShell.settingsOpen}
+            suppressWindowControls={settingsChromeActive}
             operatorStatusSlot={
               <OperatorStatusSelector
                 vm={operatorStatusSelector.vm}
@@ -366,18 +457,6 @@ function SoftphoneShellLayoutRoute({
                 onFinishAppeal={operatorStatusSelector.onFinishAppeal}
               />
             }
-          />
-          <OcpConnectionBanner
-            visible={
-              operatorStatusSelector.vm.isReconnecting ||
-              operatorStatusSelector.vm.isFailed
-            }
-            mode={
-              operatorStatusSelector.vm.isFailed ? "failed" : "reconnecting"
-            }
-            reconnectAttempt={operatorStatusSelector.vm.reconnectAttempt}
-            maxReconnectAttempts={operatorStatusSelector.vm.maxReconnectAttempts}
-            onRetry={operatorStatusSelector.onRetryConnect}
           />
         </>
       }
@@ -458,6 +537,32 @@ function SoftphoneShellLayoutRoute({
             }}
             onCancel={ocpLogoutModal.handleCancel}
           />
+          <OcpSignInProgress
+            open={accountActions.ocpSignInModalOpen}
+            progress={accountActions.authorizationProgress}
+            reconnectEnabled={
+              accountActions.authorizationProgress.retryAvailable ||
+              accountActions.authorizationProgress.failedExecutionStage !== null
+            }
+            busy={accountActions.submitting}
+            density={settingsChromeActive ? "comfortable" : "compact"}
+            onDisconnect={accountActions.handleOcpSignInDisconnect}
+            onReconnect={accountActions.handleOcpSignInReconnect}
+            onSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
+          />
+          {/* Global like OcpSignInProgress: above Settings/routes; below Dialogs. */}
+          <OcpConnectionBanner
+            visible={
+              operatorStatusSelector.vm.isReconnecting ||
+              operatorStatusSelector.vm.isFailed
+            }
+            mode={
+              operatorStatusSelector.vm.isFailed ? "failed" : "reconnecting"
+            }
+            reconnectAttempt={operatorStatusSelector.vm.reconnectAttempt}
+            maxReconnectAttempts={operatorStatusSelector.vm.maxReconnectAttempts}
+            onRetry={operatorStatusSelector.onRetryConnect}
+          />
           <OcpCampaignEventModal
             open={ocpCampaignModal.open}
             campaign={ocpCampaignModal.campaign}
@@ -481,6 +586,29 @@ function SoftphoneShellLayoutRoute({
             }}
             onCancel={ocpRejectWithBreak.handleCancel}
           />
+          <SdkConnectCeremonyModal
+            view={sdkConnectCeremony.view}
+            busy={sdkConnectCeremony.busy}
+            onAllowTransport={sdkConnectCeremony.onAllowTransport}
+            onDenyTransport={sdkConnectCeremony.onDenyTransport}
+            onApprovePairing={sdkConnectCeremony.onApprovePairing}
+            onDenyPairing={sdkConnectCeremony.onDenyPairing}
+            onCancelWaiting={sdkConnectCeremony.onCancelWaiting}
+            onDismiss={sdkConnectCeremony.onDismiss}
+            onDeadlineExpired={sdkConnectCeremony.onDeadlineExpired}
+          />
+          <SdkActivateProfileConsentModal
+            pending={activateConsentPending}
+            onAllow={(mode) => {
+              sdkActivateConsentBridge.settle("allow", mode);
+            }}
+            onDeny={() => {
+              sdkActivateConsentBridge.settle("deny");
+            }}
+            onDismiss={() => {
+              sdkActivateConsentBridge.settle("dismiss");
+            }}
+          />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
           <ContactsShellRoutePanel facade={facade} notify={notifications.notify} />
@@ -502,6 +630,7 @@ function SoftphoneShellLayoutRoute({
             open={overlayShell.settingsOpen}
             onClose={overlayShell.closeOverlay}
             windowControls={windowControls}
+            onVisibleChange={setSettingsOverlayVisible}
           >
             <SettingsPanel
               activeSection={overlayShell.settingsSection}
@@ -546,6 +675,14 @@ function SoftphoneShellLayoutRoute({
               isCheckingUpdates={appUpdate.isChecking}
               onCheckForUpdates={appUpdate.onCheckForUpdates}
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
+              preferencesTransferBusy={preferencesTransfer.isTransferBusy}
+              preferencesTransferStatusMessage={preferencesTransfer.transferStatusMessage}
+              onExportPreferences={() => {
+                void preferencesTransfer.exportPreferences();
+              }}
+              onImportPreferences={() => {
+                void preferencesTransfer.importPreferences();
+              }}
               systemState={{
                 shell: sipSystemStateShell,
                 ocpShell: ocpSystemState.shell,
@@ -626,6 +763,34 @@ function SoftphoneShellLayoutRoute({
                   onDomainChange: ocpSettingsPanel.onDomainChange,
                   onAutoConnectChange: ocpSettingsPanel.onAutoConnectChange,
                 },
+                sdk: {
+                  settings: sdkSettingsPanel.settings,
+                  diagnostics: sdkSettingsPanel.diagnostics,
+                  allowedOriginsLive: sdkSettingsPanel.allowedOriginsLive,
+                  pairedClients: sdkSettingsPanel.pairedClients,
+                  addOriginDraft: sdkSettingsPanel.addOriginDraft,
+                  errorKey: sdkSettingsPanel.errorKey,
+                  busy: sdkSettingsPanel.busy,
+                  onAddOriginDraftChange: sdkSettingsPanel.onAddOriginDraftChange,
+                  onAddOrigin: sdkSettingsPanel.onAddOrigin,
+                  onRefresh: sdkSettingsPanel.onRefresh,
+                  onRevokeClient: sdkSettingsPanel.onRevokeClient,
+                  onUnblockOrigin: sdkSettingsPanel.onUnblockOrigin,
+                  onBlacklistOrigin: sdkSettingsPanel.onBlacklistOrigin,
+                  onRemoveAllowedOrigin: sdkSettingsPanel.onRemoveAllowedOrigin,
+                  onRenameAllowedOrigin: sdkSettingsPanel.onRenameAllowedOrigin,
+                  onSetOriginMatrix: sdkSettingsPanel.onSetOriginMatrix,
+                  onOperatorModalTimeoutsChange:
+                    sdkSettingsPanel.onOperatorModalTimeoutsChange,
+                },
+                externalServices: {
+                  sidebar: externalServicesPanel.sidebar,
+                  welcome: externalServicesPanel.welcome,
+                  requestsView: externalServicesPanel.requestsView,
+                  requestEditor: externalServicesPanel.requestEditor,
+                  dialogs: externalServicesPanel.dialogs,
+                  variablesDialog: externalServicesPanel.variablesDialog,
+                },
               }}
               account={{
                 form: accountActions.form,
@@ -653,12 +818,6 @@ function SoftphoneShellLayoutRoute({
                 hasSavedOcpApiKey: accountActions.hasSavedOcpApiKey,
                 allowedRecoveryActions: accountActions.allowedRecoveryActions,
                 onRecoveryAction: accountActions.handleRecoveryAction,
-                authorizationProgress: accountActions.authorizationProgress,
-                ocpSignInModalOpen: accountActions.ocpSignInModalOpen,
-                onOcpSignInDisconnect: accountActions.handleOcpSignInDisconnect,
-                onOcpSignInReconnect: accountActions.handleOcpSignInReconnect,
-                onOcpSignInSuccessSettled:
-                  accountActions.handleOcpSignInSuccessSettled,
                 canForgetSavedSipPassword:
                   accountActions.canForgetSavedSipPassword,
                 onForgetSavedSipPassword:

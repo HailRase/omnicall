@@ -35,7 +35,7 @@ describe("createSoftphoneComposition", () => {
   });
 
   it("real mode returns AccountBootstrapFacade with JsSIP telephony wiring", async () => {
-    const profilesStorageRoot = await mkdtemp(join(tmpdir(), "axatalk-composition-"));
+    const profilesStorageRoot = await mkdtemp(join(tmpdir(), "omnicall-composition-"));
     tempRoots.push(profilesStorageRoot);
 
     const facade = createSoftphoneComposition({

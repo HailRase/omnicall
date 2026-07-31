@@ -1,0 +1,13 @@
+declare const classes: {
+  readonly cancelChevron: string;
+  readonly cancelGroup: string;
+  readonly content: string;
+  readonly description: string;
+  readonly footer: string;
+  readonly header: string;
+  readonly menu: string;
+  readonly modeList: string;
+  readonly title: string;
+  readonly titleRow: string;
+};
+export default classes;

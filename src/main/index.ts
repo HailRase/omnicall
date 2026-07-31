@@ -10,16 +10,26 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseShellWindowRaisePayload } from "@shared/ipc/ShellWindowRaiseContract.js";
+import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { MAIN_WINDOW_INITIAL_BOUNDS } from "@shared/platform/mainWindowBounds.js";
+import {
+  STARTUP_SPLASH_BG_DARK,
+  STARTUP_SPLASH_BG_LIGHT,
+} from "@shared/platform/startupSplashColors.js";
 import type { AppIconTheme } from "./resolveAppIconPath.js";
 import { resolveAppIconPath } from "./resolveAppIconPath.js";
 import { applyAppIcon } from "./loadAppIcon.js";
 import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
+import { ShellWindowAttentionController } from "./shellWindow/ShellWindowAttentionController.js";
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
 import { registerSecretStorageIpc } from "./secrets/registerSecretStorageIpc.js";
 import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
+import { registerPreferencesFileIpc } from "./settings/registerPreferencesFileIpc.js";
+import { registerExternalServicesHttpIpc } from "./integration/registerExternalServicesHttpIpc.js";
+import { registerExternalServicesCollectionFileIpc } from "./integration/registerExternalServicesCollectionFileIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
@@ -32,6 +42,24 @@ import {
 import { parseHeadsetSetPreferredDeviceIdPayload } from "@shared/ipc/HeadsetPreferredDeviceContract.js";
 import { installDisplayMediaRequestHandler } from "./media/installDisplayMediaRequestHandler.js";
 import { registerDisplayCaptureIpc } from "./media/registerDisplayCaptureIpc.js";
+import {
+  beginSdkBrokerAppShutdown,
+  cancelSdkBrokerAppShutdown,
+  registerSdkBrokerIpc,
+  shutdownSdkBroker,
+} from "./sdk/registerSdkBrokerIpc.js";
+import {
+  beginSdkGatewayAppShutdown,
+  cancelSdkGatewayAppShutdown,
+  getShellWindowAttentionController,
+  getSdkHideTrayController,
+  getShellTelephonyBusyMirror,
+  setSdkGatewayPrimaryInstance,
+  setShellWindowAttentionController,
+  startSdkGateway,
+  stopSdkGateway,
+} from "./sdk/registerSdkGateway.js";
+import { migrateLegacyAppDataIfNeeded } from "@infrastructure/bootstrap/resolveOmniCallProfilesStorageRoot.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -46,6 +74,15 @@ const updateLogger = createConsoleLogger({
 const shutdownCoordinator = new AppShutdownCoordinator();
 let isQuitting = false;
 let shellWindowController: ShellWindowController | null = null;
+let shellWindowAttention: ShellWindowAttentionController | null = null;
+
+function getMainBrowserWindow(): BrowserWindow | null {
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  if (mainWindow === undefined || mainWindow.isDestroyed()) {
+    return null;
+  }
+  return mainWindow;
+}
 
 function resolvePackagedPlatform(): "win32" | "darwin" | "linux" {
   if (process.platform === "win32" || process.platform === "darwin" || process.platform === "linux") {
@@ -67,6 +104,10 @@ function resolveFramelessShell(): boolean {
   );
 }
 
+function resolveStartupWindowBackground(): string {
+  return nativeTheme.shouldUseDarkColors ? STARTUP_SPLASH_BG_DARK : STARTUP_SPLASH_BG_LIGHT;
+}
+
 function createMainWindow(): BrowserWindow {
   const iconPath = resolveAppIconPath(resolveAppIconTheme());
   const frameless = resolveFramelessShell();
@@ -79,6 +120,7 @@ function createMainWindow(): BrowserWindow {
     fullscreenable: false,
     resizable: false,
     show: false,
+    backgroundColor: resolveStartupWindowBackground(),
     frame: !frameless,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -95,6 +137,14 @@ function createMainWindow(): BrowserWindow {
   shellWindowController = new ShellWindowController(mainWindow, () => {
     const display = screen.getDisplayMatching(mainWindow.getBounds());
     return display.workArea;
+  });
+  shellWindowController.onMaximizedChange((maximized) => {
+    if (mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.webContents.send(IPC_CHANNELS.shellWindowMaximizedChanged, {
+      maximized,
+    });
   });
 
   mainWindow.on("ready-to-show", () => {
@@ -141,6 +191,10 @@ function requestRendererShutdown(
   source: AppShutdownSource,
   action: AppShutdownAction,
 ): { ok: true } | { ok: false; reason: "shutdown_in_progress" | "window_destroyed" } {
+  // ADR-0009: stop gateway acceptance + cancel pending broker work before telephony cleanup.
+  beginSdkGatewayAppShutdown();
+  beginSdkBrokerAppShutdown();
+
   const correlationId = createCorrelationId();
   const beginResult = shutdownCoordinator.beginShutdown(correlationId, action);
 
@@ -185,6 +239,24 @@ function requestRendererShutdown(
 
 function finalizeShutdown(action: AppShutdownAction): void {
   isQuitting = true;
+  // ADR-0009: dispose broker sync, then await gateway teardown before process exit.
+  shutdownSdkBroker();
+  void completeShutdownAfterGatewayStop(action);
+}
+
+async function completeShutdownAfterGatewayStop(
+  action: AppShutdownAction,
+): Promise<void> {
+  try {
+    await stopSdkGateway();
+  } catch (error: unknown) {
+    logger.warn("sdk_gateway_stop_failed", {
+      correlationId: createCorrelationId(),
+      operation: "sdk_gateway_stop",
+      result: "failed",
+      code: error instanceof Error ? error.name : "unknown",
+    });
+  }
 
   // Force quit, kill, or OS hard shutdown cannot await async SIP logout.
   if (action === "restart") {
@@ -335,6 +407,10 @@ function registerIpcHandlers(): void {
       return { ok: false as const, reason: "rejected" };
     }
 
+    // ADR-0009 / DI-02/03: restore broker + gateway acceptance after cancelled quit.
+    cancelSdkBrokerAppShutdown();
+    cancelSdkGatewayAppShutdown();
+
     logger.warn("app_shutdown_cancelled", {
       correlationId: parsed.correlationId,
       operation: "app_cancel_shutdown",
@@ -368,6 +444,23 @@ function registerIpcHandlers(): void {
     return { ok: true as const };
   });
 
+  ipcMain.handle(IPC_CHANNELS.shellWindowToggleMaximize, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    return shellWindowController.toggleMaximize();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowGetMaximized, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const };
+    }
+    return {
+      ok: true as const,
+      maximized: shellWindowController.isMaximized(),
+    };
+  });
+
   ipcMain.handle(IPC_CHANNELS.shellWindowClose, () => {
     const mainWindow = BrowserWindow.getAllWindows()[0];
     if (mainWindow === undefined || mainWindow.isDestroyed()) {
@@ -378,6 +471,41 @@ function registerIpcHandlers(): void {
     return result.ok
       ? { ok: true as const }
       : { ok: false as const, reason: result.reason };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowRaise, (_event, payload: unknown) => {
+    const parsed = parseShellWindowRaisePayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" as const };
+    }
+    const attention =
+      shellWindowAttention ?? getShellWindowAttentionController();
+    if (attention === null) {
+      return { ok: false as const, reason: "not_ready" as const };
+    }
+    const raised = attention.raise({
+      reason: parsed.reason,
+      ...(parsed.dedupeKey !== undefined
+        ? { dedupeKey: parsed.dedupeKey }
+        : {}),
+    });
+    if (!raised.ok) {
+      return {
+        ok: false as const,
+        reason: raised.code === "duplicate" ? ("duplicate" as const) : ("not_ready" as const),
+      };
+    }
+    getSdkHideTrayController().dispose();
+    return { ok: true as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellTelephonyBusy, (_event, payload: unknown) => {
+    const parsed = parseShellTelephonyBusyPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" as const };
+    }
+    getShellTelephonyBusyMirror().setBusy(parsed.busy);
+    return { ok: true as const };
   });
 
   ipcMain.handle(IPC_CHANNELS.headsetSetPreferredDeviceId, (_event, payload: unknown) => {
@@ -417,7 +545,36 @@ function setupHidPermissions(): void {
   });
 }
 
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+setSdkGatewayPrimaryInstance(gotSingleInstanceLock);
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    const attention =
+      shellWindowAttention ?? getShellWindowAttentionController();
+    if (attention === null) {
+      const mainWindow = getMainBrowserWindow();
+      if (mainWindow === null) {
+        return;
+      }
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+      getSdkHideTrayController().dispose();
+      return;
+    }
+    attention.raise({ reason: "second_instance" });
+    getSdkHideTrayController().dispose();
+  });
+}
+
 void app.whenReady().then(() => {
+  if (!gotSingleInstanceLock) {
+    return;
+  }
+
   const correlationId = createCorrelationId();
   installApplicationMenu();
 
@@ -427,10 +584,30 @@ void app.whenReady().then(() => {
     result: "started",
   });
 
+  try {
+    const migrationResult = migrateLegacyAppDataIfNeeded(app.getPath("userData"));
+    logger.info("legacy_app_data_migration", {
+      correlationId,
+      operation: "migrate_legacy_app_data",
+      result: migrationResult,
+    });
+  } catch (error: unknown) {
+    logger.warn("legacy_app_data_migration_failed", {
+      correlationId,
+      operation: "migrate_legacy_app_data",
+      result: "failed",
+      code: error instanceof Error ? error.name : "unknown",
+    });
+  }
+
   registerIpcHandlers();
   registerProfilesPersistenceIpc();
   registerSecretStorageIpc();
   registerContactsCsvIpc();
+  registerPreferencesFileIpc();
+  registerExternalServicesHttpIpc();
+  registerExternalServicesCollectionFileIpc();
+  registerSdkBrokerIpc();
   setupHidPermissions();
   registerDisplayCaptureIpc();
   installDisplayMediaRequestHandler({
@@ -441,6 +618,23 @@ void app.whenReady().then(() => {
     }),
   });
   createMainWindow();
+
+  shellWindowAttention = new ShellWindowAttentionController({
+    getMainWindow: getMainBrowserWindow,
+  });
+  setShellWindowAttentionController(shellWindowAttention);
+
+  // DI-03: handshake-only loopback gateway — failure must not block SIP-only boot.
+  void startSdkGateway({ desktopVersion: app.getVersion() }).catch(
+    (error: unknown) => {
+      logger.warn("sdk_gateway_start_unhandled", {
+        correlationId: createCorrelationId(),
+        operation: "sdk_gateway_start",
+        result: "failed",
+        code: error instanceof Error ? error.name : "unknown",
+      });
+    },
+  );
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

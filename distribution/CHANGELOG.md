@@ -1,9 +1,87 @@
 # Changelog
 
-Public release history for **Axatalk** distribution builds.
+Public release history for **OmniCall** distribution builds.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
+
+## [1.2.0] - 2026-07-31
+
+### Added
+
+- External Services: outbound HTTP automations in Settings → Integrations (collections, requests, Run now, history journal, template variables)
+- Optional delay before each automatic trigger (0–180 seconds) with a Queue monitor and logout warning for waiting jobs
+- Settings Integrations always shows OCP Module and External Services together; OmniCall Kit stays a separate top-level item
+- Settings window can fill the work area without using the OS maximize button
+
+### Fixed
+
+- OCP reconnect banner no longer disappears during brief recovery reconnect flaps
+
+## [1.1.2] - 2026-07-28
+
+### Fixed
+
+- Release install step builds OmniCall Protocol correctly (`tsc -b --force`) so CI can publish installers
+
+### Notes
+
+- First published 1.x installers after failed `v1.1.0` / `v1.1.1` CI runs; includes OmniCall rebrand, shared-desk SDK call control, and toast viewport fixes from 1.1.0
+
+## [1.1.1] - 2026-07-28
+
+### Fixed
+
+- Release pipeline builds the OmniCall Protocol package before tests so installer publish can complete (first published 1.x installers after the failed `v1.1.0` CI run)
+
+### Notes
+
+- Includes all user-facing changes from 1.1.0 / 1.0.0 (OmniCall rebrand, shared-desk SDK call control, toast viewport fixes)
+
+## [1.1.0] - 2026-07-28
+
+### Added
+
+- Shared-desk OmniCall Kit call control: paired sites with matrix grants can answer, reject, hang up, hold, mute, and originate (no transfer/conference over SDK)
+- Granular call permissions in Settings → Integrations → OmniCall Kit, with umbrella call-control grant
+- Operator preferences export/import (portable JSON without passwords or pairing secrets)
+- Single-stage bootstrap splash with brand mark
+- OCP queue name on call cards; progressive/preview campaign UI with centered preview modal
+- SDK connect ceremony (Origin trust + pairing) and activate-profile consent flow
+- Privileged SDK window hide with tray Show recovery while hidden
+
+### Changed
+
+- Product rebrand to **OmniCall** (SoftOmniTel): installers `OmniCall-*`, app id `com.softomnitel.omnicall`
+- OmniCall Kit packages `@softomnitel/omnicall-kit` / `@softomnitel/omnicall-protocol`; protocol paths under `/omnicall/v1/`
+
+### Fixed
+
+- Toasts stay inside the window through compact ↔ Settings resize and clear frameless titlebar controls
+- Corrupt SDK pairing secrets no longer crash Settings; re-pair after purge
+- Auto-open DevTools on startup disabled
+
+## [1.0.0] - 2026-07-27
+
+### Changed
+
+- **MAJOR:** product renamed to OmniCall (SoftOmniTel); previous product/SDK names retired
+- App data migrates once into OmniCall storage; preferences format id `omnicall.preferences`
+
+## [0.12.0] - 2026-07-21
+
+### Added
+
+- SDK Origin first-contact TOFU Allow/Deny modal
+- Origin blacklist with Unblock restore rules
+- Per-Origin capability matrix in Settings → Integrations → OmniCall Kit
+- Activate-profile consent modal (every login when matrix allows activate)
+- Pre-auth access to OmniCall Kit Settings (OCP Module remains gated)
+
+### Changed
+
+- SDK gateway always listens on loopback (Settings enable toggle removed; kill-switch `OMNICALL_SDK_GATEWAY=0` only)
+- Machine-common Origin trust store; blacklist wins over env allow seed
 
 ## [0.11.2] - 2026-07-19
 
@@ -291,7 +369,7 @@ Versioning: SemVer. Git tag: `v<version>`.
 
 ### Added
 
-- Initial Axatalk distribution (Windows, macOS, Linux installers)
+- Initial OmniCall distribution (Windows, macOS, Linux installers)
 - Manual in-app update check using the public update manifest (no auto-install)
 - Desktop packaging for Windows, macOS, and Linux
 

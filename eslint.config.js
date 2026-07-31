@@ -27,7 +27,17 @@ const boundaryElements = [
 
 export default tseslint.config(
   {
-    ignores: ["out/**", "dist/**", "node_modules/**", "scripts/**", ".storybook/**"],
+    ignores: [
+      "out/**",
+      "dist/**",
+      "node_modules/**",
+      "scripts/**",
+      // DI-* Node smoke harnesses (same class as root scripts/** — not product TS).
+      "omnicall-kit-integration/scripts/**",
+      ".storybook/**",
+      // Nested SDK workspace has its own ESLint/tsconfig (SDK-00+). Do not lint it from desktop root.
+      "omnicall-kit/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -113,6 +123,32 @@ export default tseslint.config(
   {
     files: ["eslint.config.js"],
     extends: [tseslint.configs.disableTypeChecked],
+  },
+  {
+    files: ["src/domain/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@softomnitel/omnicall-protocol",
+                "@softomnitel/omnicall-protocol/*",
+                "zod",
+                "zod/*",
+                "electron",
+                "electron/*",
+                "ws",
+                "ws/*",
+              ],
+              message:
+                "Domain must not import @softomnitel/omnicall-protocol, Zod, Electron, or ws (F-011 / ADR-0009).",
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     files: ["src/renderer/**/*.{ts,tsx}"],

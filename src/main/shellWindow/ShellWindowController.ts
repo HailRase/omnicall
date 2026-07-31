@@ -1,17 +1,22 @@
 /**
  * - Purpose: own compact snapshot and apply settings-driven window layout in main (F-016).
  * - Inputs: BrowserWindow, display work area, layout commands.
- * - Outputs: animated or instant bounds transitions.
+ * - Outputs: instant bounds transitions; layout-owned settings work-area fill (no OS maximize).
  */
 
 import type { BrowserWindow } from "electron";
 import {
+  computeCenteredBounds,
+  computeWorkAreaBounds,
+  resolveShellWindowMaximizable,
+  resolveShellWindowMinimumSize,
   resolveShellWindowResizable,
   resolveShellWindowTargetBounds,
   SHELL_WINDOW_LAYOUT,
   type ShellWindowCompactDimensions,
   type ShellWindowLayoutEasing,
   type ShellWindowLayoutMode,
+  type ShellWindowRectangle,
   type ShellWindowWorkArea,
 } from "@domain/platform/ShellWindowLayout.js";
 import { animateWindowBounds } from "./animateWindowBounds.js";
@@ -22,7 +27,11 @@ export type ShellWindowControllerState = Readonly<{
     height: number;
   };
   activeMode: ShellWindowLayoutMode | null;
+  settingsSessionHeight: number;
+  settingsWorkAreaFill: boolean;
 }>;
+
+export type ShellWindowMaximizedChangeHandler = (maximized: boolean) => void;
 
 export class ShellWindowController {
   private compactDimensions: ShellWindowCompactDimensions = {
@@ -30,19 +39,38 @@ export class ShellWindowController {
     height: SHELL_WINDOW_LAYOUT.compactDefaultHeight,
   };
   private activeMode: ShellWindowLayoutMode | null = null;
+  private settingsSessionHeight: number = SHELL_WINDOW_LAYOUT.compactDefaultHeight;
+  /** Layout-owned settings fill of the work area (UI maximize). Never OS BrowserWindow maximize. */
+  private settingsWorkAreaFill = false;
   private animationGeneration = 0;
   private cancelActiveAnimation: (() => void) | null = null;
+  private maximizedChangeHandler: ShellWindowMaximizedChangeHandler | null = null;
 
   constructor(
     private readonly window: BrowserWindow,
     private readonly getWorkArea: () => ShellWindowWorkArea,
-  ) {}
+  ) {
+    this.window.on("resized", () => {
+      this.captureSettingsSessionHeight();
+    });
+  }
+
+  onMaximizedChange(handler: ShellWindowMaximizedChangeHandler): void {
+    this.maximizedChangeHandler = handler;
+  }
 
   getState(): ShellWindowControllerState {
     return {
       compactDimensions: { ...this.compactDimensions },
       activeMode: this.activeMode,
+      settingsSessionHeight: this.settingsSessionHeight,
+      settingsWorkAreaFill: this.settingsWorkAreaFill,
     };
+  }
+
+  /** UI maximize projection: settings fills the work area via setBounds. */
+  isMaximized(): boolean {
+    return this.settingsWorkAreaFill;
   }
 
   placeCompactAtStartup(): void {
@@ -62,7 +90,8 @@ export class ShellWindowController {
     );
     this.window.setBounds(target);
     this.activeMode = "compact";
-    this.applyResizePolicy("compact");
+    this.setSettingsWorkAreaFill(false);
+    this.applyWindowChromePolicy("compact");
   }
 
   async applyLayout(
@@ -73,14 +102,25 @@ export class ShellWindowController {
     this.cancelActiveAnimation?.();
     this.cancelActiveAnimation = null;
 
-    const currentBounds = this.window.getBounds();
+    const animationFrom = this.toShellRectangle(this.window.getBounds());
     const workArea = this.getWorkArea();
 
     if (mode !== "compact" && this.activeMode === "compact") {
       this.compactDimensions = {
-        width: currentBounds.width,
-        height: currentBounds.height,
+        width: animationFrom.width,
+        height: animationFrom.height,
       };
+    }
+
+    if (mode === "settings") {
+      if (!this.settingsWorkAreaFill) {
+        this.settingsSessionHeight = Math.max(
+          animationFrom.height,
+          SHELL_WINDOW_LAYOUT.settingsMinHeight,
+        );
+      }
+    } else {
+      this.setSettingsWorkAreaFill(false);
     }
 
     // Commit mode before animation so re-entrant applyLayout during transition
@@ -88,19 +128,22 @@ export class ShellWindowController {
     this.activeMode = mode;
 
     if (mode === "compact") {
-      this.applyResizePolicy("compact");
+      this.applyWindowChromePolicy("compact");
       this.compactDimensions = sanitizeCompactDimensions(
         this.compactDimensions,
         workArea,
       );
     }
 
-    const target = resolveShellWindowTargetBounds(
-      mode,
-      workArea,
-      this.compactDimensions,
-      currentBounds.height,
-    );
+    const target =
+      mode === "settings" && this.settingsWorkAreaFill
+        ? computeWorkAreaBounds(workArea)
+        : resolveShellWindowTargetBounds(
+            mode,
+            workArea,
+            this.compactDimensions,
+            mode === "settings" ? this.settingsSessionHeight : animationFrom.height,
+          );
 
     const generation = ++this.animationGeneration;
     const duration = reducedMotion ? 0 : animationDurationMs;
@@ -109,7 +152,7 @@ export class ShellWindowController {
 
     const animation = animateWindowBounds({
       window: this.window,
-      from: currentBounds,
+      from: animationFrom,
       to: target,
       durationMs: duration,
       easing,
@@ -126,12 +169,81 @@ export class ShellWindowController {
     }
 
     if (mode === "settings") {
-      this.applyResizePolicy("settings");
+      this.applyWindowChromePolicy("settings");
     }
   }
 
-  private applyResizePolicy(mode: ShellWindowLayoutMode): void {
+  toggleMaximize(): Readonly<{ ok: true } | { ok: false; reason: string }> {
+    if (this.activeMode !== "settings") {
+      return { ok: false, reason: "not_settings_mode" };
+    }
+
+    if (this.settingsWorkAreaFill) {
+      this.window.setBounds(this.resolveSettingsRestoredBounds(this.getWorkArea()));
+      this.setSettingsWorkAreaFill(false);
+      return { ok: true };
+    }
+
+    this.window.setBounds(computeWorkAreaBounds(this.getWorkArea()));
+    this.setSettingsWorkAreaFill(true);
+    return { ok: true };
+  }
+
+  private setSettingsWorkAreaFill(next: boolean): void {
+    if (this.settingsWorkAreaFill === next) {
+      return;
+    }
+    this.settingsWorkAreaFill = next;
+    this.maximizedChangeHandler?.(next);
+  }
+
+  private toShellRectangle(bounds: Electron.Rectangle): ShellWindowRectangle {
+    return {
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+    };
+  }
+
+  private captureSettingsSessionHeight(): void {
+    if (this.activeMode !== "settings" || this.settingsWorkAreaFill) {
+      return;
+    }
+    const bounds = this.window.getBounds();
+    const workArea = this.getWorkArea();
+    const margin = SHELL_WINDOW_LAYOUT.screenMargin * 2;
+    const looksLikeWorkArea =
+      bounds.width >= workArea.width - margin &&
+      bounds.height >= workArea.height - margin;
+    if (looksLikeWorkArea) {
+      return;
+    }
+    this.settingsSessionHeight = Math.max(
+      bounds.height,
+      SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    );
+  }
+
+  private resolveSettingsRestoredBounds(
+    workArea: ShellWindowWorkArea,
+  ): ShellWindowRectangle {
+    const height = Math.max(
+      this.settingsSessionHeight,
+      SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    );
+    return computeCenteredBounds(
+      workArea,
+      SHELL_WINDOW_LAYOUT.settingsMinWidth,
+      height,
+    );
+  }
+
+  private applyWindowChromePolicy(mode: ShellWindowLayoutMode): void {
+    const minimum = resolveShellWindowMinimumSize(mode);
+    this.window.setMinimumSize(minimum.width, minimum.height);
     this.window.setResizable(resolveShellWindowResizable(mode));
+    this.window.setMaximizable(resolveShellWindowMaximizable(mode));
   }
 }
 

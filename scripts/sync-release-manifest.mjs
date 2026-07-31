@@ -1,6 +1,6 @@
 /**
  * Sync F-020 update manifest from package.json → distribution repo URL pattern.
- * Writes dev copies + distribution/ payload for axatalk-releases.
+ * Writes dev copies + distribution/ payload for omnicall-releases.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -42,9 +42,9 @@ const manifest = {
   releaseNotesUrl: `https://github.com/${DISTRIBUTION_REPO}/releases/tag/${tag}`,
   downloadUrl: `https://github.com/${DISTRIBUTION_REPO}/releases/latest`,
   platforms: {
-    win32: `${downloadBase}/Axatalk-${version}-win-x64.exe`,
-    darwin: `${downloadBase}/Axatalk-${version}-mac-arm64.dmg`,
-    linux: `${downloadBase}/Axatalk-${version}-linux-x86_64.AppImage`,
+    win32: `${downloadBase}/OmniCall-${version}-win-x64.exe`,
+    darwin: `${downloadBase}/OmniCall-${version}-mac-arm64.dmg`,
+    linux: `${downloadBase}/OmniCall-${version}-linux-x86_64.AppImage`,
   },
   minimumSupportedVersion,
 };

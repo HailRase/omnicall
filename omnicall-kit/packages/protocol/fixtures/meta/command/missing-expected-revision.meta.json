@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Mutations require expectedRevision (O-OWN-1)"
+}

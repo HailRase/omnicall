@@ -30,6 +30,7 @@ describe("OcpSessionLifecycleService", () => {
       eventPublisher: bus,
       logger,
       getSessionDomain: () => hub.getSessionProjection().domain,
+      applyCampaignOffer: (payload) => hub.applyCampaignOffer(payload),
     });
 
     gateway.connect({ domain: "ocp.example", authToken: "token" });
@@ -67,6 +68,7 @@ describe("OcpSessionLifecycleService", () => {
       eventPublisher: bus,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       getSessionDomain: () => "ocp.example",
+      applyCampaignOffer: (payload) => hub.applyCampaignOffer(payload),
     });
 
     gateway.connect({ domain: "ocp.example", authToken: "token" });
@@ -99,6 +101,71 @@ describe("OcpSessionLifecycleService", () => {
     hub.dispose();
   });
 
+  it("holds second preview until accept; then promotes pending (no dual modal)", () => {
+    const gateway = new MockOcpGateway();
+    const bus = new InMemoryDomainEventBus();
+    const published: string[] = [];
+    bus.subscribe((event) => {
+      published.push(event.type);
+    });
+    const hub = new OcpProjectionHub({ ocpGateway: gateway });
+    const lifecycle = new OcpSessionLifecycleService({
+      ocpGateway: gateway,
+      operatorReadModel: hub,
+      eventPublisher: bus,
+      logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      getSessionDomain: () => "ocp.example",
+      applyCampaignOffer: (payload) => hub.applyCampaignOffer(payload),
+    });
+
+    const campaignBase = {
+      id: "camp_1",
+      callId: "ocp-call",
+      queueId: "q1",
+      abonentId: "a1",
+      companyId: "co1",
+      queueTitle: "Support",
+      selectionId: "s1",
+      isAnswered: false,
+      progressive: false,
+      clientPhone: "+15551237890",
+      companyTitle: "Acme",
+      strategyTitle: "Strat",
+      selectionTitle: "Sel",
+      strategyCallId: "sc1",
+    };
+
+    gateway.connect({ domain: "ocp.example", authToken: "token" });
+    gateway.simulateMessage({
+      entity: "campaign_events",
+      data: campaignBase,
+    });
+    gateway.simulateMessage({
+      entity: "campaign_events",
+      data: { ...campaignBase, id: "camp_2" },
+    });
+
+    expect(published).toEqual(["OperatorCampaignOffered"]);
+    expect(hub.getCampaignProjection().activeCampaign?.id).toBe("camp_1");
+    expect(hub.getCampaignProjection().pendingPreview?.id).toBe("camp_2");
+    expect(hub.getCampaignProjection().phase).toBe("preview_offered");
+
+    const { clearedId, promoted } = hub.clearActiveCampaign();
+    expect(clearedId).toBe("camp_1");
+    expect(promoted?.id).toBe("camp_2");
+    lifecycle.publishCampaignCleared(clearedId!, "accepted");
+    lifecycle.publishCampaignOffered(promoted!);
+    expect(published).toEqual([
+      "OperatorCampaignOffered",
+      "OperatorCampaignCleared",
+      "OperatorCampaignOffered",
+    ]);
+    expect(hub.getCampaignProjection().activeCampaign?.id).toBe("camp_2");
+
+    lifecycle.dispose();
+    hub.dispose();
+  });
+
   it("publishes OperatorCredentialsReceived without password payload", () => {
     const gateway = new MockOcpGateway();
     const bus = new InMemoryDomainEventBus();
@@ -113,6 +180,7 @@ describe("OcpSessionLifecycleService", () => {
       eventPublisher: bus,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       getSessionDomain: () => null,
+      applyCampaignOffer: (payload) => hub.applyCampaignOffer(payload),
     });
 
     gateway.connect({ domain: "ocp.example", authToken: "token" });
@@ -145,6 +213,7 @@ describe("OcpSessionLifecycleService", () => {
       eventPublisher: bus,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       getSessionDomain: () => null,
+      applyCampaignOffer: (payload) => hub.applyCampaignOffer(payload),
     });
 
     gateway.connect({ domain: "ocp.example", authToken: "token" });

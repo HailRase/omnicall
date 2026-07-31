@@ -27,6 +27,7 @@ import {
   OCP_PROXY_API_KEY_SECRET_ID,
   SIP_PASSWORD_SECRET_ID,
 } from "@ports/secrets/SecretStoragePort.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { isErr, ok } from "@shared/result/index.js";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -434,7 +435,7 @@ describe("AccountBootstrapFacade integration", () => {
       sipAutoReconnectEnabled: false,
     };
 
-    const root = await mkdtemp(join(tmpdir(), "axatalk-facade-legacy-"));
+    const root = await mkdtemp(join(tmpdir(), "omnicall-facade-legacy-"));
     const filesystem = new NodeFileSystemAdapter();
 
     try {
@@ -635,6 +636,7 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("blocks login when opted-in save profile metadata fails before attempt", async () => {
     const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
+    await telephony.unregister(createCorrelationId());
     const baseRepo = new InMemorySavedAccountProfileRepository();
     const failingRepo: SavedAccountProfileRepository = {
       listProfiles: () => baseRepo.listProfiles(),
@@ -1097,6 +1099,7 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("skips startup SIP registration when sipAutoRegisterOnStartup is disabled", async () => {
     const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
+    await telephony.unregister(createCorrelationId());
     const account = createSipAccount(createSipAccountId("startup-user"), {
       username: "startup-user",
       password: "secret",

@@ -1,0 +1,366 @@
+# ADR-0018: SDK Origin TOFU, Blacklist, Per-Origin Capability Policy, Always-On Gateway, and Activate Consent
+
+## Type
+
+DOCUMENT.
+
+## Status
+
+Accepted (2026-07-21) — decisions frozen with product owner 2026-07-21 (docs refactor).
+
+## Context
+
+- **Features:** F-011, F-001, F-016, F-024
+- **Legacy:** LF-080, LF-081
+- **Roadmap:** P12
+- **Contexts:** Integration, Settings, Account
+- **Layers:** Electron main (gateway upgrade policy), Application settings projections,
+  Renderer Settings UI + consent modals, `@softomnitel/omnicall-kit` error mapping
+- **Amends:** ADR-0011 §Decision.1 (pre-allowlist-only upgrade), ADR-0013 §B (activate UX),
+  ADR-AF-004 (Settings pre-auth gate exception for OmniCall Kit), ADR-0009 Consequences
+  rollback (Settings listener flag → env kill-switch only), ADR-0015 discovery CORS
+  eligibility for `unknown` Origins
+- **Does not change:** ADR-0013 raw-credential ban; ADR-0009 process ownership / broker;
+  ADR-0010 loopback bind; ADR-0015 discovery URL path; ADR-0016 PoP crypto
+
+Integrator friction observed during live `sdk-demo` smoke:
+
+1. Pre-allowlist Origin caused `origin_denied` after revoke/restart without a first-contact UI.
+2. Settings SDK controls were gated behind account session (ADR-AF-004), blocking blacklist
+   / Origin policy edits before SIP sign-in.
+3. Product `not_ready` / pairing UX were conflated with Origin policy failures.
+4. Saved-profile activate (DI-08) lacked a clear first-consent modal and durable
+   per-Origin “activate denied” policy separate from transport blacklist.
+
+Raw SIP/OCP credential login over the SDK remains **out of scope** (ADR-0013). This ADR
+fixes Origin trust UX and clarifies activate-with-saved-profile consent.
+
+## Decision
+
+### A. Always-on loopback gateway
+
+1. When the OmniCall Desktop process starts as the primary instance, the SDK loopback
+   gateway **always listens** on the documented bind (`127.0.0.1:17341` per ADR-0015)
+   subject only to single-instance ownership and occupied-port fail-closed (ADR-0010).
+2. The Settings control that **disables / enables the SDK server listener** is **removed**.
+   Operators manage trust via Origin allow / blacklist / capability policy — not by
+   stopping the listener. (DI-09 shipped an enable toggle; DI-11 removes it — policy
+   change, not a documentation typo against ADR-0009’s earlier rollback wording.)
+3. Env overrides that force the gateway off (`OMNICALL_SDK_GATEWAY=0`) remain an
+   **engineering / enterprise kill-switch** only; they are not exposed as a normal
+   Settings toggle. Documented for support, not for integrator onboarding.
+
+### B. Origin trust states (exact string match retained)
+
+Every Origin is classified as exactly one of:
+
+| State | Meaning | WebSocket upgrade |
+| --- | --- | --- |
+| `unknown` | Never decided (or unblocked after first-contact Deny) | Accept upgrade → Origin TOFU modal |
+| `allowed` | Operator allowed this Origin | Accept upgrade → pairing / PoP / session |
+| `denied` (blacklist) | Operator blocked this Origin | **Reject upgrade** — do not open the socket |
+
+Rules:
+
+1. **Exact Origin** match only (no wildcard / suffix / substring) — unchanged from ADR-0011.
+2. **First contact (`unknown`):** desktop accepts the WebSocket, runs handshake, then shows
+   a **renderer modal** (Allow / Deny): “this Origin wants to connect”.
+   - This modal is **Origin trust only** — it is **not** the pairing/`pairing:pending`
+     client-identity ceremony (ADR-0016). Pairing / PoP / session grants run **after**
+     Origin is `allowed`.
+3. **Allow:** Origin → `allowed`; WebSocket session continues; desktop initializes the
+   **per-Origin capability matrix** to non-privileged `call_controller` defaults
+   (ADR-0016 catalog minus privileged ids). `account.activate` defaults **off**.
+   `window.hide` defaults **off** and is elevated from the Origin matrix like activate
+   (ADR-0013 amended 2026-07-27). Fine-grained matrix edits stay in Settings.
+4. **Deny (first time):** send typed wire failure **`forbidden`** with stable details key
+   **`origin_denied`**, then **close** the socket. Persist Origin as `denied`.
+5. **Repeat from blacklist:** **do not establish** the WebSocket (HTTP upgrade reject). No
+   application JSON frame. SDK maps the transport failure to non-retryable client code
+   **`origin_blocked`** (not a desktop wire code; client-side mapping like LNA errors).
+6. **Unblock** from blacklist:
+   - If the Origin **previously was `allowed`** (matrix retained from before blacklist) →
+     restore to **`allowed`** with the **retained** capability matrix.
+   - If the Origin was blacklisted from **first-contact Deny** (never `allowed`) →
+     restore to **`unknown`** so the TOFU modal appears again on next connect.
+7. **Cannot add or edit** an Origin allow/policy / capability matrix while it is
+   blacklisted — Unblock first, then add/edit permissions. While `denied`, the retained
+   matrix is stored read-only for restore and is **not** consulted for authorization.
+8. **Quick blacklist** from an allowed Origin: move to `denied`. **Per-Origin capability
+   matrix is retained** on disk but **ignored for authorization** while `denied`.
+
+Pre-seeded / managed Origins (IT policy files) may enter as `allowed` without a modal;
+enterprise may disable TOFU and require pre-seed only (compat mode). Default product
+behavior for consumer desktop is TOFU as above.
+
+Env `OMNICALL_SDK_ALLOWED_ORIGINS` becomes an optional **seed / managed allow** input into
+the same store — not the only gate. Blacklist still wins over allow seed.
+
+### C. Settings IA — OmniCall Kit (pre-auth)
+
+1. **ADR-AF-004 exception:** Settings → **OmniCall Kit** is available **before** account
+   session activation. **Integrations → OCP Module** and other Settings sections remain
+   gated as today.
+2. Navigation placement: **top-level** Settings nav leaf **immediately below** the
+   Integrations group (not nested under Integrations children). Integrations remains
+   OCP Module only; OmniCall Kit is a sibling section in the rail order.
+3. OmniCall Kit Settings contains at least:
+   - **Blacklist** (denied Origins) with Unblock;
+   - **Allowed Origins / Domains** with per-Origin create / edit (URL rename keeps matrix) /
+     delete and quick blacklist (not a bulk textarea replace);
+   - **Per-Origin capability matrix** (see §D) — Settings UI exposes **all** matrix
+     capability toggles per allowed Origin (`session.read.redacted`, `window.show`,
+     `operator.status.write`, `session.logout`, `call.originate`, `call.control`,
+     `account.activate`); `window.hide` is a normal matrix toggle (default off; ADR-0013);
+   - Diagnostics (listen status, bind port, connection counts) without secrets;
+   - Paired client revoke controls (from DI-09) remain here; policy lists themselves are
+     editable pre-auth.
+4. Settings are **machine/common** (not per-SIP-user silos) for Origin trust + capability
+   matrix + blacklist — any operator who can open Settings can manage them under this
+   ADR. Shared-PC risk is accepted for this surface; account-bound secrets and saved
+   profiles remain account-scoped (ADR-AF-003/006).
+
+   **DI-11 implementation:** durable SoT is
+   `profiles/sdk-origin-trust.json` under the OmniCall storage root (see
+   `sdkOriginTrustMachineStore.ts`). Boot hydrates the live gateway from this file
+   before upgrade/discovery. Legacy per-profile `UserSettings.sdkIntegration` rows are
+   one-shot migrated into the machine file when it is empty; Settings may still mirror
+   trust into the active account bucket for UX, but cold-start admission uses the
+   machine-common store. `OMNICALL_SDK_ALLOWED_ORIGINS` remains an allow seed only —
+   persisted `denied` always wins.
+
+### D. Per-Origin capability policy matrix
+
+1. Each `allowed` Origin has its own matrix of **which capabilities may be granted** to
+   sessions for that Origin (subset of the ADR-0011 catalog). Multiple Origins may be
+   stored concurrently; each keeps an independent matrix (no global matrix).
+2. Pairing / session grants must be ⊆ Origin policy. Desktop strips or denies anything
+   outside the matrix **at approve time** (pairing ceiling).
+3. **Live effective capabilities** for an authenticated session are:
+
+   `effective = pairingOrElevatedGrants ∩ currentOriginMatrix`
+
+   - Matrix **shrink** (operator turns a cap off in Settings) applies on the **next**
+     command / event fan-out / snapshot **without** requiring re-pair or reconnect.
+   - Matrix **expand** does **not** add capabilities beyond the pairing ceiling **except**
+     privileged `account.activate` (see §4).
+   - When a required capability is present in session grants but stripped by the live
+     matrix → typed **`forbidden`** with details key **`permission_denied`**; do not tear
+     the transport solely for that deny.
+4. Privileged `account.activate` and `window.hide` remain special:
+   - `window.hide` — product-available; matrix default **off**; never pairing-default;
+     deny while telephony busy; tray recovery (ADR-0013);
+   - `account.activate` — **not** in pairing defaults. When the Origin matrix enables it,
+     desktop elevates it onto the live session and emits `sdk:permission-changed`
+     (exception to matrix-expand-beyond-pairing). Disable strips it. Actual activate still
+     requires the consent path in §E (with same-client idempotent exception). There is
+     **no** Settings temporary grant TTL / opaque `profileRef` issuance.
+5. While Origin is `denied`, matrix values are stored read-only for Unblock restore and
+   **not consulted** for authorization. Consumer Settings must not add/edit allow or
+   matrix entries until Unblock.
+
+Default on first Origin Allow (modal): non-privileged `call_controller` defaults
+(`session.read.redacted`, `window.show`, `call.originate`, `call.control`,
+`session.logout`, `operator.status.write`). `account.activate` defaults **off** until
+explicitly enabled in the Settings matrix.
+
+### E. Saved-profile activate consent (login path; no passwords on the wire)
+
+Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
+**Supersedes** the temporary Settings `profileRef` grant UX (removed).
+
+1. After Origin is `allowed` and the SDK session is authenticated with capability
+   `account.activate` (from Origin matrix — see §D exception below), the host may call
+   `account.activateProfile` with **`login`** (trimmed; case preserved; optional
+   `mode: sip_only | ocp`). Integrators must not send SIP passwords or OCP apiKeys.
+2. If Origin matrix has activate **disabled** → immediate **`forbidden`** +
+   **`permission_denied`** — **no consent modal**.
+3. Desktop resolves a non-draft saved profile by login match (exact trimmed string **or**
+   equal non-empty local-part before `@`). SIP username and OCP login are the same AD
+   identity. Completeness:
+   - SIP method: saved SIP password + domain + server;
+   - OCP method: OCP module enabled + complete OCP config (domain + api key).
+   If none → **`not_found`** + details `account_incomplete` / `account_not_found`.
+4. **Consent modal** (when signed out or first activate for this client):
+   “Origin X wants to sign in as {profileLabel} ({login})” with available method(s) +
+   compact footer: **Cancel** (split: primary dismiss + chevron menu **Block site** /
+   Deny) and **Allow**.
+5. **Allow:** desktop loads secrets only from secure storage, runs unified Account
+   sign-in (ADR-AF-003) for the chosen mode, returns success + redacted state.
+6. **Deny (Block site):** persist Origin matrix `account.activate` disabled + `forbidden` /
+   `activate_denied_for_origin`. Settings Trusted-sites matrix must refresh from the
+   gateway snapshot after persist (not blacklist — Origin stays `allowed`). **Cancel/dismiss:**
+   `forbidden` + `authorization_canceled_by_user` (no matrix change).
+7. **Pending guard:** while consent pending → `conflict` + `activate_consent_pending`.
+8. **Consent TTL (Settings, default 120 s):** if the operator does not Allow/Deny/Cancel
+   within the live consent TTL (`SdkIntegrationSettings.operatorModalTimeouts.consentTtlMs`,
+   default `SDK_ACTIVATE_CONSENT_TTL_MS`), the modal auto-dismisses and the command fails
+   with **`timeout`** + details `activate_phase: "consent"` (pending cleared — retry may
+   open a new modal). Human Cancel remains **`forbidden`** + `authorization_canceled_by_user`.
+9. **Auth budgets after Allow:** auth wait starts only after the operator chooses a mode
+   (picker when `mode` omitted). Budgets:
+   - `sip_only` → `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` (60 s);
+   - `ocp` → sum of `OCP_SIGN_IN_STAGE_TIMEOUT_MS` + slack (`SDK_ACTIVATE_OCP_AUTH_BUDGET_MS`);
+   - wall hop for broker + SDK correlator = **max Settings consent** (300 s) + max(sip, ocp)
+     + hop slack (`SDK_ACTIVATE_CLIENT_TIMEOUT_MS` / `SDK_ACTIVATE_BROKER_TIMEOUT_MS`,
+     **~420 s**). Modal countdown still uses the **configured** consent TTL (default 120 s);
+     the hop ceiling lets CRM wait for a Desktop terminal reply without inventing a shorter
+     timer. Default-consent hop remains ~240 s for documentation of the common path.
+   On auth-budget expiry desktop cancels in-flight OCP sign-in (best-effort) and returns
+   **`timeout`** + `activate_phase: "sign_in"` + `auth_mode` + `failure_kind`. Stage timeouts
+   and `ocp_session_exist` map to typed failures with the same details shape (no OCP wire).
+10. **Session edges:**
+   - same login + same `clientId` already in session → success `alreadyAuthenticated`
+     without modal;
+   - same login + different `clientId` → reauthorize modal (same consent TTL);
+   - different login while signed in → `conflict` + `logout_required` **and**
+     informational modal (no account switch without logout).
+11. Optional wire `mode` narrows available methods; when omitted, operator picks among
+   complete methods in the modal. Non-activate broker commands keep the default **5 s** hop.
+12. **Inbound queue release during activate hop (2026-07-23):** per-connection inbound
+    serialization (ADR-0016 auth-proof ordering) must **not** hold the queue for the whole
+    activate broker wait. Desktop detaches `account:activate-profile` via
+    `releasesSdkInboundQueueWhilePending` so `sdk:ping` heartbeats are answered. Holding the
+    queue caused CRM reconnect ≈ heartbeat miss (~5–20 s) and bare wire-less
+    `operation_failed` (no `activate_phase`) while Desktop still had the consent modal open.
+
+### F. Error and reconnect pedagogy (integrator-facing)
+
+| Situation | Transport | SDK-visible outcome |
+| --- | --- | --- |
+| First Origin Deny | `forbidden` + `origin_denied`, then close | Terminal; stop auto-retry |
+| Blacklisted Origin reconnect | Upgrade reject (no JSON) | Client code **`origin_blocked`** (non-retryable) |
+| Capability / activate policy deny | Keep WS | `forbidden` + `permission_denied` |
+| Activate consent Deny | Keep WS | `forbidden` + activate-disabled persisted |
+| Activate Cancel/dismiss | Keep WS | `forbidden` + `authorization_canceled_by_user` |
+| Activate consent TTL | Keep WS | `timeout` + `activate_phase: consent` (modal cleared) |
+| Heartbeat miss because activate held inbound queue (pre-fix) | Client reconnect | bare `operation_failed` (no details) — **fixed**: activate releases inbound queue |
+| Activate consent already pending | Keep WS | Primary **`conflict`** (+ `activate_consent_pending`) |
+| No / incomplete saved profile | Keep WS | `not_found` + `account_not_found` / `account_incomplete` |
+| Other account already signed in | Keep WS | `conflict` + `logout_required` (+ info modal) |
+| Same login already signed in (same client) | Keep WS | success + `alreadyAuthenticated` |
+| Auth stage / budget timeout after Allow | Keep WS | `timeout` + `activate_phase: sign_in` + `auth_mode` + `failure_kind` |
+| OCP session already exists | Keep WS | `operation_failed` + `failure_kind: session_exist` + `activate_phase: sign_in` |
+| Broker / composition not ready | Keep WS | `not_ready` (distinct from Origin deny) |
+
+Integrator-facing copy for blocked Origin (non-normative): explain that the site was
+blocked in OmniCall and the operator must Unblock under **Settings → OmniCall Kit**.
+Machine code remains authoritative.
+
+### G. Modal ownership (renderer)
+
+1. Origin TOFU Allow/Deny, pairing Approve/Deny, and activate consent Allow/Deny are
+   **renderer** UI (explicit choice; not a dismissible toast/notification as the primary
+   control).
+2. **Connect ceremony (presentation, 2026-07-22):** a single root overlay
+   (`SdkConnectCeremonyModal`) hosts:
+   - first-contact Origin trust (transport Allow/Deny) then, after Allow, pairing in the
+     **same** modal (stepper);
+   - pairing-only when the Origin is already `allowed`.
+   Settings → OmniCall Kit remains policy management (trusted/blocked, matrix, revoke,
+   diagnostics) and **must not** host pending TOFU/pairing callouts or auto-open for
+   pairing attention. Security gates stay sequential (ADR-0018 Origin before ADR-0016
+   pairing); the overlay is presentation only.
+3. **Pending lifecycle (2026-07-22):** unresolved TOFU/pairing must not outlive the socket
+   or Origin policy:
+   - socket disconnect → cancel pending Origin trust for that Origin when no other live
+     connections remain (**cancel**, not Deny — do **not** blacklist); deny pending
+     pairing bound to that `connectionId`;
+   - Origin leave `allowed` (remove or blacklist) → deny pending pairing for that Origin
+     and close live sockets; **do not** auto-revoke durable paired clients;
+   - TTL sweeper denies expired pairing pending and cancels stale TOFU pending;
+   - Approve pairing after Origin is no longer `allowed` → deny (no empty-cap pair).
+4. Main owns upgrade admission and may hold the connection / command until the renderer
+   reports the decision over the typed broker/IPC (DI-11 names events in evidence).
+5. Main must not invent a second product composition; renderer Application owns the
+   decision projection and Settings persistence path.
+6. **Operator modal deadline UI (2026-07-23):** each operator-facing SDK modal header
+   shows a subtle `MM:SS` countdown (`SdkModalDeadlineTimer`, token `--color-text-muted`,
+   light/dark). Budgets are **not** uniform 30 s — SSoT is
+   `src/shared/integration/sdkOperatorModalTimeouts.ts` with live values from
+   **Settings → OmniCall Kit → Main → Confirmation wait times**
+   (`SdkIntegrationSettings.operatorModalTimeouts`). Defaults match historical fixed TTLs
+   (no downgrade). Gateway sweeper, pairing `expiresAt`, consent bridge, and UI countdown
+   all read the live values after `applyPolicy` / boot hydrate.
+   | Modal / step | Default TTL | On UI/gateway expiry |
+   | --- | --- | --- |
+   | Activate / reauthorize consent | `SDK_ACTIVATE_CONSENT_TTL_MS` (120 s; Settings 30s–5m) | wire `timeout` + `activate_phase: consent` (no UI dismiss → `authorization_canceled_by_user`) |
+   | Origin TOFU (ceremony transport) | `SDK_ORIGIN_TRUST_PENDING_TTL_MS` (5 min; Settings 1–10m) | **cancel** (no blacklist) via `cancelOriginTrust` IPC + quiet close; Escape/Deny still Deny |
+   | Pairing approve | `SDK_PAIRING_PENDING_TTL_MS` (5 min; Settings 1–10m) | deny → `pairing:denied` |
+   | Ceremony waiting (post-Allow, pre-`pairing:request`) | `SDK_CEREMONY_WAITING_PAIRING_TIMEOUT_MS` (45 s) | close local bridge only (not a Settings field) |
+   | `logout_required` info modal | none | no countdown / no auto-timeout |
+   Projections carry `expiresAt` (`pendingOriginTrust`, pairing, consent pending) so UI
+   and gateway cannot drift. Do **not** invent parallel UI-only timers that Deny Origin
+   on timeout (that would blacklist). Integrators (CRM) must **wait** for Desktop terminal
+   outcomes for ceremony/activate — do not mirror these TTLs with shorter CRM timers.
+
+### G.7 Settings-configurable operator timeouts (2026-07-23)
+
+- Persist under `UserSettings.sdkIntegration.operatorModalTimeouts`.
+- Bounds/presets: `sdkOperatorModalTimeouts.ts` (`normalize` / `parse`).
+- Push path: Settings panel → `persistSdkIntegrationSettings` → gateway `applyPolicy`
+  → `LocalWsServerAdapter.setOperatorModalTimeouts` +
+  `sdkActivateConsentBridge.setConsentTtlMs`.
+- Activate hop ceiling stays at **max consent** so increasing Settings consent never
+  outruns the SDK correlator / broker.
+
+### H. Discovery CORS (with ADR-0015)
+
+Loopback discovery `GET` reflects **exact** Origin in CORS (`Access-Control-Allow-Origin`)
+when the Origin state is **`unknown` or `allowed`** (so first-contact TOFU can reach the
+gateway). **`denied`** Origins must not receive discovery ACAO. Credentialed misuse remains
+fail-closed per ADR-0015.
+
+### I. Implementation vehicle
+
+- Desktop work unit: **DI-11** (docs may land earlier; **code merge** only when DI-10 gate
+  policy allows — no silent rewrite of DI-04/09 without this ADR).
+- **F-011 `implemented` / P12 close require DI-11 `/sdk-review` PASS** (ADR-0018 behavior
+  in product) in addition to DI-10 evidence policy — or an explicit human waiver in
+  evidence. This ADR alone does not close F-011.
+- No SemVer bump until DI-11 ships user-visible Settings/TOFU behavior.
+
+## Alternatives Considered
+
+| Alternative | Why not |
+| --- | --- |
+| Keep pre-allowlist-only upgrade | Integrator deadlock; no first-contact UX |
+| Settings toggle to stop listener | Hides trust problems; breaks discovery expectations |
+| Silent ignore on activate deny | Causes reconnect/retry storms; opaque CRM bugs |
+| Send SIP/OCP passwords on activate | Violates ADR-0013; XSS exfiltration |
+| Pre-auth edit of all Settings | Violates ADR-AF-004; only OmniCall Kit is excepted |
+| Single global capability matrix | Rejected — product requires per-Origin matrix |
+| Unblock always → `unknown` | Rejected — previously allowed Origins must restore matrix |
+| Long-lived notification for TOFU | Rejected — too easy to ignore; use renderer modal |
+| Lasting activate grant skipping consent | Rejected — every activate asks again when policy allows |
+
+## Consequences
+
+- DI-04 Origin upgrade checks must be reworked under DI-11 to implement §B.
+- DI-09 Settings card is superseded/extended by DI-11 IA (§C–D); listener enable toggle
+  removed; hide remains disabled.
+- ADR-0009 rollback wording updated: env kill-switch, not Settings flag.
+- ADR-AF-004 gains a narrow pre-auth exception; tests must cover deep links to OmniCall Kit
+  pre-auth and continued block of OCP Module.
+- ADR-0015 CORS eligibility includes `unknown` for TOFU bootstrap.
+- SDK guides (`SECURITY`, pairing, saved-profile activation, errors) must describe TOFU,
+  blacklist, `origin_blocked`, and activate consent pending rules.
+- Enterprise managed allow/deny lists remain supported as seeds into the same state machine.
+
+## Architecture Checks
+
+- Domain never sees pairing secrets or profile passwords.
+- Main owns upgrade allow/deny and native window show; Origin/activate **modals** live in
+  renderer; Account activate still terminates in Application / Account Facade via broker
+  (ADR-0009).
+- Public protocol still has no raw credential fields.
+- SIP-only mode remains valid with OCP disabled.
+- Exact Origin matching and loopback-only bind unchanged.
+
+## Related Links
+
+- Feature Registry: F-011
+- Work unit: `omnicall-kit-integration/WORK-UNITS.md` — DI-11
+- `omnicall-kit/docs/SECURITY.md`
+- Related: ADR-0009, ADR-0011, ADR-0013, ADR-0015, ADR-0016, ADR-AF-003, ADR-AF-004,
+  ADR-AF-005

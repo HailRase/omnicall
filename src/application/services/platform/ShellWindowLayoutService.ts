@@ -1,17 +1,14 @@
 /**
  * - Purpose: orchestrate shell window layout for settings and video fullscreen (F-016/F-027).
  * - Inputs: settings open flag, video fullscreen flag, reduced-motion preference.
- * - Outputs: invokes ShellWindowGateway with layout mode and animation timing.
+ * - Outputs: invokes ShellWindowGateway with layout mode and instant bounds timing.
  */
 
-import {
-  SHELL_WINDOW_LAYOUT,
-  type ShellWindowLayoutMode,
-} from "@domain/platform/ShellWindowLayout.js";
 import type {
   ApplyShellWindowLayoutCommand,
   ShellWindowGateway,
 } from "@ports/platform/ShellWindowGateway.js";
+import type { ShellWindowLayoutMode } from "@domain/platform/ShellWindowLayout.js";
 
 export type ShellWindowLayoutServiceInput = Readonly<{
   settingsOpen: boolean;
@@ -26,7 +23,8 @@ export class ShellWindowLayoutService {
     const mode = resolveShellWindowLayoutMode(input);
     const command: ApplyShellWindowLayoutCommand = {
       mode,
-      animationDurationMs: SHELL_WINDOW_LAYOUT.animationDurationMs,
+      // Layout transitions are instant on all platforms; OS maximize is never used.
+      animationDurationMs: 0,
       reducedMotion: input.reducedMotion,
     };
 

@@ -133,3 +133,55 @@ export function resolvePostCallFinishAppealProjection(
     usedReservation: target.usedReservation,
   };
 }
+
+export type OperatorStatusOptionCurrentInput = Readonly<{
+  optionTarget: "ready" | "break";
+  optionReasonId: number;
+  status: OperatorStatusType | null;
+  reasonId: number;
+  reservedStatus: OperatorStatusType | null;
+  reservedReasonId: number | null;
+}>;
+
+/**
+ * Dropdown `isCurrent` chrome:
+ * - Idle Ready/Break → match applied `reasonId`.
+ * - Busy / post-call processing → match active booking (`reservedStatus` + `reservedReasonId`).
+ * - Preparing / unmatched / no booking → no current option.
+ */
+export function resolveOperatorStatusOptionIsCurrent(
+  input: OperatorStatusOptionCurrentInput,
+): boolean {
+  const {
+    optionTarget,
+    optionReasonId,
+    status,
+    reasonId,
+    reservedStatus,
+    reservedReasonId,
+  } = input;
+
+  if (status === null) {
+    return false;
+  }
+
+  if (status === OperatorStatus.READY) {
+    return optionTarget === "ready" && reasonId === optionReasonId;
+  }
+  if (status === OperatorStatus.BREAK) {
+    return optionTarget === "break" && reasonId === optionReasonId;
+  }
+
+  if (!isBusy(status) || reservedReasonId === null) {
+    return false;
+  }
+
+  if (reservedStatus === OperatorStatus.READY && optionTarget === "ready") {
+    return reservedReasonId === optionReasonId;
+  }
+  if (reservedStatus === OperatorStatus.BREAK && optionTarget === "break") {
+    return reservedReasonId === optionReasonId;
+  }
+
+  return false;
+}

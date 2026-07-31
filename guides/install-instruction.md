@@ -1,4 +1,4 @@
-# Axatalk — установка и первый звонок
+# OmniCall — установка и первый звонок
 
 Инструкция для конечных пользователей и для тех, кто собирает установщики для распространения.
 
@@ -19,21 +19,21 @@
 
 ## 2. Скачивание установщика
 
-**Релизы для пользователей:** https://github.com/HailRase/axatalk-releases/releases/latest
+**Релизы для пользователей:** https://github.com/HailRase/omnicall-releases/releases/latest
 
 Готовые файлы также лежат в `dist/win`, `dist/mac` или `dist/linux` после локальной сборки (или в артефактах GitHub Actions).
 
 | Платформа | Файл | Формат |
 | --- | --- | --- |
-| Windows | `Axatalk-<версия>-win-x64.exe` | NSIS-установщик (пользователи) |
-| Windows (IT) | `Axatalk-<версия>-win-x64.msi` | MSI — тихая установка, GPO (`msiexec /i … /quiet`) |
-| macOS | `Axatalk-<версия>-mac-arm64.dmg` или `-mac-x64.dmg` | Образ диска |
-| Linux | `Axatalk-<версия>-linux-x86_64.AppImage` (CI) | **Рекомендуется** — без App Center |
-| Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-amd64.deb` | Для IT; ставить через **терминал** или GDebi |
+| Windows | `OmniCall-<версия>-win-x64.exe` | NSIS-установщик (пользователи) |
+| Windows (IT) | `OmniCall-<версия>-win-x64.msi` | MSI — тихая установка, GPO (`msiexec /i … /quiet`) |
+| macOS | `OmniCall-<версия>-mac-arm64.dmg` или `-mac-x64.dmg` | Образ диска |
+| Linux | `OmniCall-<версия>-linux-x86_64.AppImage` (CI) | **Рекомендуется** — без App Center |
+| Linux (Debian/Ubuntu) | `OmniCall-<версия>-linux-amd64.deb` | Для IT; ставить через **терминал** или GDebi |
 
 Скачайте файл под свою ОС и разрядность (обычно `x64` / `amd64` / `x86_64`).
 
-**Важно для `.deb` на Ubuntu:** двойной клик открывает **App Center** (карточку пакета). Окно может **само закрыться через несколько секунд** — это не Axatalk. Устанавливайте командой `sudo apt install ./файл.deb` или через GDebi.
+**Важно для `.deb` на Ubuntu:** двойной клик открывает **App Center** (карточку пакета). Окно может **само закрыться через несколько секунд** — это не OmniCall. Устанавливайте командой `sudo apt install ./файл.deb` или через GDebi.
 
 ---
 
@@ -48,35 +48,35 @@
 
 ### macOS
 
-1. Откройте `.dmg` и перетащите **Axatalk** в **Applications**.
+1. Откройте `.dmg` и перетащите **OmniCall** в **Applications**.
 2. При первом запуске: **Системные настройки** → **Конфиденциальность и безопасность** → «Всё равно открыть» (если приложение не подписано сертификатом Apple).
 3. Разрешите доступ к микрофону, когда система спросит.
 
 ### Linux (AppImage)
 
 ```bash
-chmod +x Axatalk-*-linux-x64.AppImage
-./Axatalk-*-linux-x64.AppImage
+chmod +x OmniCall-*-linux-x64.AppImage
+./OmniCall-*-linux-x64.AppImage
 ```
 
 При необходимости интегрируйте в меню через [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher).
 
 ### Linux (.deb)
 
-**Не полагайтесь на двойной клик.** На Ubuntu 24.04 окно **App Center** часто показывает карточку пакета и **само закрывается через несколько секунд** — до кнопки «Установить». Это сбой GUI-установщика ОС, не Axatalk.
+**Не полагайтесь на двойной клик.** На Ubuntu 24.04 окно **App Center** часто показывает карточку пакета и **само закрывается через несколько секунд** — до кнопки «Установить». Это сбой GUI-установщика ОС, не OmniCall.
 
 **Рекомендуемый способ** — терминал (подтянет зависимости):
 
 ```bash
 cd ~/Downloads
-sudo apt install ./Axatalk-*-linux-amd64.deb
+sudo apt install ./OmniCall-*-linux-amd64.deb
 ```
 
-Альтернатива: **GDebi** (`sudo apt install gdebi`, затем `gdebi ./Axatalk-….deb`).
+Альтернатива: **GDebi** (`sudo apt install gdebi`, затем `gdebi ./OmniCall-….deb`).
 
 Если App Center нужен: **один** клик по файлу (не два подряд), при необходимости `sudo snap refresh snap-store`.
 
-После установки запускайте **Axatalk** из меню приложений.
+После установки запускайте **OmniCall** из меню приложений.
 
 Если App Center закрывается — используйте **AppImage** из того же Release (см. выше) или команды выше.
 
@@ -86,7 +86,7 @@ sudo apt install ./Axatalk-*-linux-amd64.deb
 
 ## 4. Первый запуск и регистрация SIP
 
-1. Запустите **Axatalk**.
+1. Запустите **OmniCall**.
 2. Дождитесь загрузки (экран «Booting application…» исчезнет).
 3. Нажмите на **аватар пользователя** в шапке → **Настройки**.
 4. Откройте раздел **Аккаунт** (если не открыт по умолчанию).

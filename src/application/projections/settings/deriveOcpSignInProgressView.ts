@@ -163,18 +163,7 @@ export function deriveOcpSignInProgressView(
         };
       }
 
-      if (completed || (isReady && !projectionFailed)) {
-        return {
-          stage,
-          state: "completed",
-          percent: 100,
-          timeoutMs,
-          failureKind: null,
-          failureCode: null,
-          awaitingTimeoutReveal: false,
-        };
-      }
-
+      // Active must win over a stale completed checklist from a prior ready run.
       if (active) {
         return {
           stage,
@@ -184,6 +173,18 @@ export function deriveOcpSignInProgressView(
             timeoutMs,
             nowMs,
           ),
+          timeoutMs,
+          failureKind: null,
+          failureCode: null,
+          awaitingTimeoutReveal: false,
+        };
+      }
+
+      if (completed || (isReady && !projectionFailed)) {
+        return {
+          stage,
+          state: "completed",
+          percent: 100,
           timeoutMs,
           failureKind: null,
           failureCode: null,

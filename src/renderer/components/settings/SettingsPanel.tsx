@@ -18,7 +18,6 @@ import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
-import type { AuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
@@ -44,6 +43,8 @@ import {
 } from "./panels/SettingsNotificationHistoryPanel.js";
 import styles from "./SettingsPanel.module.css";
 import type { OcpModuleSettingsCardProps } from "./panels/OcpModuleSettingsCard.js";
+import type { SdkModuleSettingsCardProps } from "./panels/SdkModuleSettingsCard.js";
+import type { ExternalServicesPanelProps } from "./external-services/ExternalServicesPanel.js";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
@@ -81,6 +82,10 @@ export type SettingsPanelProps = Readonly<{
   isCheckingUpdates: boolean;
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
+  preferencesTransferBusy?: boolean;
+  preferencesTransferStatusMessage?: string | null;
+  onExportPreferences?: () => void;
+  onImportPreferences?: () => void;
   systemState: Readonly<{
     shell: SipSystemStateShellView;
     ocpShell: OcpSystemStateShellView;
@@ -141,6 +146,8 @@ export type SettingsPanelProps = Readonly<{
   onRefreshVideoDevices: () => void;
   integrations: Readonly<{
     ocp: OcpModuleSettingsCardProps;
+    sdk: SdkModuleSettingsCardProps;
+    externalServices: ExternalServicesPanelProps;
   }>;
   account: Readonly<{
     form: SipAccountInput;
@@ -168,11 +175,6 @@ export type SettingsPanelProps = Readonly<{
     hasSavedOcpApiKey: boolean;
     allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
     onRecoveryAction: (action: OcpRecoveryAction) => void;
-    authorizationProgress?: AuthorizationProgressProjection;
-    ocpSignInModalOpen?: boolean;
-    onOcpSignInDisconnect?: () => void;
-    onOcpSignInReconnect?: () => void;
-    onOcpSignInSuccessSettled?: () => void;
     canForgetSavedSipPassword?: boolean;
     onForgetSavedSipPassword?: () => void;
     deleteConfirmationOpen: boolean;
@@ -240,6 +242,10 @@ export function SettingsPanel({
   isCheckingUpdates,
   onCheckForUpdates,
   onOpenDownloadPage,
+  preferencesTransferBusy,
+  preferencesTransferStatusMessage,
+  onExportPreferences,
+  onImportPreferences,
   systemState,
   codecPreferences,
   onAudioCodecEnabledChange,
@@ -313,21 +319,6 @@ export function SettingsPanel({
           hasSavedOcpApiKey={account.hasSavedOcpApiKey}
           allowedRecoveryActions={account.allowedRecoveryActions}
           onRecoveryAction={account.onRecoveryAction}
-          {...(account.authorizationProgress !== undefined
-            ? { authorizationProgress: account.authorizationProgress }
-            : {})}
-          {...(account.ocpSignInModalOpen !== undefined
-            ? { ocpSignInModalOpen: account.ocpSignInModalOpen }
-            : {})}
-          {...(account.onOcpSignInDisconnect !== undefined
-            ? { onOcpSignInDisconnect: account.onOcpSignInDisconnect }
-            : {})}
-          {...(account.onOcpSignInReconnect !== undefined
-            ? { onOcpSignInReconnect: account.onOcpSignInReconnect }
-            : {})}
-          {...(account.onOcpSignInSuccessSettled !== undefined
-            ? { onOcpSignInSuccessSettled: account.onOcpSignInSuccessSettled }
-            : {})}
           canForgetSavedSipPassword={account.canForgetSavedSipPassword === true}
           {...(account.onForgetSavedSipPassword !== undefined
             ? { onForgetSavedSipPassword: account.onForgetSavedSipPassword }
@@ -390,6 +381,10 @@ export function SettingsPanel({
           isCheckingUpdates={isCheckingUpdates}
           onCheckForUpdates={onCheckForUpdates}
           onOpenDownloadPage={onOpenDownloadPage}
+          preferencesTransferBusy={preferencesTransferBusy}
+          preferencesTransferStatusMessage={preferencesTransferStatusMessage}
+          onExportPreferences={onExportPreferences}
+          onImportPreferences={onImportPreferences}
         />
       );
       break;
@@ -499,7 +494,16 @@ export function SettingsPanel({
       );
       break;
     case "integrations":
-      sectionContent = <SettingsIntegrationsPanel ocp={integrations.ocp} />;
+    case "integrations-external-services":
+    case "integrations-sdk":
+      sectionContent = (
+        <SettingsIntegrationsPanel
+          sectionId={activeSection}
+          ocp={integrations.ocp}
+          sdk={integrations.sdk}
+          externalServices={integrations.externalServices}
+        />
+      );
       break;
     default: {
       const exhaustive: never = activeSection;

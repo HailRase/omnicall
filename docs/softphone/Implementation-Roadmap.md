@@ -524,20 +524,32 @@ Goal:
 
 Replace legacy embed `window.Softphone` with Electron-native external integration: browser tab ↔ local WebSocket ↔ Electron main (`ExternalClientGateway` + `ExternalCommandRouter`).
 
+Execution package:
+
+- Standalone SDK: `omnicall-kit/README.md`
+- Desktop integration: `omnicall-kit-integration/README.md`
+- Work units: SDK-00…SDK-10 and DI-00…DI-10; execute one reviewed unit per agent session.
+
 Order:
 
-1. Define typed external command contract (OCP subset done in F-028 E-12: `OcpHostApiContract` + Facade).
-2. Implement `ExternalClientGateway` (WS server in main) — future.
-3. Implement `ExternalCommandRouter` → Facade / Use Cases with `callType: 'external' | 'sdk'` — future.
-4. Map former host capabilities (authorize, call controls, OCP status, dialpad block, etc.) onto typed commands — no DOM globals.
-5. Add compatibility/integration tests for the WS command surface.
-6. Document that legacy `window.Softphone` is **not ported**.
+1. Close ADRs for protocol, process ownership, browser transport, pairing/capabilities, privacy, compatibility, and window policy (**DI-00 done** — ADR-0009…0013; **SDK-01 done** — ADR-0014…0017 close O-*).
+2. Define the versioned public protocol and compatibility fixtures (**SDK-02 done**; **DI-01 `done`** — desktop consumes same fixtures outside Domain; OCP subset remains F-028 E-12 baseline).
+3. Implement the typed main-to-renderer broker to the single existing renderer Application composition (**DI-02 `review`** — awaiting `/sdk-review`).
+4. Implement the secure `ExternalClientGateway` WebSocket server in main: loopback, exact Origin, pairing, capabilities, replay/resource limits, and revocation.
+5. Implement read-only snapshots/events and `window:show`; validate SDK interoperability before mutations.
+6. Implement `ExternalCommandRouter` → focused handlers / Facade / Use Cases with `callType: 'sdk'`.
+7. Add call controls, optional OCP status/logout, and privileged saved-profile activation in gated work units — no raw credential flow in protocol v1.
+8. Add Settings → Integrations SDK controls, compatibility/security tests, and packaged Electron E2E.
+9. Document that legacy `window.Softphone` is **not ported**.
 
 Gate:
 
 - No `window.Softphone` in product code.
 - Every external command maps to Use Case or query via Facade.
 - OCP external path covered by F-028 E-12 Facade methods until WS gateway lands.
+- No second Facade, Call Engine, SIP, or OCP composition exists in main.
+- Unauthenticated or unauthorized clients receive no product state or PII.
+- SDK failure cannot regress SIP-only startup, active calls, logout, shutdown, or optional OCP behavior.
 
 ## Phase 13: Video Calls
 

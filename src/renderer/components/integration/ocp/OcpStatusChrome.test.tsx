@@ -4,6 +4,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OcpConnectionBanner } from "./OcpConnectionBanner.js";
+import styles from "./OcpConnectionBanner.module.css";
 import { OcpStatusTimer } from "./OcpStatusTimer.js";
 import { OcpProxyStatusScreen } from "./OcpProxyStatusScreen.js";
 
@@ -11,7 +12,19 @@ vi.mock("../../../i18n/index.js", () => ({
   useI18n: () => ({
     t: (key: string, params?: Readonly<Record<string, string | number>>) => {
       if (key === "ocp.connection.reconnecting" && params !== undefined) {
-        return `Reconnecting… (attempt ${String(params["attempt"])} of ${String(params["max"])})`;
+        return `Reconnecting ${String(params["attempt"])}/${String(params["max"])}`;
+      }
+      if (
+        key === "ocp.connection.reconnectingTitle" ||
+        key === "ocp.connection.failedTitle"
+      ) {
+        return "OCP";
+      }
+      if (key === "ocp.connection.failed") {
+        return "No connection";
+      }
+      if (key === "ocp.connection.retry") {
+        return "Retry";
       }
       if (key === "ocp.status.timer.aria" && params !== undefined) {
         return `In status for ${String(params["elapsed"])}`;
@@ -62,9 +75,24 @@ describe("OcpConnectionBanner", () => {
       />,
     );
     expect(screen.getByTestId("ocp-connection-banner-message")).toHaveTextContent(
-      "Reconnecting… (attempt 2 of 6)",
+      "Reconnecting 2/6",
     );
     expect(screen.queryByTestId("ocp-retry-connect")).not.toBeInTheDocument();
+  });
+
+  it("mounts the elevated shell-status-banner anchor class", () => {
+    render(
+      <OcpConnectionBanner
+        visible
+        mode="reconnecting"
+        reconnectAttempt={1}
+        maxReconnectAttempts={6}
+        onRetry={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("ocp-connection-banner-anchor").className).toContain(
+      styles.anchor,
+    );
   });
 
   it("calls onRetry from failed banner", async () => {

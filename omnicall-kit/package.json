@@ -1,0 +1,52 @@
+{
+  "name": "omnicall-kit-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Incubating npm workspace for @softomnitel/omnicall-protocol and @softomnitel/omnicall-kit",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "test:types": "vitest run --typecheck.only",
+    "test:browser": "node ./scripts/test-browser.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc -b --pretty false",
+    "api:check": "node ./scripts/api-check.mjs",
+    "package:check": "node ./scripts/package-check.mjs",
+    "docs:check": "node ./scripts/docs-check.mjs",
+    "preflight": "node ./scripts/preflight.mjs",
+    "sbom": "node ./scripts/sbom.mjs",
+    "release:preflight": "node ./scripts/preflight.mjs",
+    "release:check": "node ./scripts/release-check.mjs",
+    "release:version": "node ./scripts/release-version.mjs",
+    "release:prepare": "node ./scripts/release-prepare-publishable.mjs",
+    "release:publish-rc": "node ./scripts/release-publish.mjs rc",
+    "release:publish-stable": "node ./scripts/release-publish.mjs stable",
+    "release:sbom": "node ./scripts/sbom.mjs",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/cli": "2.31.1",
+    "@eslint/js": "10.0.1",
+    "@microsoft/api-extractor": "7.58.11",
+    "@types/node": "22.20.1",
+    "@vitest/browser-playwright": "4.1.10",
+    "eslint": "10.7.0",
+    "fake-indexeddb": "^6.2.5",
+    "globals": "17.7.0",
+    "playwright": "1.61.1",
+    "publint": "0.3.21",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.64.0",
+    "vitest": "4.1.10"
+  }
+}

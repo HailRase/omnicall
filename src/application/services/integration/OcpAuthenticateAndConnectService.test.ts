@@ -33,7 +33,7 @@ function createService(options?: Readonly<{ sessionTimeoutMs?: number }>): {
 
 describe("OcpAuthenticateAndConnectService", () => {
   it("acquires fresh HTTP token, connects one socket, sends auth, waits for authorized", async () => {
-    const { gateway, proxy, service } = createService();
+    const { gateway, proxy, hub, service } = createService();
     proxy.setBehavior({ kind: "token", token: "tok-1" });
 
     const pending = service.execute({
@@ -52,6 +52,8 @@ describe("OcpAuthenticateAndConnectService", () => {
     expect(result.ok).toBe(true);
     expect(proxy.calls).toHaveLength(1);
     expect(gateway.getSocketGeneration()).toBe(1);
+    expect(hub.getSessionProjection().domain).toBe("ocp.example.com");
+    expect(hub.getSessionProjection().authenticatedLogin).toBe("agent1");
   });
 
   it("surfaces SESSION_EXIST from HTTP without opening a socket", async () => {

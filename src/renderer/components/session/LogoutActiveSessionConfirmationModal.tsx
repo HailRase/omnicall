@@ -6,6 +6,7 @@ import styles from "./LogoutActiveSessionConfirmationModal.module.css";
 
 export type LogoutActiveSessionConfirmationModalProps = Readonly<{
   open: boolean;
+  delayedJobsWaiting?: boolean | undefined;
   onConfirm: () => void;
   onCancel: () => void;
 }>;
@@ -17,6 +18,7 @@ export type LogoutActiveSessionConfirmationModalProps = Readonly<{
  */
 export function LogoutActiveSessionConfirmationModal({
   open,
+  delayedJobsWaiting = false,
   onConfirm,
   onCancel,
 }: LogoutActiveSessionConfirmationModalProps): JSX.Element | null {
@@ -86,6 +88,11 @@ export function LogoutActiveSessionConfirmationModal({
         {t("session.logout.title")}
       </h2>
       <p>{t("session.logout.confirmMessage")}</p>
+      {delayedJobsWaiting ? (
+        <p data-testid="logout-delayed-jobs-warning">
+          {t("session.logout.delayedJobsWarning")}
+        </p>
+      ) : null}
 
       <div className={dialogStyles.actions}>
         <IconControlButton

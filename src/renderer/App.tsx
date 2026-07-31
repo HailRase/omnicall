@@ -2,14 +2,17 @@ import type { JSX } from "react";
 import { HashRouter } from "react-router-dom";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { useAppShutdown } from "./hooks/useAppShutdown.js";
+import { useBootSplashController } from "./hooks/useBootSplashController.js";
 import { useSoftphoneShellChrome } from "./hooks/useSoftphoneShellChrome.js";
 import { useI18n } from "./i18n/index.js";
+import { BootstrapSplashShell } from "./shells/BootstrapSplashShell.js";
 import { SoftphoneReadyShell } from "./shells/SoftphoneReadyShell.js";
 import styles from "./App.module.css";
 
 export function App(): JSX.Element {
   const { t } = useI18n();
   const { facade, status, errorMessage } = useAccountBootstrap();
+  const { showReadyShell } = useBootSplashController(status, t("bootstrap.loading"));
   const shellChrome = useSoftphoneShellChrome({ facade });
   const { isShuttingDown, shutdownErrorKey, shutdownProgressKey } = useAppShutdown({ facade });
 
@@ -27,17 +30,14 @@ export function App(): JSX.Element {
         </div>
       ) : null}
 
-      {status === "loading" && (
-        <p data-testid="bootstrap-loading">{t("bootstrap.loading")}</p>
-      )}
+      {status === "error" ? (
+        <BootstrapSplashShell
+          variant="error"
+          message={errorMessage ?? t("bootstrap.error.initializationFailed")}
+        />
+      ) : null}
 
-      {status === "error" && (
-        <p className={styles.error} data-testid="bootstrap-error" role="alert">
-          {errorMessage}
-        </p>
-      )}
-
-      {status === "ready" && facade !== null && (
+      {showReadyShell && facade !== null ? (
         <HashRouter>
           <SoftphoneReadyShell
             facade={facade}
@@ -45,7 +45,7 @@ export function App(): JSX.Element {
             isShuttingDown={isShuttingDown}
           />
         </HashRouter>
-      )}
+      ) : null}
     </main>
   );
 }

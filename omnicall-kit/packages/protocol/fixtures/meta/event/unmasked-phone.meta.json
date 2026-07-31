@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Unmasked phone/display name rejected (O-PII-1)"
+}

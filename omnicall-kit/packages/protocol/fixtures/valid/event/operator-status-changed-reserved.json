@@ -1,0 +1,18 @@
+{
+  "protocolVersion": 1,
+  "kind": "event",
+  "type": "operator:status-changed",
+  "eventId": "evt_operator_status_reserved_001",
+  "sequence": 42,
+  "serverInstanceId": "srv_test_001",
+  "sessionEpoch": "epoch_test_001",
+  "revision": 17,
+  "occurredAt": "2026-07-23T14:00:00.000Z",
+  "payload": {
+    "status": "unknown",
+    "reasonId": 4,
+    "reasonLabelKey": "ocp.operatorStatus.talking",
+    "reservedTarget": "break",
+    "reservedReasonId": 7
+  }
+}

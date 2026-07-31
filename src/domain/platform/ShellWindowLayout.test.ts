@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   computeBottomRightBounds,
   computeCenteredBounds,
+  computeWorkAreaBounds,
   interpolateShellWindowBounds,
   resolveShellWindowAnimationProgress,
+  resolveShellWindowMaximizable,
+  resolveShellWindowMinimumSize,
   resolveShellWindowResizable,
   resolveShellWindowTargetBounds,
   SHELL_WINDOW_LAYOUT,
@@ -27,6 +30,34 @@ describe("resolveShellWindowResizable", () => {
 
   it("disables user resize in video-fullscreen mode", () => {
     expect(resolveShellWindowResizable("video-fullscreen")).toBe(false);
+  });
+});
+
+describe("resolveShellWindowMaximizable", () => {
+  it("keeps OS maximizable disabled in every layout mode", () => {
+    expect(resolveShellWindowMaximizable("compact")).toBe(false);
+    expect(resolveShellWindowMaximizable("settings")).toBe(false);
+    expect(resolveShellWindowMaximizable("video-fullscreen")).toBe(false);
+  });
+});
+
+describe("resolveShellWindowMinimumSize", () => {
+  it("uses settings floor in settings mode", () => {
+    expect(resolveShellWindowMinimumSize("settings")).toEqual({
+      width: SHELL_WINDOW_LAYOUT.settingsMinWidth,
+      height: SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    });
+  });
+
+  it("uses compact floor outside settings", () => {
+    expect(resolveShellWindowMinimumSize("compact")).toEqual({
+      width: SHELL_WINDOW_LAYOUT.compactMinWidth,
+      height: SHELL_WINDOW_LAYOUT.compactMinHeight,
+    });
+    expect(resolveShellWindowMinimumSize("video-fullscreen")).toEqual({
+      width: SHELL_WINDOW_LAYOUT.compactMinWidth,
+      height: SHELL_WINDOW_LAYOUT.compactMinHeight,
+    });
   });
 });
 
@@ -108,6 +139,17 @@ describe("computeCenteredBounds", () => {
       y: 180,
       width: 1000,
       height: 720,
+    });
+  });
+});
+
+describe("computeWorkAreaBounds", () => {
+  it("matches the work area rectangle", () => {
+    expect(computeWorkAreaBounds(WORK_AREA)).toEqual({
+      x: 0,
+      y: 0,
+      width: 1920,
+      height: 1080,
     });
   });
 });

@@ -1,0 +1,91 @@
+import type { Meta, StoryObj } from "@storybook/react";
+import { createDefaultSdkOriginCapabilityMatrix } from "@application/index.js";
+import { SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS } from "@shared/integration/sdkOperatorModalTimeouts.js";
+import { SdkModuleSettingsCard } from "./SdkModuleSettingsCard.js";
+
+const meta = {
+  title: "Settings/SdkModuleSettingsCard",
+  component: SdkModuleSettingsCard,
+  parameters: {
+    layout: "padded",
+  },
+} satisfies Meta<typeof SdkModuleSettingsCard>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+const baseArgs = {
+  settings: {
+    originsManaged: true,
+    origins: [
+      {
+        origin: "https://crm.example",
+        state: "allowed" as const,
+        matrix: createDefaultSdkOriginCapabilityMatrix(),
+        previouslyAllowed: true,
+      },
+      {
+        origin: "https://ops.example",
+        state: "allowed" as const,
+        matrix: createDefaultSdkOriginCapabilityMatrix(),
+        previouslyAllowed: true,
+      },
+      {
+        origin: "https://blocked.example",
+        state: "denied" as const,
+        matrix: null,
+        previouslyAllowed: false,
+      },
+    ],
+    operatorModalTimeouts: { ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS },
+  },
+  diagnostics: {
+    status: "listening" as const,
+    bindHost: "127.0.0.1",
+    bindPort: 17341,
+    connectionCount: 1,
+    authenticatedCount: 1,
+    unauthenticatedCount: 0,
+    pendingPairingCount: 0,
+    pairedClientCount: 1,
+    allowedOriginsCount: 2,
+    lastErrorCode: null,
+    windowHideAvailable: true as const,
+  },
+  allowedOriginsLive: ["https://crm.example", "https://ops.example"],
+  pairedClients: [
+    {
+      clientId: "cli_1",
+      origin: "https://crm.example",
+      profile: "presentation",
+      applicationName: "CRM Tab",
+      createdAt: "2026-07-20T00:00:00.000Z",
+      expiresAt: null,
+      revoked: false,
+      capabilityCount: 3,
+    },
+  ],
+  addOriginDraft: "",
+  errorKey: null,
+  busy: false,
+  onAddOriginDraftChange: () => undefined,
+  onAddOrigin: () => undefined,
+  onRefresh: () => undefined,
+  onRevokeClient: () => undefined,
+  onUnblockOrigin: () => undefined,
+  onBlacklistOrigin: () => undefined,
+  onRemoveAllowedOrigin: () => undefined,
+  onRenameAllowedOrigin: () => undefined,
+  onSetOriginMatrix: () => undefined,
+  onOperatorModalTimeoutsChange: () => undefined,
+};
+
+export const Light: Story = {
+  args: baseArgs,
+  parameters: { theme: "light" },
+};
+
+export const Dark: Story = {
+  args: baseArgs,
+  parameters: { theme: "dark" },
+};

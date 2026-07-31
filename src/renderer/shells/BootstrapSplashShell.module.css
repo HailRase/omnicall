@@ -1,0 +1,273 @@
+.root {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+}
+
+.atmosphere {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      55% 45% at 50% 38%,
+      color-mix(in srgb, var(--color-brand-splash-mid) 16%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      70% 60% at 50% 100%,
+      color-mix(in srgb, var(--color-bg-surface-highlight) 80%, transparent) 0%,
+      transparent 65%
+    );
+  opacity: 0.88;
+  /* Opacity-only — avoid scale fight with the ball bounce. */
+  animation: atmosphere-breathe 5.5s ease-in-out infinite;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  max-width: 17.5rem;
+  text-align: center;
+  /* No enter fade: handoff from #boot-splash must be invisible. */
+}
+
+.ball-stage {
+  position: relative;
+  width: 5.75rem;
+  height: 8.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: var(--space-2xs);
+}
+
+/*
+ * Ball + icon share one transform tree (squash/stretch together).
+ * Duration must match BOOTSTRAP_SPLASH_BOUNCE_MS (1000) + index.html.
+ * linear + parabolic Y samples = gravity; settle via settleSplashBallMotion.
+ */
+.ball {
+  position: relative;
+  z-index: 1;
+  width: 5.5rem;
+  height: 5.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  color: var(--color-text-on-accent);
+  /* Light static volume only — no perspective / rotateX on the bounce path. */
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      color-mix(in srgb, white 34%, transparent) 0%,
+      color-mix(in srgb, white 8%, transparent) 28%,
+      transparent 52%
+    ),
+    radial-gradient(
+      circle at 70% 78%,
+      color-mix(in srgb, var(--color-brand-splash-to) 28%, transparent) 0%,
+      transparent 50%
+    ),
+    linear-gradient(
+      165deg,
+      var(--color-brand-splash-from) 0%,
+      var(--color-brand-splash-mid) 48%,
+      var(--color-brand-splash-to) 100%
+    );
+  box-shadow:
+    0 0.55rem 1.35rem color-mix(in srgb, var(--color-brand-splash-mid) 38%, transparent),
+    inset 0 0.14rem 0.42rem color-mix(in srgb, white 38%, transparent),
+    inset 0 -0.22rem 0.45rem color-mix(in srgb, var(--color-brand-splash-to) 28%, transparent);
+  transform-origin: 50% 100%;
+  will-change: transform;
+  animation: ball-bounce 1000ms linear infinite;
+}
+
+/* Oval ground shadow — ellipse below the ball (not under its opaque fill). */
+.ball-shadow {
+  position: absolute;
+  bottom: -0.2rem;
+  left: 50%;
+  width: 3.6rem;
+  height: 0.9rem;
+  margin-left: -1.8rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--color-text-primary) 48%, transparent) 0%,
+    color-mix(in srgb, var(--color-text-primary) 22%, transparent) 42%,
+    transparent 72%
+  );
+  transform-origin: center center;
+  will-change: transform, opacity;
+  animation: ball-shadow 1000ms linear infinite;
+  pointer-events: none;
+}
+
+.brand {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+}
+
+.message {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: var(--line-height-ui);
+  color: var(--color-text-secondary);
+}
+
+.progress {
+  width: 12.5rem;
+  max-width: 100%;
+  margin-top: var(--space-xs);
+  --progress-fill: linear-gradient(
+    90deg,
+    var(--color-brand-splash-from),
+    var(--color-brand-splash-mid),
+    var(--color-brand-splash-to)
+  );
+}
+
+.error-message {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: var(--line-height-ui);
+  color: var(--color-text-danger-soft);
+  word-break: break-word;
+}
+
+@keyframes atmosphere-breathe {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/*
+ * Ballistic bounce: Y ≈ H·4·t·(1−t) at equal time steps (linear timing).
+ * Fast off the ground → slow at apex → accelerate into landing.
+ */
+@keyframes ball-bounce {
+  0% {
+    transform: translateY(0) scaleX(1.18) scaleY(0.82);
+  }
+
+  6% {
+    transform: translateY(-0.81rem) scaleX(1.04) scaleY(0.96);
+  }
+
+  12% {
+    transform: translateY(-1.52rem) scaleX(0.98) scaleY(1.02);
+  }
+
+  25% {
+    transform: translateY(-2.7rem) scaleX(0.95) scaleY(1.05);
+  }
+
+  37% {
+    transform: translateY(-3.36rem) scaleX(0.94) scaleY(1.06);
+  }
+
+  50% {
+    transform: translateY(-3.6rem) scaleX(0.93) scaleY(1.07);
+  }
+
+  63% {
+    transform: translateY(-3.36rem) scaleX(0.94) scaleY(1.06);
+  }
+
+  75% {
+    transform: translateY(-2.7rem) scaleX(0.95) scaleY(1.05);
+  }
+
+  88% {
+    transform: translateY(-1.52rem) scaleX(0.98) scaleY(1.02);
+  }
+
+  94% {
+    transform: translateY(-0.81rem) scaleX(1.04) scaleY(0.96);
+  }
+
+  100% {
+    transform: translateY(0) scaleX(1.18) scaleY(0.82);
+  }
+}
+
+@keyframes ball-shadow {
+  0%,
+  100% {
+    transform: scaleX(1.24) scaleY(1);
+    opacity: 0.92;
+  }
+
+  6%,
+  94% {
+    transform: scaleX(1.06) scaleY(0.98);
+    opacity: 0.62;
+  }
+
+  12%,
+  88% {
+    transform: scaleX(0.88) scaleY(0.94);
+    opacity: 0.45;
+  }
+
+  25%,
+  75% {
+    transform: scaleX(0.62) scaleY(0.88);
+    opacity: 0.26;
+  }
+
+  37%,
+  63% {
+    transform: scaleX(0.5) scaleY(0.84);
+    opacity: 0.16;
+  }
+
+  50% {
+    transform: scaleX(0.44) scaleY(0.8);
+    opacity: 0.12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atmosphere,
+  .ball,
+  .ball-shadow {
+    animation: none;
+  }
+
+  .atmosphere {
+    opacity: 0.85;
+  }
+
+  .ball {
+    transform: none;
+  }
+
+  .ball-shadow {
+    opacity: 0.35;
+    transform: scaleX(1);
+  }
+}

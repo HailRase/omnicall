@@ -62,8 +62,20 @@ export type OcpSessionProjection = Readonly<{
    * Never the SIP PBX domain from `entity:creds` — those hosts are independent.
    */
   domain: string | null;
+  /**
+   * Login used for OCP HTTP `/proxy/authenticate` (wire `user_login` on call sync).
+   * Cleared on `resetToIdle`; preserved across transport flaps like `domain`.
+   */
+  authenticatedLogin: string | null;
   authFeedback: OcpAuthFeedback | null;
   reconnectAttempt: number;
+  /**
+   * Application-owned unexpected-drop recovery is in flight (banner stays visible
+   * across disconnect→HTTP→connect flaps; ADR-AF-002).
+   */
+  transportRecoveryActive: boolean;
+  /** Attempt number owned by OcpTransportRecoveryService while recovery is active. */
+  transportRecoveryAttempt: number;
   /** Unified OCP→SIP authorization progress for Account / Integrations UI. */
   authorizationProgress: AuthorizationProgressProjection;
   /** Preferred recovery action key for UI/Facade (null when none). */
@@ -97,8 +109,11 @@ function withDerivedFields(
     connectionState: deriveLegacyOcpConnectionState(snapshot),
     isAuthenticated: deriveIsOcpAuthenticated(snapshot),
     domain: base.domain,
+    authenticatedLogin: base.authenticatedLogin,
     authFeedback: base.authFeedback,
     reconnectAttempt: base.reconnectAttempt,
+    transportRecoveryActive: base.transportRecoveryActive,
+    transportRecoveryAttempt: base.transportRecoveryAttempt,
     authorizationProgress: base.authorizationProgress,
     primaryRecoveryAction: selectPrimaryOcpRecoveryAction(snapshot),
   };
@@ -111,8 +126,11 @@ export function initialOcpSessionProjection(): OcpSessionProjection {
     authorizationState: dual.authorizationState,
     activeAttemptId: null,
     domain: null,
+    authenticatedLogin: null,
     authFeedback: null,
     reconnectAttempt: 0,
+    transportRecoveryActive: false,
+    transportRecoveryAttempt: 0,
     authorizationProgress: initialAuthorizationProgressProjection(),
     terminalSessionClosed: false,
   });
@@ -141,23 +159,31 @@ export function reduceOcpSessionFromServerState(
     transition,
   });
 
+  const recoveryActive = projection.transportRecoveryActive;
+  // While Application recovery owns the banner, keep attempt counters across
+  // disconnect↔connect flaps. Clear only via clearOcpTransportRecovery.
   const reconnectAttempt =
-    serverState === "reconnecting"
-      ? projection.reconnectAttempt + 1
-      : serverState === "connected" || serverState === "disconnected"
-        ? 0
-        : projection.reconnectAttempt;
+    recoveryActive
+      ? projection.reconnectAttempt
+      : serverState === "reconnecting"
+        ? projection.reconnectAttempt + 1
+        : serverState === "connected" || serverState === "disconnected"
+          ? 0
+          : projection.reconnectAttempt;
 
   return withDerivedFields({
     serverState: next.serverState,
     authorizationState: next.authorizationState,
     activeAttemptId: projection.activeAttemptId,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback:
       next.authorizationState.phase === "authorized"
         ? null
         : projection.authFeedback,
     reconnectAttempt,
+    transportRecoveryActive: recoveryActive,
+    transportRecoveryAttempt: projection.transportRecoveryAttempt,
     authorizationProgress: projection.authorizationProgress,
     terminalSessionClosed: next.terminalSessionClosed,
   });
@@ -203,11 +229,14 @@ export function reduceOcpSessionFromAuthorization(
     authorizationState: next.authorizationState,
     activeAttemptId: projection.activeAttemptId,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback:
       next.authorizationState.phase === "authorized"
         ? null
         : projection.authFeedback,
     reconnectAttempt: projection.reconnectAttempt,
+    transportRecoveryActive: projection.transportRecoveryActive,
+    transportRecoveryAttempt: projection.transportRecoveryAttempt,
     authorizationProgress: projection.authorizationProgress,
     terminalSessionClosed: next.terminalSessionClosed,
   });
@@ -222,8 +251,11 @@ export function reduceOcpSessionFromTerminate(
     authorizationState: next.authorizationState,
     activeAttemptId: null,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback: null,
     reconnectAttempt: 0,
+    transportRecoveryActive: false,
+    transportRecoveryAttempt: 0,
     authorizationProgress: projection.authorizationProgress,
     terminalSessionClosed: true,
   });
@@ -262,6 +294,16 @@ export function applyOcpSessionDomain(
   return {
     ...projection,
     domain,
+  };
+}
+
+export function applyOcpSessionAuthenticatedLogin(
+  projection: OcpSessionProjection,
+  authenticatedLogin: string,
+): OcpSessionProjection {
+  return {
+    ...projection,
+    authenticatedLogin,
   };
 }
 
@@ -351,6 +393,12 @@ export function selectOcpDomain(projection: OcpSessionProjection): string | null
   return projection.domain;
 }
 
+export function selectOcpAuthenticatedLogin(
+  projection: OcpSessionProjection,
+): string | null {
+  return projection.authenticatedLogin;
+}
+
 export function selectPrimaryRecoveryAction(
   projection: OcpSessionProjection,
 ): OcpRecoveryAction | null {
@@ -388,9 +436,63 @@ export function resetOcpAuthorizationIdle(
     authorizationState: idleOcpAuthorizationState(),
     activeAttemptId: projection.activeAttemptId,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback: projection.authFeedback,
     reconnectAttempt: projection.reconnectAttempt,
+    transportRecoveryActive: projection.transportRecoveryActive,
+    transportRecoveryAttempt: projection.transportRecoveryAttempt,
     authorizationProgress: projection.authorizationProgress,
     terminalSessionClosed: false,
   });
+}
+
+/**
+ * - Purpose: start/update Application-owned transport recovery presentation.
+ * - Inputs: attempt number from OcpTransportRecoveryService.
+ * - Outputs: reconnecting server + active recovery flags for global banner.
+ */
+export function beginOcpTransportRecoveryAttempt(
+  projection: OcpSessionProjection,
+  attempt: number,
+): OcpSessionProjection {
+  const next = reduceOcpDualFsm(toDualSnapshot(projection), {
+    kind: "server",
+    transition: { type: "reconnect_requested" },
+  });
+  return withDerivedFields({
+    serverState: next.serverState,
+    authorizationState: next.authorizationState,
+    activeAttemptId: projection.activeAttemptId,
+    domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
+    authFeedback: projection.authFeedback,
+    reconnectAttempt: attempt,
+    transportRecoveryActive: true,
+    transportRecoveryAttempt: attempt,
+    authorizationProgress: projection.authorizationProgress,
+    terminalSessionClosed: next.terminalSessionClosed,
+  });
+}
+
+/**
+ * - Purpose: clear Application-owned transport recovery presentation.
+ * - Inputs: current session projection.
+ * - Outputs: recovery flags cleared (server state unchanged).
+ */
+export function clearOcpTransportRecovery(
+  projection: OcpSessionProjection,
+): OcpSessionProjection {
+  if (
+    !projection.transportRecoveryActive &&
+    projection.transportRecoveryAttempt === 0 &&
+    projection.reconnectAttempt === 0
+  ) {
+    return projection;
+  }
+  return {
+    ...projection,
+    transportRecoveryActive: false,
+    transportRecoveryAttempt: 0,
+    reconnectAttempt: 0,
+  };
 }

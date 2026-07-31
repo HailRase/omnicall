@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "ocpAuthToken forbidden on public wire (O-OCP-1)"
+}

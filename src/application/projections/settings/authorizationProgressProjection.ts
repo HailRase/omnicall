@@ -2,6 +2,9 @@
  * - Purpose: unified user-facing authorization progress across SIP and OCP sign-in.
  * - Inputs: orchestration stage transitions (Application services / Facade).
  * - Outputs: serializable stage + retry flag + timed execution progress for Account UI.
+ *
+ * `uiSurface`: `modal` = Account/SDK/Reconnect Dialog; `silent` = background
+ * transport recovery (banner only; ADR-AF-002).
  */
 import {
   OCP_SIGN_IN_EXECUTION_STAGES,
@@ -41,6 +44,13 @@ export type AuthorizationProgressFailureKind =
   | "cancelled"
   | "operation_failed";
 
+/**
+ * Which shell surface may show this progress.
+ * - modal: OcpSignInProgress Dialog (Login / modal Reconnect / SDK activate)
+ * - silent: background OCP transport recovery (OcpConnectionBanner only)
+ */
+export type AuthorizationProgressUiSurface = "modal" | "silent";
+
 export type AuthorizationProgressProjection = Readonly<{
   stage: AuthorizationProgressStage;
   /** True when UI should offer a Retry for the failed stage. */
@@ -60,6 +70,8 @@ export type AuthorizationProgressProjection = Readonly<{
   failureCode: string | null;
   /** Wall-clock start of the active execution stage (for timed progress bars). */
   stageStartedAtMs: number | null;
+  /** Shell surface gate — silent progress must not open the sign-in Dialog. */
+  uiSurface: AuthorizationProgressUiSurface;
 }>;
 
 export type ApplyAuthorizationExecutionFailureInput = Readonly<{
@@ -81,6 +93,17 @@ export function initialAuthorizationProgressProjection(): AuthorizationProgressP
     failureKind: null,
     failureCode: null,
     stageStartedAtMs: null,
+    uiSurface: "modal",
+  };
+}
+
+export function withAuthorizationProgressUiSurface(
+  projection: AuthorizationProgressProjection,
+  uiSurface: AuthorizationProgressUiSurface,
+): AuthorizationProgressProjection {
+  return {
+    ...projection,
+    uiSurface,
   };
 }
 
@@ -102,6 +125,18 @@ export function applyAuthorizationProgressStage(
     retryAvailable,
     correlationId:
       correlationId === undefined ? projection.correlationId : correlationId,
+    ...(stage === "preparing"
+      ? {
+          // New attempt — never inherit a prior ready run's completed checklist.
+          executionStage: null,
+          completedExecutionStages: [],
+          failedExecutionStage: null,
+          failureReason: null,
+          failureKind: null,
+          failureCode: null,
+          stageStartedAtMs: null,
+        }
+      : {}),
     ...(stage === "ready"
       ? {
           executionStage: null,
@@ -122,12 +157,14 @@ export function applyAuthorizationExecutionStage(
   correlationId: string,
   stageStartedAtMs: number = Date.now(),
 ): AuthorizationProgressProjection {
-  const completed =
+  const priorCompleted =
     projection.executionStage !== null &&
     projection.executionStage !== executionStage &&
     !projection.completedExecutionStages.includes(projection.executionStage)
       ? [...projection.completedExecutionStages, projection.executionStage]
-      : projection.completedExecutionStages;
+      : [...projection.completedExecutionStages];
+  // Active stage must not remain in completed (stale ready → reconnect).
+  const completed = priorCompleted.filter((stage) => stage !== executionStage);
   return {
     ...projection,
     stage: mapExecutionStageToLegacyStage(executionStage),

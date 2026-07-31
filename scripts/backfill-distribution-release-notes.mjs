@@ -1,5 +1,5 @@
 /**
- * Backfill GitHub Release bodies on axatalk-releases from distribution/CHANGELOG.md.
+ * Backfill GitHub Release bodies on omnicall-releases from distribution/CHANGELOG.md.
  * Does not invent history — uses changelog entries or a neutral fallback per version.
  */
 
@@ -25,7 +25,7 @@ const PUBLIC_CHANGELOG = join(repoRoot, 'distribution/CHANGELOG.md');
 function readToken() {
   const raw =
     process.env.DISTRIBUTION_GITHUB_TOKEN ??
-    process.env.AXATALK_RELEASES_TOKEN ??
+    process.env.OMNICALL_RELEASES_TOKEN ??
     process.env.GITHUB_TOKEN;
   if (typeof raw !== 'string') {
     return '';
@@ -62,7 +62,7 @@ async function backfillTag(tag) {
   const notes = generateDistributionReleaseNotes(tag);
   const version = versionFromTag(tag);
   const hasEntry = parsePublicChangelogEntry(version) !== null;
-  const title = `Axatalk ${tag}`;
+  const title = `OmniCall ${tag}`;
 
   if (dryRun) {
     console.log(`\n--- ${tag} ${hasEntry ? '(changelog)' : '(fallback)'} ---`);

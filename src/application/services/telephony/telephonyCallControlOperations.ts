@@ -94,8 +94,40 @@ export async function executeHangupCall(
       return err(createPlatformError("validation_failed", ended.transition.reason));
     }
 
+    // Real JsSIP often emits session `ended` inside terminate() before hangup()
+    // returns; handleCallEnded may already have published CallEnded + untracked.
+    // Skip a second CallEnded to keep projections/OCP dlg_stop single-shot.
+    const stillTracked = deps.resolveTrackedCall(input.callId);
+    if (isErr(stillTracked)) {
+      deps.logger.info("call_hangup_succeeded", {
+        correlationId,
+        featureId: "F-004",
+        boundedContext: "Telephony",
+        operation: "hangup_call",
+        previousState: trackedCall.state,
+        nextState: ended.call.state,
+        result: "succeeded_via_session_ended",
+      });
+      return ok(ended.call);
+    }
+
     cancelScheduledTonePlaybackStop(input.callId);
     await deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
+
+    // Session-ended handler may finalize during stopTone; avoid duplicate CallEnded.
+    if (isErr(deps.resolveTrackedCall(input.callId))) {
+      deps.logger.info("call_hangup_succeeded", {
+        correlationId,
+        featureId: "F-004",
+        boundedContext: "Telephony",
+        operation: "hangup_call",
+        previousState: trackedCall.state,
+        nextState: ended.call.state,
+        result: "succeeded_via_session_ended",
+      });
+      return ok(ended.call);
+    }
+
     deps.eventPublisher.publish(
       createCallEndedEvent(correlationId, { callId: input.callId }),
     );

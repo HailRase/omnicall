@@ -16,7 +16,7 @@ describe('generate-distribution-release-notes', () => {
   it('formats a structured GitHub release body', () => {
     const entry = parsePublicChangelogEntry('0.1.0');
     const body = formatDistributionReleaseBody({ tag: 'v0.1.0', entry });
-    expect(body).toContain('## Axatalk v0.1.0');
+    expect(body).toContain('## OmniCall v0.1.0');
     expect(body).toContain('### Added');
     expect(body).toContain('### Distribution artifacts');
     expect(body).toContain('update-manifest.json');

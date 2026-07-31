@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import { deriveCallLineStatusLabel } from "@application/index.js";
-import { useI18n } from "../../i18n/index.js";
+import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import styles from "./OutgoingCallCard.module.css";
 
@@ -17,20 +17,18 @@ export type OutgoingCallCardProps = Readonly<{
 }>;
 
 /**
- * - Purpose: show pre-connect progress and failure details before a call line row exists.
+ * - Purpose: show pre-connect progress before a call line row exists.
  * - Inputs: call projection fields and dialed number.
- * - Outputs: operator-facing status card without technical diagnostics.
+ * - Outputs: operator-facing connecting card (terminal failures use notifications).
  */
 export function OutgoingCallCard({
   callState,
   toneIndicator,
   numberValue,
   displayName = null,
-  lastError,
 }: OutgoingCallCardProps): JSX.Element {
   const { t } = useI18n();
   const statusLabel = mapCallStateLabel(t, callState);
-  const isFailed = callState === "Failed" || toneIndicator === "failed" || lastError !== null;
   const trimmedName = displayName?.trim() ?? "";
   const trimmedNumber = numberValue.trim();
   const primaryLabel =
@@ -46,7 +44,7 @@ export function OutgoingCallCard({
 
   return (
     <section
-      className={clsx(styles.card, isFailed && styles.cardFailed)}
+      className={clsx(styles.card)}
       data-testid="outgoing-call-card"
       aria-label={t("outgoing.ariaLabel")}
     >
@@ -64,11 +62,6 @@ export function OutgoingCallCard({
           </p>
         </div>
       </div>
-      {lastError !== null ? (
-        <p className={styles.error} data-testid="call-failed-alert" role="alert">
-          {lastError}
-        </p>
-      ) : null}
     </section>
   );
 }
@@ -77,9 +70,10 @@ function mapCallStateLabel(t: ReturnType<typeof useI18n>["t"], callState: string
   if (callState === "Idle") {
     return t("outgoing.state.idle");
   }
-  return deriveCallLineStatusLabel({
+  const key = deriveCallLineStatusLabel({
     state: callState as Parameters<typeof deriveCallLineStatusLabel>[0]["state"],
   });
+  return t(key as TranslationKey);
 }
 
 function mapToneLabel(

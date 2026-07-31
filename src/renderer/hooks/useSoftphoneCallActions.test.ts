@@ -15,6 +15,7 @@ const idleCallProjection: CallProjection = {
   dtmfPanelCallId: null,
   uiState: "idle",
   lastError: null,
+  lastOutgoingFailure: null,
   lastDtmfError: null,
   lastDtmfTone: null,
   muted: false,

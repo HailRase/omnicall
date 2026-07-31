@@ -9,13 +9,16 @@ export type ShellWindowControlsProps = Readonly<{
   platform: "win32" | "darwin" | "linux";
   showNativeWindowControls: boolean;
   isShuttingDown: boolean;
+  maximizeEnabled?: boolean;
+  isMaximized?: boolean;
   onMinimize: () => void;
   onClose: () => void;
   onRestart: () => void;
+  onToggleMaximize?: () => void;
 }>;
 
 type MacOsTrafficLightProps = Readonly<{
-  variant: "close" | "minimize" | "restart";
+  variant: "close" | "minimize" | "restart" | "maximize";
   ariaLabel: string;
   testId: string;
   disabled: boolean;
@@ -30,6 +33,7 @@ function MacOsTrafficLight({
   onClick,
 }: MacOsTrafficLightProps): JSX.Element {
   const isRestart = variant === "restart";
+  const isMaximize = variant === "maximize";
 
   return (
     <button
@@ -39,6 +43,7 @@ function MacOsTrafficLight({
         variant === "close" && styles.trafficLightClose,
         variant === "minimize" && styles.trafficLightMinimize,
         isRestart && styles.trafficLightRestart,
+        isMaximize && styles.trafficLightMaximize,
       )}
       data-testid={testId}
       aria-label={ariaLabel}
@@ -51,6 +56,13 @@ function MacOsTrafficLight({
           size={7}
           preferAnimated={false}
           className={styles.trafficLightRestartGlyph}
+        />
+      ) : isMaximize ? (
+        <AppIcon
+          id="shell.window.maximize"
+          size={7}
+          preferAnimated={false}
+          className={styles.trafficLightGlyph}
         />
       ) : (
         <AppIcon
@@ -66,11 +78,15 @@ function MacOsTrafficLight({
 
 function MacOsShellWindowControls({
   isShuttingDown,
+  maximizeEnabled,
+  isMaximized,
   onMinimize,
   onClose,
   onRestart,
+  onToggleMaximize,
 }: Omit<ShellWindowControlsProps, "platform" | "showNativeWindowControls">): JSX.Element {
   const { t } = useI18n();
+  const showMaximize = maximizeEnabled === true;
 
   return (
     <div
@@ -91,20 +107,52 @@ function MacOsShellWindowControls({
         disabled={isShuttingDown}
         onClick={onMinimize}
       />
-      <MacOsTrafficLight
-        variant="restart"
-        ariaLabel={t("shell.window.restartAria")}
-        testId="control-window-restart"
-        disabled={isShuttingDown}
-        onClick={onRestart}
-      />
+      {showMaximize ? (
+        <MacOsTrafficLight
+          variant="maximize"
+          ariaLabel={
+            isMaximized === true
+              ? t("shell.window.restoreAria")
+              : t("shell.window.maximizeAria")
+          }
+          testId="control-window-maximize"
+          disabled={isShuttingDown}
+          onClick={() => {
+            onToggleMaximize?.();
+          }}
+        />
+      ) : (
+        <MacOsTrafficLight
+          variant="restart"
+          ariaLabel={t("shell.window.restartAria")}
+          testId="control-window-restart"
+          disabled={isShuttingDown}
+          onClick={onRestart}
+        />
+      )}
+      {showMaximize ? (
+        <IconControlButton
+          iconId="shell.restart"
+          preferAnimated={false}
+          ariaLabel={t("shell.window.restartAria")}
+          tooltipLabel={
+            isShuttingDown
+              ? t("shell.window.restartInProgressAria")
+              : t("shell.window.restartAria")
+          }
+          testId="control-window-restart"
+          disabled={isShuttingDown}
+          onClick={onRestart}
+          className={styles.macOsRestartAfterTrafficLights}
+        />
+      ) : null}
     </div>
   );
 }
 
 /**
- * - Purpose: render custom shell window controls with reload instead of maximize (F-016).
- * - Inputs: platform visibility flag, shutdown state, and control callbacks.
+ * - Purpose: render custom shell window controls; settings work-area fill toggle (F-016).
+ * - Inputs: platform visibility, shutdown, maximize state, and control callbacks.
  * - Outputs: draggable-safe window control buttons for frameless shell.
  * @uiMeta lf=LF-079 f=F-016
  */
@@ -112,20 +160,27 @@ export function ShellWindowControls({
   platform,
   showNativeWindowControls,
   isShuttingDown,
+  maximizeEnabled = false,
+  isMaximized = false,
   onMinimize,
   onClose,
   onRestart,
+  onToggleMaximize,
 }: ShellWindowControlsProps): JSX.Element {
   const { t } = useI18n();
   const isMacOs = platform === "darwin";
+  const showMaximize = maximizeEnabled;
 
   if (isMacOs) {
     return (
       <MacOsShellWindowControls
         isShuttingDown={isShuttingDown}
+        maximizeEnabled={maximizeEnabled}
+        isMaximized={isMaximized}
         onMinimize={onMinimize}
         onClose={onClose}
         onRestart={onRestart}
+        {...(onToggleMaximize !== undefined ? { onToggleMaximize } : {})}
       />
     );
   }
@@ -147,6 +202,24 @@ export function ShellWindowControls({
           testId="control-window-minimize"
           disabled={isShuttingDown}
           onClick={onMinimize}
+          className={styles.windowControlButton}
+        />
+      ) : null}
+      {showNativeWindowControls && showMaximize ? (
+        <IconControlButton
+          iconId={isMaximized ? "shell.window.restore" : "shell.window.maximize"}
+          preferAnimated={false}
+          ariaLabel={
+            isMaximized ? t("shell.window.restoreAria") : t("shell.window.maximizeAria")
+          }
+          tooltipLabel={
+            isMaximized ? t("shell.window.restoreAria") : t("shell.window.maximizeAria")
+          }
+          testId="control-window-maximize"
+          disabled={isShuttingDown}
+          onClick={() => {
+            onToggleMaximize?.();
+          }}
           className={styles.windowControlButton}
         />
       ) : null}

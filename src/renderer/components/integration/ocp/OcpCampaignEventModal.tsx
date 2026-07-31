@@ -29,11 +29,15 @@ export type OcpCampaignEventModalProps = Readonly<{
   onReject: () => void;
 }>;
 
+function hasText(value: string): boolean {
+  return value.trim().length > 0;
+}
+
 /**
- * - Purpose: mandatory accept/reject dialog for an active OCP campaign invite.
+ * - Purpose: mandatory accept/reject dialog for non-progressive OCP campaign preview.
  * - Inputs: open flag, campaign display fields, submitting state, callbacks.
- * - Outputs: presentational Dialog that cannot dismiss via Escape or outside click.
- * @uiMeta f=F-028 lf=LF-047
+ * - Outputs: centered Dialog with blur scrim; Escape/outside dismiss blocked.
+ * @uiMeta f=F-028 lf=LF-039,LF-040
  */
 export function OcpCampaignEventModal({
   open,
@@ -46,10 +50,21 @@ export function OcpCampaignEventModal({
   const { t } = useI18n();
   const actionsDisabled = !open || campaign === null || submitting;
 
+  const metaParts =
+    campaign === null
+      ? []
+      : [
+          hasText(campaign.companyTitle) ? campaign.companyTitle.trim() : null,
+          hasText(campaign.queueTitle) ? campaign.queueTitle.trim() : null,
+          hasText(campaign.selectionTitle) ? campaign.selectionTitle.trim() : null,
+        ].filter((part): part is string => part !== null);
+
   return (
     <Dialog open={open}>
       <DialogContent
+        size="sm"
         className={styles.content}
+        overlayClassName={styles.overlayBlur}
         data-testid="ocp-campaign-modal"
         showCloseButton={false}
         closeLabel={t("common.close")}
@@ -63,34 +78,30 @@ export function OcpCampaignEventModal({
           event.preventDefault();
         }}
       >
-        <DialogHeader>
+        <DialogHeader className={styles.header}>
           <DialogTitle>{t("ocp.campaign.modal.title")}</DialogTitle>
-          <DialogDescription>{t("ocp.campaign.modal.description")}</DialogDescription>
+          <DialogDescription className={styles.description}>
+            {t("ocp.campaign.modal.description")}
+          </DialogDescription>
         </DialogHeader>
 
         {campaign !== null ? (
-          <dl className={styles.details} data-testid="ocp-campaign-details">
-            <div className={styles.row}>
-              <dt className={styles.term}>{t("ocp.campaign.modal.company")}</dt>
-              <dd className={styles.value}>{campaign.companyTitle}</dd>
-            </div>
-            <div className={styles.row}>
-              <dt className={styles.term}>{t("ocp.campaign.modal.queue")}</dt>
-              <dd className={styles.value}>{campaign.queueTitle}</dd>
-            </div>
-            <div className={styles.row}>
-              <dt className={styles.term}>{t("ocp.campaign.modal.selection")}</dt>
-              <dd className={styles.value}>{campaign.selectionTitle}</dd>
-            </div>
-            <div className={styles.row}>
-              <dt className={styles.term}>{t("ocp.campaign.modal.strategy")}</dt>
-              <dd className={styles.value}>{campaign.strategyTitle}</dd>
-            </div>
-            <div className={styles.row}>
-              <dt className={styles.term}>{t("ocp.campaign.modal.phone")}</dt>
-              <dd className={styles.value}>{campaign.clientPhone}</dd>
-            </div>
-          </dl>
+          <div className={styles.body} data-testid="ocp-campaign-details">
+            <p className={styles.phoneLabel}>{t("ocp.campaign.modal.phone")}</p>
+            <p className={styles.phone} data-testid="ocp-campaign-phone">
+              {campaign.clientPhone}
+            </p>
+            {metaParts.length > 0 ? (
+              <p className={styles.meta} data-testid="ocp-campaign-meta">
+                {metaParts.join(" · ")}
+              </p>
+            ) : null}
+            {hasText(campaign.strategyTitle) ? (
+              <p className={styles.strategy} data-testid="ocp-campaign-strategy">
+                {campaign.strategyTitle.trim()}
+              </p>
+            ) : null}
+          </div>
         ) : null}
 
         <DialogFooter className={styles.footer}>

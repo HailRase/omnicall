@@ -14,21 +14,28 @@ const STATUS_ICON_ID: Record<OcpSignInStageVisualState, IconSemanticId> = {
 export type OcpSignInProgressStatusIconProps = Readonly<{
   state: OcpSignInStageVisualState;
   failureLabel: string | null;
+  /** Localized status word (pending/active/…) for a11y when text is hidden. */
+  statusLabel: string;
+  /** Compact shell: icons only; failure still uses tooltip. */
+  iconsOnly?: boolean;
 }>;
 
 /**
  * - Purpose: render per-stage status glyph (animated Lucide when available).
- * - Inputs: visual state and optional failure tooltip label.
+ * - Inputs: visual state, optional failure tooltip, a11y status label, compact mode.
  * - Outputs: decorative icon or help-button with failure tooltip.
  */
 export function OcpSignInProgressStatusIcon({
   state,
   failureLabel,
+  statusLabel,
+  iconsOnly = false,
 }: OcpSignInProgressStatusIconProps): JSX.Element {
+  const iconSize = iconsOnly ? 12 : 14;
   const icon = (
     <AppIcon
       id={STATUS_ICON_ID[state]}
-      size={14}
+      size={iconSize}
       decorative
       /* Active: static SVG so CSS spin stays on geometric center. */
       preferAnimated={state !== "active"}
@@ -55,7 +62,8 @@ export function OcpSignInProgressStatusIcon({
     <span
       className={styles.statusIcon}
       data-state={state}
-      aria-hidden="true"
+      aria-label={iconsOnly ? statusLabel : undefined}
+      aria-hidden={iconsOnly ? undefined : "true"}
       data-testid={state === "active" ? "account-ocp-progress-active-icon" : undefined}
     >
       {icon}

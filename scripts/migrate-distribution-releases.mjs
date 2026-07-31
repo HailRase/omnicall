@@ -1,12 +1,12 @@
 /**
- * One-time / manual: copy GitHub Releases (installers only) from source repo to axatalk-releases.
+ * One-time / manual: copy GitHub Releases (installers only) from source repo to omnicall-releases.
  *
  * Tokens (separate):
  *   SOURCE_GITHUB_TOKEN       — read releases on HailRase/softphone-electron
- *   DISTRIBUTION_GITHUB_TOKEN — write releases + main on HailRase/axatalk-releases
+ *   DISTRIBUTION_GITHUB_TOKEN — write releases + main on HailRase/omnicall-releases
  *
- * CI: SOURCE=github.token, DISTRIBUTION=secrets.AXATALK_RELEASES_TOKEN
- * Local: SOURCE=classic PAT with repo read; DISTRIBUTION=PAT write axatalk-releases
+ * CI: SOURCE=github.token, DISTRIBUTION=secrets.OMNICALL_RELEASES_TOKEN
+ * Local: SOURCE=classic PAT with repo read; DISTRIBUTION=PAT write omnicall-releases
  */
 
 import { execSync, spawnSync } from 'node:child_process';
@@ -38,7 +38,7 @@ function readToken(name, fallbackName) {
 }
 
 const sourceToken = readToken('SOURCE_GITHUB_TOKEN', 'GITHUB_TOKEN');
-const distributionToken = readToken('DISTRIBUTION_GITHUB_TOKEN', 'AXATALK_RELEASES_TOKEN');
+const distributionToken = readToken('DISTRIBUTION_GITHUB_TOKEN', 'OMNICALL_RELEASES_TOKEN');
 
 if (sourceToken.length === 0) {
   console.error('SOURCE_GITHUB_TOKEN is required (read access to softphone-electron).');
@@ -46,7 +46,7 @@ if (sourceToken.length === 0) {
 }
 
 if (distributionToken.length === 0) {
-  console.error('DISTRIBUTION_GITHUB_TOKEN is required (write access to axatalk-releases).');
+  console.error('DISTRIBUTION_GITHUB_TOKEN is required (write access to omnicall-releases).');
   process.exit(1);
 }
 
@@ -106,7 +106,7 @@ async function main() {
       continue;
     }
 
-    const workDir = join(tmpdir(), `axatalk-migrate-${tag}`);
+    const workDir = join(tmpdir(), `OmniCall-migrate-${tag}`);
     rmSync(workDir, { recursive: true, force: true });
     mkdirSync(workDir, { recursive: true });
 
@@ -126,7 +126,7 @@ async function main() {
       console.log(`  + ${file}`);
     }
 
-    const title = `Axatalk ${tag}`;
+    const title = `OmniCall ${tag}`;
     const releaseId = await createRelease(distributionToken, DISTRIBUTION_REPO, {
       tag,
       title,

@@ -57,6 +57,6 @@ Expected: **792 passed**, 1 skipped.
 
 - LF-009 recovery UI redesign (avatar/header)
 - UI-6 Radix + motion on incoming/campaign modals
-- Theme LF-082 (done), toast placement LF-060
+- Theme LF-082 (done), toast placement LF-060 (done — T-051)
 - Draggable widget LF-056
 - Codecs placeholder LF-084

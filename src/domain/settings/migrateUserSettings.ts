@@ -14,6 +14,14 @@ import {
   OCP_INTEGRATION_DEFAULTS,
   parseOcpIntegrationSettings,
 } from "./OcpIntegrationSettings.js";
+import {
+  SDK_INTEGRATION_DEFAULTS,
+  parseSdkIntegrationSettings,
+} from "./SdkIntegrationSettings.js";
+import {
+  EXTERNAL_SERVICES_DEFAULTS,
+  parseExternalServicesSettings,
+} from "../integration/external-services/index.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -30,7 +38,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v9.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v11.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -64,6 +72,10 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 12 ||
+    version === 11 ||
+    version === 10 ||
+    version === 9 ||
     version === 8 ||
     version === 7 ||
     version === 6 ||
@@ -127,6 +139,23 @@ function coerceToCurrentUserSettings(
       error: { code: "validation_failed", message: "ocpIntegration_invalid" },
     };
   }
+  const parsedSdk = parseSdkIntegrationSettings(record["sdkIntegration"]);
+  if (parsedSdk === null) {
+    return {
+      ok: false,
+      error: { code: "validation_failed", message: "sdkIntegration_invalid" },
+    };
+  }
+  const externalServices = parseExternalServicesForMigration(record);
+  if (externalServices === null) {
+    return {
+      ok: false,
+      error: {
+        code: "validation_failed",
+        message: "externalServices_invalid",
+      },
+    };
+  }
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -172,6 +201,8 @@ function coerceToCurrentUserSettings(
         ? record["enableLocalVideoAfterConnect"]
         : DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
     ocpIntegration: parsedOcp,
+    sdkIntegration: parsedSdk,
+    externalServices,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -181,6 +212,56 @@ function coerceToCurrentUserSettings(
     };
   }
   return { ok: true, value: validated.value };
+}
+
+function parseExternalServicesForMigration(
+  record: Record<string, unknown>,
+): UserSettings["externalServices"] | null {
+  const raw = record["externalServices"];
+  if (raw === undefined) {
+    return EXTERNAL_SERVICES_DEFAULTS;
+  }
+  const parsed = parseExternalServicesSettings(migrateExternalServiceTriggers(raw));
+  return parsed.ok ? parsed.value : null;
+}
+
+function migrateExternalServiceTriggers(value: unknown): unknown {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return value;
+  }
+  const settings = value as Record<string, unknown>;
+  if (!Array.isArray(settings["collections"])) {
+    return value;
+  }
+  return {
+    ...settings,
+    collections: settings["collections"].map((collection: unknown): unknown => {
+      if (typeof collection !== "object" || collection === null || Array.isArray(collection)) {
+        return collection;
+      }
+      const collectionRecord = collection as Record<string, unknown>;
+      if (!Array.isArray(collectionRecord["requests"])) {
+        return collectionRecord;
+      }
+      return {
+        ...collectionRecord,
+        requests: collectionRecord["requests"].map((request: unknown): unknown => {
+          if (typeof request !== "object" || request === null || Array.isArray(request)) {
+            return request;
+          }
+          const requestRecord = request as Record<string, unknown>;
+          const triggers = requestRecord["triggers"];
+          if (!Array.isArray(triggers) || !triggers.every((item) => typeof item === "string")) {
+            return requestRecord;
+          }
+          return {
+            ...requestRecord,
+            triggers: triggers.map((eventType) => ({ eventType, delaySeconds: 0 })),
+          };
+        }),
+      };
+    }),
+  };
 }
 
 function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
@@ -228,6 +309,8 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     conferenceNumberSubstring: defaults.conferenceNumberSubstring,
     enableLocalVideoAfterConnect: defaults.enableLocalVideoAfterConnect,
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
+    sdkIntegration: SDK_INTEGRATION_DEFAULTS,
+    externalServices: EXTERNAL_SERVICES_DEFAULTS,
   };
 }
 

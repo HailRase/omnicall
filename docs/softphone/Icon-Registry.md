@@ -17,6 +17,8 @@
 | `shell.diagnostics` | Settings diagnostics section | `Activity` | `ActivityIcon` | `SettingsSidebar` | active |
 | `shell.restart` | Controlled app restart | `RotateCcw` | `RotateCcwIcon` | `ShellWindowControls` | active |
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
+| `shell.window.maximize` | Fill work area in settings (layout-owned, not OS maximize) | `Square` | — | `ShellWindowControls` | active |
+| `shell.window.restore` | Restore settings size from work-area fill | `SquareStack` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
 | `shell.contacts` | Open contacts list | `Users` | — | `Dialpad` | active |
@@ -30,8 +32,15 @@
 | `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
-| `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
-| `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
+| `call.queue` | OCP ACD queue badge on call surfaces | `Headphones` | — | `CallContextBadges` | active |
+| `settings.integrations` | Settings Integrations cluster (collapsed rail icon; expanded section label) | `Plug` | — | `SettingsSidebar` | active |
+| `settings.integrations.ocp` | Settings OCP Module row in Integrations cluster | `Server` | — | `SettingsSidebar` | active |
+| `settings.integrations.external-services` | Settings External Services row in Integrations cluster | `Webhook` | — | `SettingsSidebar` | active |
+| `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
+| `settings.integrations.external-services.add` | New collection or quick-add request in External Services sidebar | `Plus` | — | `ExternalServicesSidebar` | active |
+| `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |
+| `settings.integrations.external-services.panelCollapse` | Collapse Response/History pane | `Minimize2` | — | `ExternalServicesResponsePane` | active |
+| `settings.integrations.sdk` | Settings OmniCall Kit child under Integrations | `Blocks` | — | `SettingsSidebar` | active |
 | `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
@@ -55,7 +64,8 @@
 | `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
 | `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
-| `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel | active |
+| `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel, SDK origin edit cancel | active |
+| `bootstrap.mark` | Bootstrap splash brand ball mark | `Phone` | `PhoneIcon` | `BootstrapSplashShell` | active |
 | `dial.call` | Place outgoing call | `PhoneOutgoing` | — | `Dialpad` | active |
 | `dial.videoCall` | Place outgoing video call | `Video` | — | `Dialpad` | active |
 | `dial.delete` | Delete last digit | `Delete` | `DeleteIcon` | `Dialpad` | active |
@@ -63,12 +73,12 @@
 | `operator.ready` | Agent ready status | `CircleCheck` | `CircleCheckIcon` | `StatusSelector` | active |
 | `operator.break` | Agent break status | `Coffee` | `CoffeeIcon` | `StatusSelector` | active |
 | `operator.logout` | Operator platform logout | `LogOut` | `LogoutIcon` | `StatusSelector`, `LogoutReasonModal` | active |
-| `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel` | active |
-| `action.edit` | Edit contact or record | `Pencil` | — | `ContactDetailsPanel` | active |
+| `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel`, SDK origin save | active |
+| `action.edit` | Edit contact or record | `Pencil` | — | `ContactDetailsPanel`, SDK origin edit | active |
 | `action.retry` | Retry failed operation | `RotateCcw` | `RotateCcwIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `transfer.consultation` | Start consultation call | `PhoneCall` | `PhoneCallIcon` | `TransferPanel` | active |
 | `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
-| `ui.select.chevron` | Expand select options | `ChevronDown` | — | `Select`; overwrite credentials split menu | active |
+| `ui.select.chevron` | Expand select options | `ChevronDown` | — | `Select`; overwrite credentials split menu; `Accordion` trigger | active |
 | `ui.sidebar.toggle` | Toggle UI Kit sidebar | `PanelLeft` | — | `SidebarTrigger` | active |
 | `phone.dnd.on` | DND mode active (bell on) | `Bell` | — | `UserAvatarMenu` | active |
 | `phone.dnd.off` | DND mode inactive (bell off) | `BellOff` | — | `UserAvatarMenu` | active |
@@ -78,6 +88,8 @@
 | `account.authProgress.status.pending` | OCP sign-in stage pending | `CircleDashed` | `CircleDashedIcon` | `OcpSignInProgress` | active |
 | `account.authProgress.status.failed` | OCP sign-in stage failed | `CircleAlert` | `BadgeAlertIcon` | `OcpSignInProgress` | active |
 | `account.authProgress.status.timeout` | OCP sign-in stage timed out | `Hourglass` | `HourglassIcon` | `OcpSignInProgress` | active |
+| `sdk.permission.allowed` | SDK origin capability allowed | `CircleCheck` | `CircleCheckIcon` | `SdkModuleSettingsOriginMatrix` | active |
+| `sdk.permission.denied` | SDK origin capability denied | `CircleX` | — | `SdkModuleSettingsOriginMatrix` | active |
 
 ## Adding an entry
 

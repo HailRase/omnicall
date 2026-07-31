@@ -12,6 +12,7 @@ import {
   createCallFailedEvent,
   createCallId,
   createIncomingCallReceivedEvent,
+  createOutgoingCallRequestedEvent,
   createOutgoingCallStartedEvent,
   createPhoneNumber,
 } from "@domain/index.js";
@@ -50,7 +51,15 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => true,
+      getOcpUserLogin: () => "op.bridge",
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
     });
     return { gateway, bus, bridge };
   }
@@ -70,6 +79,10 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "get_main_acallid",
       callId,
+      userLogin: "op.bridge",
+      callerId: "+100",
+      calledId: "op.bridge",
+      lifecycleEvent: "incomingCallProgress",
     });
     bridge.dispose();
   });
@@ -77,8 +90,13 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
   it("OutgoingCallStarted and CallAnswered request main acallId", () => {
     const { gateway, bus, bridge } = createAuthenticatedBridge();
     const outId = createCallId("out-1");
-    const ansId = createCallId("ans-1");
 
+    bus.publish(
+      createOutgoingCallRequestedEvent(createCorrelationId(), {
+        callId: outId,
+        phoneNumber: createPhoneNumber("+200"),
+      }),
+    );
     bus.publish(
       createOutgoingCallStartedEvent(createCorrelationId(), {
         callId: outId,
@@ -87,22 +105,30 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "get_main_acallid",
       callId: outId,
+      userLogin: "op.bridge",
+      callerId: "op.bridge",
+      calledId: "+200",
+      lifecycleEvent: "outgoingCallProgress",
     });
 
     gateway.clearSentCommands();
     bus.publish(
       createCallAnsweredEvent(createCorrelationId(), {
-        callId: ansId,
+        callId: outId,
       }),
     );
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "get_main_acallid",
-      callId: ansId,
+      callId: outId,
+      userLogin: "op.bridge",
+      callerId: "op.bridge",
+      calledId: "+200",
+      lifecycleEvent: "outgoingCallAccepted",
     });
     bridge.dispose();
   });
 
-  it("CallEnded → dlg_stop with correlated acallId", () => {
+  it("CallEnded → dlg_stop with SIP callId wire (correlation cleared)", () => {
     const { gateway, bus, bridge } = createAuthenticatedBridge();
     const callId = createCallId("end-1");
 
@@ -124,16 +150,21 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "dlg_stop",
       callId,
-      acallId: "acall-42",
     });
     expect(bridge.getCorrelationAcallId(callId)).toBeUndefined();
     bridge.dispose();
   });
 
-  it("CallFailed clears correlation map and sends dlg_stop", () => {
+  it("CallFailed clears correlation map and sends dlg_stop once", () => {
     const { gateway, bus, bridge } = createAuthenticatedBridge();
     const callId = createCallId("fail-1");
 
+    bus.publish(
+      createOutgoingCallRequestedEvent(createCorrelationId(), {
+        callId,
+        phoneNumber: createPhoneNumber("+400"),
+      }),
+    );
     bus.publish(
       createOutgoingCallStartedEvent(createCorrelationId(), {
         callId,
@@ -155,7 +186,6 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "dlg_stop",
       callId,
-      acallId: "acall-fail",
     });
     expect(bridge.getCorrelationAcallId(callId)).toBeUndefined();
     bridge.dispose();
@@ -168,7 +198,15 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => false,
+      getOcpUserLogin: () => "op.bridge",
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
     });
 
     bus.publish(

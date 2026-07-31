@@ -16,7 +16,7 @@
 6. `docs/softphone/Legacy-Feature-Coverage.md` — **LF-076**, **LF-077**, **LF-033** (RBT), **LF-016** (auto-answer)
 
 ### Legacy reference (audit only — не копировать `setUserConfig` в UI)
-`D:\Axata\JSSIP-PROJECTS\jssip-phone\src` — `Common`, `JSSIP_CONFIGS`, `SettingModal` field inventory
+`D:\SoftOmniTel\JSSIP-PROJECTS\jssip-phone\src` — `Common`, `JSSIP_CONFIGS`, `SettingModal` field inventory
 
 ### Skills
 - `.cursor/skills/feature-slice-design/SKILL.md`

@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Forbidden wire key apiKey (O-OCP-1 / SECURITY.md)"
+}
