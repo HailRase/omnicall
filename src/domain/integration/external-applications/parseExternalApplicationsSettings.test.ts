@@ -13,12 +13,43 @@ const application = {
 };
 
 describe("parseExternalApplicationsSettings", () => {
-  it("freezes a valid settings aggregate", () => {
+  it("freezes a valid settings aggregate with v14-compatible defaults", () => {
     const result = parseExternalApplicationsSettings({ applications: [application] });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.applications[0]?.name).toBe("CRM");
+      expect(result.value.applications[0]?.conditions).toEqual({
+        callDirection: "any",
+        queueNames: [],
+      });
+      expect(result.value.applications[0]?.windowBehavior).toEqual({
+        raiseOnOpen: true,
+        alwaysOnTopDuringCall: false,
+        onCallEnded: "leave",
+      });
       expect(Object.isFrozen(result.value)).toBe(true);
+    }
+  });
+
+  it("migrates v15 single queueNameEquals into queueNames and drops requireCallerId", () => {
+    const result = parseExternalApplicationsSettings({
+      applications: [
+        {
+          ...application,
+          conditions: {
+            callDirection: "inbound",
+            requireCallerId: true,
+            queueNameEquals: "Sales",
+          },
+        },
+      ],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.applications[0]?.conditions).toEqual({
+        callDirection: "inbound",
+        queueNames: ["Sales"],
+      });
     }
   });
 

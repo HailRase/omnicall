@@ -242,6 +242,10 @@ export function createRealAccountBootstrap(
       mode: "real",
       logger: createBootstrapLogger({ featureId: "F-032", boundedContext: "Integration" }),
       settingsRepository,
+      ...(options.profilesStorageRoot !== undefined
+        ? { profilesStorageRoot: options.profilesStorageRoot }
+        : {}),
+      ...(options.filesystem !== undefined ? { filesystem: options.filesystem } : {}),
     });
 
   const facade = new AccountBootstrapFacade({

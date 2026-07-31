@@ -562,6 +562,12 @@ export {
   type ExternalServicesJournalPanelVm,
 } from "./projections/integration/deriveExternalServicesJournalPanel.js";
 export {
+  deriveExternalApplicationsJournalPanel,
+  toExternalApplicationsJournalEntryVm,
+  type ExternalApplicationsJournalEntryVm,
+  type ExternalApplicationsJournalPanelVm,
+} from "./projections/integration/deriveExternalApplicationsJournalPanel.js";
+export {
   createExternalServiceCollection,
   renameExternalServiceCollection,
   toggleExternalServiceCollection,

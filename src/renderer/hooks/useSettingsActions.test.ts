@@ -38,6 +38,10 @@ function createSoftphonePreloadApiMock(
       ok: true,
       focusedExisting: false,
     }),
+    applyExternalApplicationCallEnded: vi.fn().mockResolvedValue({
+      ok: true,
+      affected: 0,
+    }),
     setNativeTheme: vi.fn().mockResolvedValue({ ok: true }),
     onBeforeClose: vi.fn().mockReturnValue(() => {}),
     acknowledgeShutdown: vi.fn().mockResolvedValue({ ok: true }),

@@ -64,6 +64,8 @@ import type {
   ExternalServicesCollectionSaveExportDialogResponse,
 } from "./ExternalServicesCollectionFileContract.js";
 import type {
+  ApplyExternalApplicationCallEndedPayload,
+  ApplyExternalApplicationCallEndedResponse,
   OpenExternalApplicationWindowPayload,
   OpenExternalApplicationWindowResponse,
 } from "./OpenExternalApplicationWindowContract.js";
@@ -156,6 +158,10 @@ export type SoftphonePreloadApi = Readonly<{
   openExternalApplicationWindow: (
     payload: OpenExternalApplicationWindowPayload,
   ) => Promise<OpenExternalApplicationWindowResponse>;
+  /** F-032: apply leave/minimize/close for windows tied to a call. */
+  applyExternalApplicationCallEnded: (
+    payload: ApplyExternalApplicationCallEndedPayload,
+  ) => Promise<ApplyExternalApplicationCallEndedResponse>;
 }>;
 
 declare global {

@@ -8,6 +8,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createCallId,
   createSettingsAccountKey,
+  DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
   type ExternalApplicationId,
 } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -42,6 +44,8 @@ describe("ExternalApplicationsAutomation", () => {
           window: { width: 1100, height: 800 },
           variables: [],
           triggers: [{ eventType: "incoming_ringing", delaySeconds: 0 }],
+          conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+          windowBehavior: DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
         },
         {
           id: appB,
@@ -52,6 +56,8 @@ describe("ExternalApplicationsAutomation", () => {
           window: { width: 900, height: 700 },
           variables: [],
           triggers: [{ eventType: "incoming_ringing", delaySeconds: 0 }],
+          conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+          windowBehavior: DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
         },
       ],
     });
@@ -108,6 +114,8 @@ describe("ExternalApplicationsAutomation", () => {
           window: { width: 1100, height: 800 },
           variables: [],
           triggers: [{ eventType: "outgoing_connecting", delaySeconds: 0 }],
+          conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+          windowBehavior: DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
         },
       ],
     });

@@ -11,20 +11,28 @@ import {
   type ExternalApplicationId,
 } from "./ExternalApplicationIds.js";
 import {
+  DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
   DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
   DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH,
   MAX_EXTERNAL_APPLICATION_NAME_LENGTH,
+  MAX_EXTERNAL_APPLICATION_QUEUE_NAME_LENGTH,
+  MAX_EXTERNAL_APPLICATION_QUEUE_NAMES,
   MAX_EXTERNAL_APPLICATION_TRIGGER_DELAY_SECONDS,
   MAX_EXTERNAL_APPLICATION_URL_LENGTH,
   MAX_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
   MAX_EXTERNAL_APPLICATION_WINDOW_WIDTH,
   MIN_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
   MIN_EXTERNAL_APPLICATION_WINDOW_WIDTH,
+  isExternalApplicationCallDirectionFilter,
+  isExternalApplicationOnCallEndedAction,
   isExternalApplicationOpenMode,
+  type ExternalApplicationConditions,
   type ExternalApplicationDefinition,
   type ExternalApplicationOpenMode,
   type ExternalApplicationsSettings,
   type ExternalApplicationTriggerBinding,
+  type ExternalApplicationWindowBehavior,
   type ExternalApplicationWindowSize,
 } from "./ExternalApplicationsSettings.js";
 
@@ -83,6 +91,12 @@ function parseApplication(
   const window = parseWindow(value["window"], `${path}.window`, errors);
   const variables = parseVariables(value["variables"], `${path}.variables`, errors);
   const triggers = parseTriggers(value["triggers"], `${path}.triggers`, errors);
+  const conditions = parseConditions(value["conditions"], `${path}.conditions`, errors);
+  const windowBehavior = parseWindowBehavior(
+    value["windowBehavior"],
+    `${path}.windowBehavior`,
+    errors,
+  );
 
   return Object.freeze({
     id,
@@ -93,7 +107,129 @@ function parseApplication(
     window,
     variables: Object.freeze(variables),
     triggers: Object.freeze(triggers),
+    conditions,
+    windowBehavior,
   });
+}
+
+function parseConditions(
+  value: unknown,
+  path: string,
+  errors: ExternalApplicationsSettingsValidationError[],
+): ExternalApplicationConditions {
+  if (value === undefined) {
+    return DEFAULT_EXTERNAL_APPLICATION_CONDITIONS;
+  }
+  if (!isRecord(value)) {
+    invalid(errors, path, "not_object");
+    return DEFAULT_EXTERNAL_APPLICATION_CONDITIONS;
+  }
+  const callDirectionRaw = value["callDirection"];
+  const callDirection = isExternalApplicationCallDirectionFilter(callDirectionRaw)
+    ? callDirectionRaw
+    : (() => {
+        invalid(errors, `${path}.callDirection`, "invalid");
+        return DEFAULT_EXTERNAL_APPLICATION_CONDITIONS.callDirection;
+      })();
+  const queueNames = parseQueueNames(value, `${path}`, errors);
+  return Object.freeze({
+    callDirection,
+    queueNames: Object.freeze(queueNames),
+  });
+}
+
+function parseQueueNames(
+  value: Record<string, unknown>,
+  path: string,
+  errors: ExternalApplicationsSettingsValidationError[],
+): string[] {
+  if (Array.isArray(value["queueNames"])) {
+    if (value["queueNames"].length > MAX_EXTERNAL_APPLICATION_QUEUE_NAMES) {
+      invalid(errors, `${path}.queueNames`, "too_many");
+    }
+    const names: string[] = [];
+    const seen = new Set<string>();
+    for (const [index, candidate] of value["queueNames"].entries()) {
+      const name = parseQueueName(candidate, `${path}.queueNames[${index}]`, errors);
+      if (name.length === 0) {
+        continue;
+      }
+      const key = name.toLocaleLowerCase();
+      if (seen.has(key)) {
+        invalid(errors, `${path}.queueNames[${index}]`, "duplicate");
+        continue;
+      }
+      seen.add(key);
+      names.push(name);
+    }
+    return names.slice(0, MAX_EXTERNAL_APPLICATION_QUEUE_NAMES);
+  }
+
+  // v15 compatibility: single queueNameEquals → one-entry list
+  if (value["queueNameEquals"] !== undefined) {
+    const legacy = parseQueueName(
+      value["queueNameEquals"],
+      `${path}.queueNameEquals`,
+      errors,
+    );
+    return legacy.length > 0 ? [legacy] : [];
+  }
+
+  return [];
+}
+
+function parseWindowBehavior(
+  value: unknown,
+  path: string,
+  errors: ExternalApplicationsSettingsValidationError[],
+): ExternalApplicationWindowBehavior {
+  if (value === undefined) {
+    return DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR;
+  }
+  if (!isRecord(value)) {
+    invalid(errors, path, "not_object");
+    return DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR;
+  }
+  const raiseOnOpen = parseBoolean(
+    value["raiseOnOpen"],
+    `${path}.raiseOnOpen`,
+    errors,
+    DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR.raiseOnOpen,
+  );
+  const alwaysOnTopDuringCall = parseBoolean(
+    value["alwaysOnTopDuringCall"],
+    `${path}.alwaysOnTopDuringCall`,
+    errors,
+    DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR.alwaysOnTopDuringCall,
+  );
+  const onCallEndedRaw = value["onCallEnded"];
+  const onCallEnded = isExternalApplicationOnCallEndedAction(onCallEndedRaw)
+    ? onCallEndedRaw
+    : (() => {
+        invalid(errors, `${path}.onCallEnded`, "invalid");
+        return DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR.onCallEnded;
+      })();
+  return Object.freeze({ raiseOnOpen, alwaysOnTopDuringCall, onCallEnded });
+}
+
+function parseQueueName(
+  value: unknown,
+  path: string,
+  errors: ExternalApplicationsSettingsValidationError[],
+): string {
+  if (value === undefined) {
+    return "";
+  }
+  if (typeof value !== "string") {
+    invalid(errors, path, "not_string");
+    return "";
+  }
+  const trimmed = value.trim();
+  if (trimmed.length > MAX_EXTERNAL_APPLICATION_QUEUE_NAME_LENGTH) {
+    invalid(errors, path, "too_long");
+    return trimmed.slice(0, MAX_EXTERNAL_APPLICATION_QUEUE_NAME_LENGTH);
+  }
+  return trimmed;
 }
 
 function parseVariables(
@@ -306,10 +442,11 @@ function parseBoolean(
   value: unknown,
   path: string,
   errors: ExternalApplicationsSettingsValidationError[],
+  fallback = false,
 ): boolean {
   if (typeof value !== "boolean") {
     invalid(errors, path, "not_boolean");
-    return false;
+    return fallback;
   }
   return value;
 }
@@ -356,6 +493,8 @@ function emptyApplication(): ExternalApplicationDefinition {
     }),
     variables: Object.freeze([]),
     triggers: Object.freeze([]),
+    conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+    windowBehavior: DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
   });
 }
 

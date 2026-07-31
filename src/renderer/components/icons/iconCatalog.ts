@@ -128,6 +128,7 @@ export type IconSemanticId =
   | "settings.integrations.external-services"
   | "settings.integrations.external-applications"
   | "settings.integrations.external-applications.open"
+  | "settings.integrations.external-applications.history"
   | "settings.integrations.external-services.send"
   | "settings.integrations.external-services.add"
   | "settings.integrations.external-services.panelExpand"
@@ -356,6 +357,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.externalApplications.open",
     defaultSize: 14,
     usage: ["ExternalApplicationsEditor: external-applications-open-now"],
+  },
+  "settings.integrations.external-applications.history": {
+    static: Activity,
+    defaultLabelKey: "icons.settings.integrations.externalApplications.history",
+    defaultSize: 14,
+    usage: ["ExternalApplicationsSidebar: external-applications-history-nav"],
   },
   "settings.integrations.external-services.send": {
     static: Send,

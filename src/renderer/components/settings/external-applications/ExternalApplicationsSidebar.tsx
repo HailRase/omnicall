@@ -1,5 +1,5 @@
 /**
- * - Purpose: select or create External Applications drafts.
+ * - Purpose: select or create External Applications drafts and open history.
  * - Inputs: configured applications, selection, busy state, action callbacks.
  * - Outputs: sidebar selection and item action intents.
  */
@@ -22,8 +22,10 @@ import styles from "./ExternalApplications.module.css";
 export type ExternalApplicationsSidebarProps = Readonly<{
   applications: ReadonlyArray<ExternalApplicationsPanelApplication>;
   selectedId: ExternalApplicationsPanelApplication["id"] | null;
+  historySelected: boolean;
   busy: boolean;
   onSelect: (id: ExternalApplicationsPanelApplication["id"]) => void;
+  onSelectHistory: () => void;
   onCreate: () => void;
   onToggle: (id: ExternalApplicationsPanelApplication["id"], enabled: boolean) => void;
   onRename: (id: ExternalApplicationsPanelApplication["id"]) => void;
@@ -37,8 +39,10 @@ export type ExternalApplicationsSidebarProps = Readonly<{
 export function ExternalApplicationsSidebar({
   applications,
   selectedId,
+  historySelected,
   busy,
   onSelect,
+  onSelectHistory,
   onCreate,
   onToggle,
   onRename,
@@ -55,7 +59,7 @@ export function ExternalApplicationsSidebar({
     >
       <ul className={styles.applicationList}>
         {applications.map((application) => {
-          const selected = application.id === selectedId;
+          const selected = !historySelected && application.id === selectedId;
           return (
             <li key={application.id}>
               <div
@@ -97,7 +101,9 @@ export function ExternalApplicationsSidebar({
                         type="button"
                         className={styles.applicationMenuTrigger}
                         disabled={busy}
-                        aria-label={t("settings.integrations.externalApplications.actions.menu")}
+                        aria-label={t(
+                          "settings.integrations.externalApplications.actions.menu",
+                        )}
                         data-testid={`external-applications-menu-${application.id}`}
                       >
                         ⋯
@@ -150,6 +156,27 @@ export function ExternalApplicationsSidebar({
           );
         })}
       </ul>
+      <div className={styles.sidebarTools}>
+        <button
+          type="button"
+          className={clsx(
+            styles.historyNavButton,
+            historySelected && styles.historyNavButtonSelected,
+          )}
+          aria-current={historySelected ? "page" : undefined}
+          disabled={busy}
+          data-testid="external-applications-history-nav"
+          onClick={onSelectHistory}
+        >
+          <AppIcon
+            id="settings.integrations.external-applications.history"
+            size={14}
+            decorative
+            preferAnimated={false}
+          />
+          {t("settings.integrations.externalApplications.history.nav")}
+        </button>
+      </div>
       <div className={styles.sidebarFooter}>
         <Button
           type="button"

@@ -1041,9 +1041,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-076`, `LF-077` (portable prefs transfer; secrets remain machine-local per F-023)
 - Context: Settings
 - Priority: high
-- Status: **implemented** (2026-07-24; F-031 External Services nested slice extended 2026-07-29; v13 trigger delays 2026-07-30; **F-032** External Applications nested slice 2026-07-31 / schema **v14**)
+- Status: **implemented** (2026-07-24; F-031 External Services nested slice extended 2026-07-29; v13 trigger delays 2026-07-30; **F-032** External Applications nested slice 2026-07-31 / schema **v16**)
 - Owner: TBD
-- Related: **F-031** (nested `UserSettings.externalServices` round-trips inside the same v1 bundle; journal excluded; v13 delay bindings migrate from v12 string triggers); **F-032** (`UserSettings.externalApplications` portable in the same v1 bundle)
+- Related: **F-031** (nested `UserSettings.externalServices` round-trips inside the same v1 bundle; journal excluded; v13 delay bindings migrate from v12 string triggers); **F-032** (`UserSettings.externalApplications` portable in the same v1 bundle; open journal excluded)
 - Inputs: operator Export/Import in Settings → General; active profile `UserSettings`; native JSON file dialogs
 - Outputs: portable `omnicall.preferences` v1 JSON; imported prefs applied to active profile via `migrateUserSettings`
 - Acceptance Criteria:
@@ -1053,7 +1053,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Machine device ids (`preferredAudio/Video`, headset preferred) and `dismissedUpdateBannerVersion` are cleared; `ocpIntegration.linked` reset to `false`.
   - Import targets the **active** profile; invalid / newer unsupported schema or formatVersion fails closed without mutation (settings + F-031 runtime unchanged).
   - Older `UserSettings.schemaVersion` inside a bundle migrates forward; new fields on a newer app get defaults (empty External Services / External Applications when absent).
-  - Outer bundle stays `PREFERENCES_EXPORT_FORMAT_VERSION = 1`; nested schema follows `SETTINGS_SCHEMA_VERSION` (v14+; v13→v14 adds empty `externalApplications`; v12 string triggers migrate to delay bindings).
+  - Outer bundle stays `PREFERENCES_EXPORT_FORMAT_VERSION = 1`; nested schema follows `SETTINGS_SCHEMA_VERSION` (v16+; v15→v16 maps `queueNameEquals`→`queueNames`; v14→v16 adds conditions/windowBehavior defaults; v13→v14 adds empty `externalApplications`; v12 string triggers migrate to delay bindings).
   - Successful import refreshes headset settings and F-031 runtime registry without restart; renderer applies returned `UserSettings`.
   - UI copy (all locales) states SIP/OCP/SDK secrets are excluded and re-login / device reselect may be required.
 - Test Coverage:
@@ -1123,28 +1123,32 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `_none_ (new product feature)`
 - Context: Integration (primary); Settings (profile persistence / F-030 portability)
 - Priority: high
-- Status: **implemented** (2026-07-31)
+- Status: **implemented** (2026-07-31; conditions/history/window lifecycle **2026-07-31**)
 - Owner: TBD
 - Related: F-016 (Settings Integrations nav), F-023 / F-024 (profile settings), F-028 (consume-only campaign/ACD facts), F-030 (preferences round-trip), F-031 (shared event mapper + `{{` template catalog/autocomplete)
 - Explicit non-overlap:
-  - **Not F-031:** no outbound HTTP journal/queue; F-032 opens windows/browser only.
+  - **Not F-031:** no outbound HTTP journal/queue; F-032 opens windows/browser only (own open journal).
   - **Not F-011 / F-028:** no SDK or OCP control-plane mutation.
-- Inputs: profile `UserSettings.externalApplications` (schema **v14**); focused-call / campaign / ACD / post-call Domain events (shared F-031 codes); manual Open now
-- Outputs: sandboxed Electron `BrowserWindow` (`loadURL`) or system browser via existing F-020 HTTPS gateway
+- Inputs: profile `UserSettings.externalApplications` (schema **v16**); focused-call / campaign / ACD / post-call Domain events (shared F-031 codes); manual Open now
+- Outputs: sandboxed Electron `BrowserWindow` (`loadURL`) or system browser via existing F-020 HTTPS gateway; call-ended leave/minimize/close; profile open history
 - Acceptance Criteria:
   - Settings → Integrations → **External Applications** leaf beside External Services; pre-auth soft-gated like OCP/ES; OmniCall Kit stays top-level.
   - Flat application list (name, enabled, URL template, triggers + delay, window W×H, open mode, authored variables).
+  - Own **Conditions** tab: direction (default any) + multi-queue list (empty = any); shared by every trigger; fail-closed when facts missing; Open now ignores conditions.
+  - **Window behavior** (electron_window): raise on open, always-on-top during call, on call end leave/minimize/close; lifecycle runs before terminal-event opens.
+  - Sidebar **History** lists last 100 opens/skips/failures (journal excluded from F-030).
   - URL field reuses F-031 `{{` autocomplete; system variables from shared catalog; missing token → literal `undefined`.
   - Multiple matching apps on one event → multiple windows; same `applicationId:callId` focuses existing window.
-  - Invalid resolved URL skipped (logged); focus-gated call events; operator-level `campaign_*` + `post_call_processing`; logout/profile switch cancels delayed jobs.
-  - Typed IPC only (`OpenExternalApplicationWindowContract`); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated.
-  - F-030 export/import round-trips config; empty default is inert; SIP-only bootstrap unchanged.
+  - Invalid resolved URL skipped (logged + journal); focus-gated call events; operator-level `campaign_*` + `post_call_processing`; logout/profile switch cancels delayed jobs.
+  - Typed IPC only (`OpenExternalApplicationWindowContract` + `apply-call-ended`); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated.
+  - F-030 export/import round-trips config (not journal); empty default is inert; SIP-only bootstrap unchanged; v14/v15→v16 migrate without opening-behavior change when queues empty and direction any.
 - Test Coverage:
-  - Unit: parse/match settings; IPC contract; navigation availability; settings panel/sidebar
-  - Integration: automation multi-app open + invalid URL skip; migrate v13→v14
-  - E2E: deferred (manual smoke: create app → incoming → window)
+  - Unit: parse/match/conditions; IPC contract; navigation availability; settings panel/sidebar/history
+  - Integration: automation multi-app open + invalid URL skip; migrate v14/v15→v16 conditions
+  - E2E: deferred (manual smoke: create app → incoming → window → history)
 - Design: `docs/softphone/P14-External-Applications-Design.md`
 - ADR: `docs/softphone/adr/ADR-0024-external-applications-screen-pop-windows.md` (**Accepted**)
-- Implementation evidence: `src/domain/integration/external-applications/**`; `ExternalApplicationsComposition` + binder; `registerExternalApplicationWindowIpc`; Settings panel `external-applications/*`; `useExternalApplicationsPanel`; i18n `settings.integrations.externalApplications.*` ru/en/fr/de/bg
+- Implementation evidence: `src/domain/integration/external-applications/`; `src/application/services/integration/external-applications/`; `src/main/externalApplications/registerExternalApplicationWindowIpc.ts`; Settings panel `src/renderer/components/settings/external-applications/`; `src/renderer/hooks/useExternalApplicationsPanel.ts`; i18n `settings.integrations.externalApplications.*` ru/en/fr/de/bg
 - Implementation evidence (post-call trigger 2026-07-31): reuses F-031 `post_call_processing` via shared mapper + `ExternalServicesTriggerList`; match test covers operator-level (no focus gate); design `P14-External-Applications-Design.md` synced
-- Implementation evidence (Settings UI refresh 2026-07-31): sidebar without header chrome; fixed Add footer; per-item status dots + actions (enable/disable/rename/duplicate/delete); editor inline name rename; sticky URL bar with Open; pinned General/Events/Variables tabs; `ExternalApplicationsPanel.test.tsx`
+- Implementation evidence (Settings UI refresh 2026-07-31): sidebar without header chrome; fixed Add footer; per-item status dots + actions; History nav; conditions + window behavior; `ExternalApplicationsPanel.test.tsx`
+- Implementation evidence (conditions/history/lifecycle 2026-07-31): `evaluateExternalApplicationConditions`; journal port/file adapter; `applyCallEndedLifecycle` IPC; schema **v16** multi-queue Conditions tab; migration + unit/panel tests

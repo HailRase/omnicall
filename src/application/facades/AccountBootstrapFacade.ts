@@ -132,6 +132,8 @@ import type {
   SettingsAccountKey,
   UserSettings,
 } from "@domain/index.js";
+import type { ExternalApplicationsJournalEntryVm } from "../projections/integration/deriveExternalApplicationsJournalPanel.js";
+import { toExternalApplicationsJournalEntryVm } from "../projections/integration/deriveExternalApplicationsJournalPanel.js";
 import {
   buildOcpConnectLoginOptions,
   createAccountSessionActivatedEvent,
@@ -4629,6 +4631,31 @@ export class AccountBootstrapFacade {
       const profileKey = await this.resolveSettingsAccountKey();
       const input: OpenExternalApplicationNowInput = { profileKey, applicationId };
       return composition.openExternalApplicationNow(input);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async queryExternalApplicationsJournal(
+    journalLimit?: number,
+  ): Promise<Result<ReadonlyArray<ExternalApplicationsJournalEntryVm>, PlatformError>> {
+    const composition = this.deps.externalApplicationsComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Applications runtime is unavailable.",
+          { reason: "external_applications_unavailable" },
+        ),
+      );
+    }
+    try {
+      const profileKey = await this.resolveSettingsAccountKey();
+      const entries = await composition.listJournal(
+        profileKey,
+        journalLimit ?? 100,
+      );
+      return ok(entries.map(toExternalApplicationsJournalEntryVm));
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
     }

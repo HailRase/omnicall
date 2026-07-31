@@ -23,6 +23,15 @@ const application = {
   window: { width: 1100, height: 800 },
   variables: [],
   triggers: [],
+  conditions: {
+    callDirection: "any",
+    queueNames: [],
+  },
+  windowBehavior: {
+    raiseOnOpen: true,
+    alwaysOnTopDuringCall: false,
+    onCallEnded: "leave",
+  },
 } satisfies ExternalApplicationsPanelApplication;
 
 function renderPanel(
@@ -32,11 +41,17 @@ function renderPanel(
     <ExternalApplicationsPanel
       applications={[application]}
       selectedApplication={application}
+      selection={{ kind: "application", id: application.id }}
+      historyEntries={[]}
+      historyLoading={false}
+      historyError={false}
       busy={false}
       loadError={false}
       saveError={false}
       forceNameEditKey={0}
-      onSelect={vi.fn()}
+      onSelectApplication={vi.fn()}
+      onSelectHistory={vi.fn()}
+      onRetryHistory={vi.fn()}
       onCreate={vi.fn()}
       onToggle={vi.fn()}
       onRename={vi.fn()}
@@ -66,19 +81,24 @@ describe("ExternalApplicationsPanel", () => {
     expect(onSave).toHaveBeenCalledOnce();
   });
 
-  it("shows status indicator and item actions menu", async () => {
+  it("shows status indicator, history nav, and item actions menu", async () => {
     setupJsdomRadix();
     const user = userEvent.setup();
     const onToggle = vi.fn();
     const onDuplicate = vi.fn();
     const onDelete = vi.fn();
+    const onSelectHistory = vi.fn();
 
-    renderPanel({ onToggle, onDuplicate, onDelete });
+    renderPanel({ onToggle, onDuplicate, onDelete, onSelectHistory });
 
     expect(screen.getByTestId(`external-applications-status-${application.id}`)).toBeInTheDocument();
     expect(screen.getByTestId("external-applications-name")).toHaveTextContent("App");
     expect(screen.getByTestId("external-applications-tab-general")).toBeInTheDocument();
     expect(screen.getByTestId("external-applications-open-now")).toBeInTheDocument();
+    expect(screen.getByTestId("external-applications-history-nav")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("external-applications-history-nav"));
+    expect(onSelectHistory).toHaveBeenCalledOnce();
 
     await user.click(screen.getByTestId(`external-applications-menu-${application.id}`));
     await user.click(screen.getByRole("menuitem", { name: /выключить|disable/i }));
@@ -91,5 +111,14 @@ describe("ExternalApplicationsPanel", () => {
     await user.click(screen.getByTestId(`external-applications-menu-${application.id}`));
     await user.click(screen.getByRole("menuitem", { name: /удалить|delete/i }));
     expect(onDelete).toHaveBeenCalledWith(application.id);
+  });
+
+  it("renders history empty state when history is selected", () => {
+    setupJsdomRadix();
+    renderPanel({
+      selectedApplication: null,
+      selection: { kind: "history" },
+    });
+    expect(screen.getByTestId("external-applications-history-empty")).toBeInTheDocument();
   });
 });

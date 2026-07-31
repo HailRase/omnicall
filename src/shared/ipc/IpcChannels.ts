@@ -51,6 +51,8 @@ export const IPC_CHANNELS = {
     "external-services:collection-save-export-dialog",
   /** Renderer → main: F-032 External Application screen-pop window. */
   externalApplicationsOpenWindow: "external-applications:open-window",
+  /** Renderer → main: F-032 apply call-ended window lifecycle for one callId. */
+  externalApplicationsApplyCallEnded: "external-applications:apply-call-ended",
 } as const;
 
 export type IpcChannel =
@@ -85,6 +87,8 @@ export type {
   ExternalServicesCollectionSaveExportDialogResponse,
 } from "./ExternalServicesCollectionFileContract.js";
 export type {
+  ApplyExternalApplicationCallEndedPayload,
+  ApplyExternalApplicationCallEndedResponse,
   OpenExternalApplicationWindowPayload,
   OpenExternalApplicationWindowResponse,
 } from "./OpenExternalApplicationWindowContract.js";

@@ -1,13 +1,19 @@
 /**
- * - Purpose: orchestrate External Applications drafts for Settings.
+ * - Purpose: orchestrate External Applications drafts and history for Settings.
  * - Inputs: facade, section visibility, settings refresh callback.
  * - Outputs: panel props and persistence intents.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import type { UserSettings } from "@application/index.js";
-import type { ExternalApplicationsPanelProps } from "../components/settings/external-applications/ExternalApplicationsPanel.js";
+import type {
+  ExternalApplicationsJournalEntryVm,
+  UserSettings,
+} from "@application/index.js";
+import type {
+  ExternalApplicationsPanelProps,
+  ExternalApplicationsSidebarSelection,
+} from "../components/settings/external-applications/ExternalApplicationsPanel.js";
 
 type ExternalApplicationsSettings = UserSettings["externalApplications"];
 type ExternalApplication = ExternalApplicationsSettings["applications"][number];
@@ -17,6 +23,7 @@ type ExternalApplicationsFacade = Pick<
   | "getUserSettingsForAccount"
   | "saveExternalApplicationsSettings"
   | "openExternalApplicationNow"
+  | "queryExternalApplicationsJournal"
 >;
 
 type UseExternalApplicationsPanelInput = Readonly<{
@@ -35,6 +42,15 @@ function createApplication(): ExternalApplication {
     window: { width: 1100, height: 800 },
     variables: [],
     triggers: [],
+    conditions: {
+      callDirection: "any",
+      queueNames: [],
+    },
+    windowBehavior: {
+      raiseOnOpen: true,
+      alwaysOnTopDuringCall: false,
+      onCallEnded: "leave",
+    },
   };
 }
 
@@ -46,6 +62,8 @@ function duplicateApplication(source: ExternalApplication): ExternalApplication 
     variables: source.variables.map((variable) => ({ ...variable })),
     triggers: source.triggers.map((trigger) => ({ ...trigger })),
     window: { ...source.window },
+    conditions: { ...source.conditions },
+    windowBehavior: { ...source.windowBehavior },
   };
 }
 
@@ -58,12 +76,37 @@ export function useExternalApplicationsPanel(
   input: UseExternalApplicationsPanelInput,
 ): ExternalApplicationsPanelProps {
   const { facade, sectionActive, onActiveUserSettingsRefresh } = input;
-  const [settings, setSettings] = useState<ExternalApplicationsSettings>({ applications: [] });
-  const [selectedId, setSelectedId] = useState<ExternalApplicationId | null>(null);
+  const [settings, setSettings] = useState<ExternalApplicationsSettings>({
+    applications: [],
+  });
+  const [selection, setSelection] = useState<ExternalApplicationsSidebarSelection | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [forceNameEditKey, setForceNameEditKey] = useState(0);
+  const [historyEntries, setHistoryEntries] = useState<
+    ReadonlyArray<ExternalApplicationsJournalEntryVm>
+  >([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(false);
+
+  const loadHistory = useCallback(async (): Promise<void> => {
+    if (facade === null) return;
+    setHistoryLoading(true);
+    setHistoryError(false);
+    try {
+      const result = await facade.queryExternalApplicationsJournal();
+      if (!result.ok) {
+        setHistoryError(true);
+        return;
+      }
+      setHistoryEntries(result.value);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [facade]);
 
   useEffect(() => {
     if (!sectionActive || facade === null) return;
@@ -76,11 +119,20 @@ export function useExternalApplicationsPanel(
       }
       const nextSettings = result.value.externalApplications;
       setSettings(nextSettings);
-      setSelectedId((currentId) =>
-        nextSettings.applications.some((application) => application.id === currentId)
-          ? currentId
-          : (nextSettings.applications[0]?.id ?? null),
-      );
+      setSelection((current) => {
+        if (current?.kind === "history") {
+          return current;
+        }
+        const currentId = current?.kind === "application" ? current.id : null;
+        if (
+          currentId !== null &&
+          nextSettings.applications.some((application) => application.id === currentId)
+        ) {
+          return { kind: "application", id: currentId };
+        }
+        const firstId = nextSettings.applications[0]?.id;
+        return firstId === undefined ? null : { kind: "application", id: firstId };
+      });
       setLoadError(false);
       setSaveError(false);
     });
@@ -89,10 +141,19 @@ export function useExternalApplicationsPanel(
     };
   }, [facade, sectionActive]);
 
-  const selectedApplication = useMemo(
-    () => settings.applications.find((application) => application.id === selectedId) ?? null,
-    [selectedId, settings.applications],
-  );
+  useEffect(() => {
+    if (!sectionActive || selection?.kind !== "history") return;
+    void loadHistory();
+  }, [loadHistory, sectionActive, selection?.kind]);
+
+  const selectedApplication = useMemo(() => {
+    if (selection?.kind !== "application") {
+      return null;
+    }
+    return (
+      settings.applications.find((application) => application.id === selection.id) ?? null
+    );
+  }, [selection, settings.applications]);
 
   const updateApplication = useCallback((nextApplication: ExternalApplication): void => {
     setSettings((current) => ({
@@ -105,8 +166,10 @@ export function useExternalApplicationsPanel(
 
   const handleCreate = useCallback((): void => {
     const application = createApplication();
-    setSettings((current) => ({ applications: [...current.applications, application] }));
-    setSelectedId(application.id);
+    setSettings((current) => ({
+      applications: [...current.applications, application],
+    }));
+    setSelection({ kind: "application", id: application.id });
     setForceNameEditKey((current) => current + 1);
     setSaveError(false);
   }, []);
@@ -121,7 +184,7 @@ export function useExternalApplicationsPanel(
   }, []);
 
   const handleRename = useCallback((id: ExternalApplicationId): void => {
-    setSelectedId(id);
+    setSelection({ kind: "application", id });
     setForceNameEditKey((current) => current + 1);
   }, []);
 
@@ -130,7 +193,7 @@ export function useExternalApplicationsPanel(
       const source = current.applications.find((application) => application.id === id);
       if (source === undefined) return current;
       const duplicate = duplicateApplication(source);
-      setSelectedId(duplicate.id);
+      setSelection({ kind: "application", id: duplicate.id });
       return { applications: [...current.applications, duplicate] };
     });
     setSaveError(false);
@@ -139,9 +202,16 @@ export function useExternalApplicationsPanel(
   const handleDelete = useCallback((id: ExternalApplicationId): void => {
     setSettings((current) => {
       const applications = current.applications.filter((application) => application.id !== id);
-      setSelectedId((currentSelected) =>
-        currentSelected !== id ? currentSelected : (applications[0]?.id ?? null),
-      );
+      setSelection((currentSelected) => {
+        if (currentSelected?.kind === "history") {
+          return currentSelected;
+        }
+        if (currentSelected?.kind === "application" && currentSelected.id !== id) {
+          return currentSelected;
+        }
+        const firstId = applications[0]?.id;
+        return firstId === undefined ? null : { kind: "application", id: firstId };
+      });
       return { applications };
     });
     setSaveError(false);
@@ -164,23 +234,38 @@ export function useExternalApplicationsPanel(
   }, [facade, onActiveUserSettingsRefresh, settings]);
 
   const handleOpenNow = useCallback(async (): Promise<void> => {
-    if (facade === null || selectedId === null) return;
+    if (facade === null || selection?.kind !== "application") return;
     setBusy(true);
     try {
-      await facade.openExternalApplicationNow(selectedId);
+      await facade.openExternalApplicationNow(selection.id);
+      if (selection.kind === "application") {
+        void loadHistory();
+      }
     } finally {
       setBusy(false);
     }
-  }, [facade, selectedId]);
+  }, [facade, loadHistory, selection]);
 
   return {
     applications: settings.applications,
     selectedApplication,
+    selection,
+    historyEntries,
+    historyLoading,
+    historyError,
     busy,
     loadError,
     saveError,
     forceNameEditKey,
-    onSelect: setSelectedId,
+    onSelectApplication: (id) => {
+      setSelection({ kind: "application", id });
+    },
+    onSelectHistory: () => {
+      setSelection({ kind: "history" });
+    },
+    onRetryHistory: () => {
+      void loadHistory();
+    },
     onCreate: handleCreate,
     onToggle: handleToggle,
     onRename: handleRename,

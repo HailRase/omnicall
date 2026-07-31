@@ -11,6 +11,7 @@ import { IconTooltip } from "../../icons/IconTooltip.js";
 import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/index.js";
 import { ExternalServicesTriggerList } from "../external-services/ExternalServicesTriggerList.js";
 import { ExternalServicesTemplateField } from "../external-services/templateAutocomplete/ExternalServicesTemplateField.js";
+import { ExternalApplicationsConditionsSection } from "./ExternalApplicationsConditionsSection.js";
 import { ExternalApplicationsGeneralTab } from "./ExternalApplicationsGeneralTab.js";
 import { ExternalApplicationsInlineRename } from "./ExternalApplicationsInlineRename.js";
 import { ExternalApplicationsVariablesTab } from "./ExternalApplicationsVariablesTab.js";
@@ -123,6 +124,12 @@ export function ExternalApplicationsEditor({
             <TabsTrigger value="events" data-testid="external-applications-tab-events">
               {t("settings.integrations.externalApplications.tabs.events")}
             </TabsTrigger>
+            <TabsTrigger
+              value="conditions"
+              data-testid="external-applications-tab-conditions"
+            >
+              {t("settings.integrations.externalApplications.tabs.conditions")}
+            </TabsTrigger>
             <TabsTrigger value="variables" data-testid="external-applications-tab-variables">
               {t("settings.integrations.externalApplications.tabs.variables")}
             </TabsTrigger>
@@ -143,6 +150,14 @@ export function ExternalApplicationsEditor({
               onChange={(triggers) => {
                 onChange({ ...application, triggers });
               }}
+            />
+          </TabsContent>
+
+          <TabsContent value="conditions" className={styles.editorTabBody}>
+            <ExternalApplicationsConditionsSection
+              application={application}
+              busy={busy}
+              onChange={onChange}
             />
           </TabsContent>
 

@@ -4,9 +4,9 @@
 
 **Updated:** 2026-07-31
 **Version:** `1.2.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
-**Tests:** F-031/F-032 `post_call_processing` trigger + prior F-032 suites; targeted mapper/match tests; SemVer MINOR for F-032 (+ post-call trigger) pending `/release`
+**Tests:** F-032 v15 conditions/history/window lifecycle + prior F-031/F-032 suites; SemVer MINOR for F-032 extensions pending `/release`
 **Settings nav:** Integrations = always-open cluster when expanded (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
-**Settings schema:** `UserSettings` **v14** (+ `externalApplications`; v13 migrates forward)
+**Settings schema:** `UserSettings` **v16** (`externalApplications.conditions.queueNames` + `windowBehavior`; v15/v14 migrate forward)
 **OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
 **Lint / typecheck:** `npm run lint` PASS · `npm run typecheck` PASS · `npm run registry:check` **75/0**
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + min visible dwell 4000ms + exit crossfade; do not reintroduce React loading splash handoff; do not delay `initialize` for dwell
@@ -39,9 +39,10 @@
 | Branch | `feature/external-applications` |
 | Design | `P14-External-Applications-Design.md` |
 | ADR | ADR-0024 (**Accepted**) |
-| Schema | `UserSettings` **v14** (`externalApplications`) |
+| Schema | `UserSettings` **v16** (`externalApplications` + conditions/windowBehavior) |
 | Release | MINOR `1.2.0` → `1.3.0` **pending** `/release` |
 | Non-overlap | Not F-031 HTTP; not F-011 SDK; not F-028 OCP control |
+| Extensions (2026-07-31) | App-level open conditions; sidebar History journal; raise/always-on-top/on-call-ended window lifecycle |
 
 ## Active phase
 

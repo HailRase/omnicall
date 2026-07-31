@@ -1,24 +1,36 @@
 /**
  * - Purpose: compose the External Applications Settings workspace.
- * - Inputs: application list, selected draft, action callbacks.
- * - Outputs: presentational sidebar and editor or welcome state.
+ * - Inputs: application list, selection, history, action callbacks.
+ * - Outputs: presentational sidebar and editor, history, or welcome state.
  */
 
 import type { JSX } from "react";
+import type { ExternalApplicationsJournalEntryVm } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
 import type { ExternalServicesAutomaticEventType } from "../external-services/ExternalServicesTriggerList.js";
 import { ExternalApplicationsEditor } from "./ExternalApplicationsEditor.js";
+import { ExternalApplicationsHistoryPanel } from "./ExternalApplicationsHistoryPanel.js";
 import { ExternalApplicationsSidebar } from "./ExternalApplicationsSidebar.js";
 import styles from "./ExternalApplications.module.css";
+
+export type ExternalApplicationsSidebarSelection =
+  | Readonly<{ kind: "application"; id: ExternalApplicationsPanelApplication["id"] }>
+  | Readonly<{ kind: "history" }>;
 
 export type ExternalApplicationsPanelProps = Readonly<{
   applications: ReadonlyArray<ExternalApplicationsPanelApplication>;
   selectedApplication: ExternalApplicationsPanelApplication | null;
+  selection: ExternalApplicationsSidebarSelection | null;
+  historyEntries: ReadonlyArray<ExternalApplicationsJournalEntryVm>;
+  historyLoading: boolean;
+  historyError: boolean;
   busy: boolean;
   loadError: boolean;
   saveError: boolean;
   forceNameEditKey: number;
-  onSelect: (id: ExternalApplicationsPanelApplication["id"]) => void;
+  onSelectApplication: (id: ExternalApplicationsPanelApplication["id"]) => void;
+  onSelectHistory: () => void;
+  onRetryHistory: () => void;
   onCreate: () => void;
   onToggle: (id: ExternalApplicationsPanelApplication["id"], enabled: boolean) => void;
   onRename: (id: ExternalApplicationsPanelApplication["id"]) => void;
@@ -40,6 +52,15 @@ export type ExternalApplicationsPanelApplication = Readonly<{
   triggers: ReadonlyArray<
     Readonly<{ eventType: ExternalServicesAutomaticEventType; delaySeconds: number }>
   >;
+  conditions: Readonly<{
+    callDirection: "any" | "inbound" | "outbound";
+    queueNames: ReadonlyArray<string>;
+  }>;
+  windowBehavior: Readonly<{
+    raiseOnOpen: boolean;
+    alwaysOnTopDuringCall: boolean;
+    onCallEnded: "leave" | "minimize" | "close";
+  }>;
 }>;
 
 /**
@@ -48,11 +69,17 @@ export type ExternalApplicationsPanelApplication = Readonly<{
 export function ExternalApplicationsPanel({
   applications,
   selectedApplication,
+  selection,
+  historyEntries,
+  historyLoading,
+  historyError,
   busy,
   loadError,
   saveError,
   forceNameEditKey,
-  onSelect,
+  onSelectApplication,
+  onSelectHistory,
+  onRetryHistory,
   onCreate,
   onToggle,
   onRename,
@@ -63,14 +90,17 @@ export function ExternalApplicationsPanel({
   onOpenNow,
 }: ExternalApplicationsPanelProps): JSX.Element {
   const { t } = useI18n();
+  const historySelected = selection?.kind === "history";
 
   return (
     <div className={styles.workspace} data-testid="external-applications-panel">
       <ExternalApplicationsSidebar
         applications={applications}
         selectedId={selectedApplication?.id ?? null}
+        historySelected={historySelected}
         busy={busy}
-        onSelect={onSelect}
+        onSelect={onSelectApplication}
+        onSelectHistory={onSelectHistory}
         onCreate={onCreate}
         onToggle={onToggle}
         onRename={onRename}
@@ -82,6 +112,13 @@ export function ExternalApplicationsPanel({
           <p className={styles.error} role="alert">
             {t("settings.integrations.externalApplications.validation.loadFailed")}
           </p>
+        ) : historySelected ? (
+          <ExternalApplicationsHistoryPanel
+            entries={historyEntries}
+            loading={historyLoading}
+            error={historyError}
+            onRetry={onRetryHistory}
+          />
         ) : selectedApplication === null ? (
           <div className={styles.welcome}>
             <h4 className={styles.welcomeTitle}>

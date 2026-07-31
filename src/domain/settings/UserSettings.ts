@@ -50,7 +50,7 @@ import {
   type ExternalApplicationsSettings,
 } from "../integration/external-applications/ExternalApplicationsSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 14 as const;
+export const SETTINGS_SCHEMA_VERSION = 16 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 

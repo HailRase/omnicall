@@ -4,9 +4,22 @@
  * - Outputs: non-async enqueue side effects without awaiting window opens.
  */
 
-import { matchExternalApplications } from "@domain/index.js";
+import {
+  createCallId,
+  evaluateExternalApplicationConditions,
+  matchExternalApplications,
+  type ExternalApplicationDefinition,
+  type ExternalApplicationJournalEntry,
+  type SettingsAccountKey,
+} from "@domain/index.js";
 import type { DomainEvent } from "@domain/shared/DomainEvent.js";
-import type { Logger, UuidGenerator } from "@ports/index.js";
+import type {
+  Clock,
+  Logger,
+  UuidGenerator,
+} from "@ports/index.js";
+import type { ExternalApplicationsJournalRepository } from "@ports/integration/ExternalApplicationsJournalRepository.js";
+import type { ExternalApplicationWindowGateway } from "@ports/integration/ExternalApplicationWindowGateway.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { ExternalServicesCallContextTracker } from "../external-services/ExternalServicesCallContextTracker.js";
 import { mapDomainEventToExternalServiceTrigger } from "../external-services/mapDomainEventToExternalServiceTrigger.js";
@@ -18,7 +31,10 @@ import type { ExternalApplicationsRuntimeRegistry } from "./ExternalApplications
 export type ExternalApplicationsAutomationServiceDeps = Readonly<{
   registry: ExternalApplicationsRuntimeRegistry;
   scheduler: ExternalApplicationsDelayScheduler;
+  windowGateway: ExternalApplicationWindowGateway;
+  journalRepository: ExternalApplicationsJournalRepository | null;
   uuidGenerator: UuidGenerator;
+  clock: Clock;
   logger: Logger;
   tracker?: ExternalServicesCallContextTracker;
 }>;
@@ -39,6 +55,17 @@ export class ExternalApplicationsAutomationService {
       if (runtime.profileKey === null || runtime.profileKey !== snapshot.profileKey) {
         return;
       }
+
+      // Close/minimize existing call windows before scheduling terminal-event opens.
+      if (isTerminalCallEvent(event.type)) {
+        const endedCallId = readCallId(event);
+        if (endedCallId !== null) {
+          void this.deps.windowGateway.applyCallEndedLifecycle({
+            callId: createCallId(endedCallId),
+          });
+        }
+      }
+
       const mapped = mapDomainEventToExternalServiceTrigger(event, {
         profileKey: snapshot.profileKey,
         focusedCallId: snapshot.focusedCallId,
@@ -54,6 +81,14 @@ export class ExternalApplicationsAutomationService {
         mapped.focusedAtEvent,
       );
       for (const match of matches) {
+        const conditions = evaluateExternalApplicationConditions(
+          match.application.conditions,
+          mapped.trigger,
+        );
+        if (!conditions.ok) {
+          void this.appendConditionSkip(snapshot.profileKey, match.application, mapped.trigger, conditions.reason);
+          continue;
+        }
         const job: ExternalApplicationDispatchJob = {
           jobId: this.deps.uuidGenerator.generate(),
           correlationId: createCorrelationId(),
@@ -77,4 +112,54 @@ export class ExternalApplicationsAutomationService {
       });
     }
   }
+
+  private async appendConditionSkip(
+    profileKey: SettingsAccountKey,
+    application: ExternalApplicationDefinition,
+    trigger: ExternalApplicationDispatchJob["trigger"],
+    reason: string,
+  ): Promise<void> {
+    if (this.deps.journalRepository === null) {
+      return;
+    }
+    const entry: ExternalApplicationJournalEntry = {
+      id: this.deps.uuidGenerator.generate(),
+      profileKey,
+      applicationId: application.id,
+      applicationName: application.name,
+      eventType: trigger.eventType,
+      startedAt: this.deps.clock.now().toISOString(),
+      outcome: "skipped_condition",
+      skipReason: reason,
+      resolvedUrl: null,
+      openMode: application.openMode,
+      callId: trigger.callId ?? null,
+      correlationId: createCorrelationId(),
+    };
+    try {
+      await this.deps.journalRepository.append(profileKey, entry);
+    } catch (error: unknown) {
+      this.deps.logger.warn("external_applications_journal_append_failed", {
+        featureId: "F-032",
+        boundedContext: "Integration",
+        operation: "append_journal",
+        result: "failed",
+        code: error instanceof Error ? error.name : "unknown",
+      });
+    }
+  }
+}
+
+function readCallId(event: DomainEvent): string | null {
+  const callId = event["callId"];
+  return typeof callId === "string" && callId.length > 0 ? callId : null;
+}
+
+function isTerminalCallEvent(type: string): boolean {
+  return (
+    type === "CallEnded" ||
+    type === "CallRejected" ||
+    type === "CallRejectedByDnd" ||
+    type === "IncomingCallEndedBeforeAnswer"
+  );
 }
