@@ -18,6 +18,7 @@ import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
 import { createHeadsetGateway } from "./createHeadsetGateway.js";
 import { createExternalServicesCompositionForBootstrap } from "./createExternalServicesCompositionForBootstrap.js";
+import { createExternalApplicationsCompositionForBootstrap } from "./createExternalApplicationsCompositionForBootstrap.js";
 import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSettingsRepository.js";
 import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
 import { createRealBootstrapContactRepository } from "./createRealBootstrapContactRepository.js";
@@ -235,6 +236,14 @@ export function createRealAccountBootstrap(
         : {}),
     });
 
+  const externalApplicationsComposition =
+    options.externalApplicationsComposition ??
+    createExternalApplicationsCompositionForBootstrap({
+      mode: "real",
+      logger: createBootstrapLogger({ featureId: "F-032", boundedContext: "Integration" }),
+      settingsRepository,
+    });
+
   const facade = new AccountBootstrapFacade({
     telephonyGateway: configuredTelephonyGateway,
     mediaGateway,
@@ -269,6 +278,7 @@ export function createRealAccountBootstrap(
       ? { secretStoragePort: options.secretStoragePort }
       : {}),
     externalServicesComposition,
+    externalApplicationsComposition,
     hostIntegrationGateway,
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });

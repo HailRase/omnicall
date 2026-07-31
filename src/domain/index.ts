@@ -72,6 +72,27 @@ export type {
   ExternalServiceCollectionParseResult,
   ExternalServiceUuidSource,
 } from "./integration/external-services/index.js";
+export type {
+  ExternalApplicationDefinition,
+  ExternalApplicationId,
+  ExternalApplicationOpenMode,
+  ExternalApplicationsSettings,
+  ExternalApplicationTriggerBinding,
+  ExternalApplicationWindowSize,
+  ExternalApplicationsSettingsValidationError,
+  MatchedExternalApplication,
+  ParseExternalApplicationsSettingsResult,
+} from "./integration/external-applications/index.js";
+export {
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH,
+  EXTERNAL_APPLICATION_OPEN_MODES,
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  isExternalApplicationOpenMode,
+  isExternalApplicationUuid,
+  matchExternalApplications,
+  parseExternalApplicationsSettings,
+} from "./integration/external-applications/index.js";
 export {
   EXTERNAL_SERVICE_AUTOMATIC_EVENT_TYPES,
   EXTERNAL_SERVICE_BODY_MODES,

@@ -118,7 +118,7 @@ Motion rules:
 
 ## Settings Nav Groups
 
-Applies to `SettingsSidebar` when `SETTINGS_NAV_TREE` contains a `group` (today: Integrations).
+Applies to `SettingsSidebar` when `SETTINGS_NAV_TREE` contains a `group` (today: Integrations = OCP + External Services + External Applications).
 
 - **Collapsed icon rail:** group renders as one icon (same centering as other leaves — no `nav-group` column layout while collapsed); children hidden; click → first enabled child; fully gated group uses soft disabled + reason tooltip.
 - **Expanded flyout:** always-open cluster — muted sentence-case section label + child rows aligned with top-level items (same icon column / padding / active rail). No accordion, chevron, nested inset card, or extra left indent under the parent icon. No `text-transform: uppercase` on group labels.
@@ -126,7 +126,7 @@ Applies to `SettingsSidebar` when `SETTINGS_NAV_TREE` contains a `group` (today:
 - **Chrome toggle:** click on empty sidebar chrome (outside `data-settings-nav-interactive` / tooltip hosts) toggles expand/collapse; nav item clicks never toggle.
 - **Disabled:** soft muted color (not hard opacity collapse); `pointer-events: none` on the control; tooltip on the wrap; hover on wrap may show a subtle surface for tooltip affordance without looking enabled.
 - **OmniCall Kit:** top-level leaf below Integrations (ADR-0018) — never a group child.
-- **Canon refs:** ADR-AF-004 §4; Feature Registry F-016 / F-028 / F-031; `SettingsSidebar.test.tsx`.
+- **Canon refs:** ADR-AF-004 §4; Feature Registry F-016 / F-028 / F-031 / F-032; `SettingsSidebar.test.tsx`.
 
 Do **not** reintroduce accordion collapse for ≤4 siblings. Prefer content-area tabs/hub only if a future group exceeds cluster density in the narrow settings rail.
 

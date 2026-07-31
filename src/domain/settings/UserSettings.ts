@@ -45,8 +45,12 @@ import {
   EXTERNAL_SERVICES_DEFAULTS,
   type ExternalServicesSettings,
 } from "../integration/external-services/ExternalServicesSettings.js";
+import {
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  type ExternalApplicationsSettings,
+} from "../integration/external-applications/ExternalApplicationsSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 13 as const;
+export const SETTINGS_SCHEMA_VERSION = 14 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -100,6 +104,8 @@ export type UserSettings = Readonly<{
   sdkIntegration: SdkIntegrationSettings;
   /** Profile-scoped outbound HTTP automation definitions. */
   externalServices: ExternalServicesSettings;
+  /** Profile-scoped call screen-pop / external application window definitions. */
+  externalApplications: ExternalApplicationsSettings;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -146,5 +152,6 @@ export function createDefaultUserSettings(): UserSettings {
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
     externalServices: EXTERNAL_SERVICES_DEFAULTS,
+    externalApplications: EXTERNAL_APPLICATIONS_DEFAULTS,
   };
 }

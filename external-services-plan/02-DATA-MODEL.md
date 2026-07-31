@@ -124,7 +124,8 @@ type ExternalServiceAutomaticEventType =
   | "campaign_offered"
   | "campaign_accepted"
   | "campaign_rejected"
-  | "acd_context_appeared";
+  | "acd_context_appeared"
+  | "post_call_processing";
 
 type ExternalServiceEventType =
   | ExternalServiceAutomaticEventType

@@ -58,6 +58,9 @@ describe("deriveSettingsNavigationAvailability", () => {
     expect(resolveAllowedSettingsSection(preAuth, "integrations-external-services")).toBe(
       "account",
     );
+    expect(resolveAllowedSettingsSection(preAuth, "integrations-external-applications")).toBe(
+      "account",
+    );
     expect(resolveAllowedSettingsSection(preAuth, "integrations-sdk")).toBe(
       "integrations-sdk",
     );
@@ -72,6 +75,9 @@ describe("deriveSettingsNavigationAvailability", () => {
     expect(
       resolveAllowedSettingsSection(postAuth, "integrations-external-services"),
     ).toBe("integrations-external-services");
+    expect(
+      resolveAllowedSettingsSection(postAuth, "integrations-external-applications"),
+    ).toBe("integrations-external-applications");
     expect(resolveAllowedSettingsSection(postAuth, "integrations-sdk")).toBe(
       "integrations-sdk",
     );

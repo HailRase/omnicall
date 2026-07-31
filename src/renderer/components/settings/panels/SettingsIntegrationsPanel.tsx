@@ -6,17 +6,24 @@ import type { SdkModuleSettingsCardProps } from "./SdkModuleSettingsCard.js";
 import { SdkModuleSettingsCard } from "./SdkModuleSettingsCard.js";
 import type { ExternalServicesPanelProps } from "../external-services/ExternalServicesPanel.js";
 import { ExternalServicesPanel } from "../external-services/ExternalServicesPanel.js";
+import type { ExternalApplicationsPanelProps } from "../external-applications/ExternalApplicationsPanel.js";
+import { ExternalApplicationsPanel } from "../external-applications/ExternalApplicationsPanel.js";
 import formStyles from "../SettingsForm.module.css";
 
 export type SettingsIntegrationsPanelProps = Readonly<{
-  sectionId?: "integrations" | "integrations-external-services" | "integrations-sdk";
+  sectionId?:
+    | "integrations"
+    | "integrations-external-services"
+    | "integrations-external-applications"
+    | "integrations-sdk";
   ocp: OcpModuleSettingsCardProps;
   sdk: SdkModuleSettingsCardProps;
   externalServices: ExternalServicesPanelProps;
+  externalApplications: ExternalApplicationsPanelProps;
 }>;
 
 /**
- * - Purpose: Settings → Integrations section shell (OCP, External Services, SDK).
+ * - Purpose: Settings → Integrations section shell (OCP, external tools, SDK).
  * - Inputs: presentational card/panel props for each Integrations leaf.
  * - Outputs: section content without Domain or raw IPC access in this shell.
  * @uiMeta f=F-028,F-011,F-031
@@ -26,13 +33,19 @@ export function SettingsIntegrationsPanel({
   ocp,
   sdk,
   externalServices,
+  externalApplications,
 }: SettingsIntegrationsPanelProps): JSX.Element {
   const { t } = useI18n();
   const isExternalServices = sectionId === "integrations-external-services";
+  const isExternalApplications = sectionId === "integrations-external-applications";
 
   return (
     <div
-      className={isExternalServices ? formStyles.panelStackFull : formStyles.panelStack}
+      className={
+        isExternalServices || isExternalApplications
+          ? formStyles.panelStackFull
+          : formStyles.panelStack
+      }
       data-testid="settings-integrations-panel"
     >
       {sectionId === "integrations" ? (
@@ -42,6 +55,7 @@ export function SettingsIntegrationsPanel({
         </>
       ) : null}
       {isExternalServices ? <ExternalServicesPanel {...externalServices} /> : null}
+      {isExternalApplications ? <ExternalApplicationsPanel {...externalApplications} /> : null}
       {sectionId === "integrations-sdk" ? <SdkModuleSettingsCard {...sdk} /> : null}
     </div>
   );

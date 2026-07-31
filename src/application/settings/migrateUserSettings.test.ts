@@ -91,6 +91,23 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v13 settings to v14 with empty External Applications defaults", () => {
+    const v13 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 13 as const,
+    };
+    const withoutApps = { ...v13 } as Record<string, unknown>;
+    delete withoutApps["externalApplications"];
+
+    const result = migrateUserSettings(withoutApps);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.externalApplications.applications).toEqual([]);
+    }
+  });
+
   it("migrates v12 string triggers to v13 delay bindings without losing codes", () => {
     const v12 = {
       ...createDefaultUserSettings(),

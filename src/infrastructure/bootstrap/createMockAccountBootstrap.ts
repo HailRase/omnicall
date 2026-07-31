@@ -35,7 +35,9 @@ import type {
 } from "@ports/index.js";
 import { createHeadsetGateway } from "./createHeadsetGateway.js";
 import { createExternalServicesCompositionForBootstrap } from "./createExternalServicesCompositionForBootstrap.js";
+import { createExternalApplicationsCompositionForBootstrap } from "./createExternalApplicationsCompositionForBootstrap.js";
 import type { ExternalServicesComposition } from "@application/services/integration/external-services/ExternalServicesComposition.js";
+import type { ExternalApplicationsComposition } from "@application/services/integration/external-applications/ExternalApplicationsComposition.js";
 import type { Clock, OutboundHttpPort, UuidGenerator } from "@ports/index.js";
 import type { ExternalServicesJournalRepository } from "@ports/integration/ExternalServicesJournalRepository.js";
 
@@ -61,6 +63,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   externalServicesClock?: Clock;
   externalServicesUuidGenerator?: UuidGenerator;
   externalServicesComposition?: ExternalServicesComposition;
+  externalApplicationsComposition?: ExternalApplicationsComposition;
   telephonyScenario?: "success" | "failure";
   makeCallScenario?:
     | "connecting"
@@ -121,6 +124,13 @@ export function createMockAccountBootstrap(
         ? { uuidGenerator: options.externalServicesUuidGenerator }
         : {}),
     });
+  const externalApplicationsComposition =
+    options.externalApplicationsComposition ??
+    createExternalApplicationsCompositionForBootstrap({
+      mode: "mock",
+      logger: createTestLogger({ featureId: "F-032", boundedContext: "Integration" }),
+      settingsRepository,
+    });
 
   return new AccountBootstrapFacade({
     telephonyGateway,
@@ -162,6 +172,7 @@ export function createMockAccountBootstrap(
         }
       : {}),
     externalServicesComposition,
+    externalApplicationsComposition,
     hostIntegrationGateway,
     logger,
   });

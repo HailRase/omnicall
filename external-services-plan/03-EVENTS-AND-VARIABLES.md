@@ -18,9 +18,10 @@
 | `campaign_accepted` | `OperatorCampaignCleared` with `reasonCode: "accepted"` | `src/domain/integration/ocp/events/OperatorCampaignCleared.ts` | Join cached offer fields by `campaignId`; emit, then clear cache. |
 | `campaign_rejected` | `OperatorCampaignCleared` with `reasonCode: "rejected"` | same | Join cached offer fields by `campaignId`; emit, then clear cache. |
 | `acd_context_appeared` | `CallOcpContextResolved` | `src/domain/integration/ocp/events/CallOcpContextResolved.ts` | Emit once per call/context fingerprint when queue/context becomes available. |
+| `post_call_processing` | `OperatorStatusChanged` with `newStatus: POST_CALL_PROCESSING` | `src/domain/integration/ocp/events/OperatorStatusChanged.ts` | Operator-level (no call-focus gate); fires only on transition into post-call processing from a live OCP session. Call variables stay unset (same class as campaign triggers). |
 | `manual_run` | `RunExternalServiceRequestNowUseCase` | new Application use case | Build from active profile plus current focused call when one exists. |
 
-`CallFailed`, hold/resume, registration, OCP session/status, SDK, and transfer facts do not map to v1 trigger codes.
+`CallFailed`, hold/resume, registration, OCP login/logout/session, other OCP status transitions, SDK, and transfer facts do not map to automatic trigger codes.
 
 ## Call context tracker
 
@@ -46,6 +47,7 @@ WU-11 must add an Application-defined `CallFocusProjection` reduced into the ren
 - Each normalized call trigger records `focusedAtEvent: boolean`; later async queue work never re-evaluates focus.
 - ACD context requires its `callId` to equal focused call ID.
 - Campaign events have no call ID in existing typed events and are Operator events, not call lifecycle events; they fire without a call-focus gate. If F-028 later adds a typed call association, adopting it requires a separate compatibility decision.
+- `post_call_processing` is an Operator status edge (not a call lifecycle event); it fires without a call-focus gate. Call party variables are not attached unless a future design enriches `OperatorStatusChanged` or retains last-call context.
 
 Focus transition policy:
 

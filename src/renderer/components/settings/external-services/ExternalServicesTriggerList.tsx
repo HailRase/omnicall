@@ -14,7 +14,8 @@ export type ExternalServicesAutomaticEventType =
   | "campaign_offered"
   | "campaign_accepted"
   | "campaign_rejected"
-  | "acd_context_appeared";
+  | "acd_context_appeared"
+  | "post_call_processing";
 
 const eventTypes: ReadonlyArray<ExternalServicesAutomaticEventType> = [
   "incoming_ringing",
@@ -27,6 +28,7 @@ const eventTypes: ReadonlyArray<ExternalServicesAutomaticEventType> = [
   "campaign_accepted",
   "campaign_rejected",
   "acd_context_appeared",
+  "post_call_processing",
 ];
 
 const triggerKeys: Readonly<Record<ExternalServicesAutomaticEventType, TranslationKey>> = {
@@ -40,6 +42,7 @@ const triggerKeys: Readonly<Record<ExternalServicesAutomaticEventType, Translati
   campaign_accepted: "settings.integrations.externalServices.trigger.campaign_accepted",
   campaign_rejected: "settings.integrations.externalServices.trigger.campaign_rejected",
   acd_context_appeared: "settings.integrations.externalServices.trigger.acd_context_appeared",
+  post_call_processing: "settings.integrations.externalServices.trigger.post_call_processing",
 };
 
 export type ExternalServicesTriggerListProps = Readonly<{

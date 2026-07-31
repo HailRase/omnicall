@@ -591,7 +591,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (bootstrap splash **2026-07-25 single-stage**): `Bootstrap-Splash-Contract.md`; `index.html` `#boot-splash`; `bootSplashDom`; `useBootSplashController`; `useBootstrapSplashProgress`; `startupSplashColors` (`#42AAFF` mid); `tokens.css` `--color-brand-splash-*`; `App.tsx` (no React loading splash); `BootstrapSplashShell` error + Storybook loading; tests `bootSplashDom.test.ts`, `useBootSplashController.test.ts`, `useBootstrapSplashProgress.test.ts`, `BootstrapSplashShell.test.tsx`, `startupSplashColors.test.ts`; i18n `bootstrap.*`
 - Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `guides/Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
 - Implementation evidence (F-031 External Services nav **2026-07-29**): Settings leaf `integrations-external-services` under Integrations beside OCP; OmniCall Kit remains top-level; availability gate + `settings.integrations.external-services` icon; collections panel composition via `SettingsIntegrationsPanel` / `SoftphoneReadyShell`; cross-ref F-031 WU-08
-- Implementation evidence (Settings Integrations always-open cluster **2026-07-30**): expanded cluster always shows OCP + External Services without accordion; soft disabled chrome for pre-auth gate; `SettingsSidebar.test.tsx`; `UI-Design-System.md` § Settings Nav Groups
+- Implementation evidence (Settings Integrations always-open cluster **2026-07-30**; F-032 leaf **2026-07-31**): expanded cluster shows OCP + External Services + External Applications without accordion; soft disabled chrome for pre-auth gate; `SettingsSidebar.test.tsx`; `UI-Design-System.md` § Settings Nav Groups
 - UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`, `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`, `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (T-001 gate)
 
 ## F-017: Diagnostics And Logging
@@ -913,7 +913,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Busy operators keep the status selector enabled; Ready/Break selection reserves via `update_post_call_status` with user toast.
   - During Post-call processing, Ready/Break selection reserves (same as busy); dropdown footer shows finish-appeal (`Завершить обращение: {reserved|Доступен}`) via `FinishPostCallAppealUseCase` (`intent: apply` to reserved or Ready). While busy/PCP with an active booking, dropdown `isCurrent` chrome highlights the reserved Ready/Break reason (chip label stays coarse/system). Local reserved projection clears when operator returns to idle. Finish without a local booking defaults to Ready (hosts must await `changeStatus` → `kind: "reserved"` / snapshot `reservedTarget` before `finishAppeal`).
   - Single `OcpGateway` WebSocket; no global `window.ws` patching; **one-socket invariant** proven by tests (ADR-AF-002).
-  - Settings → Integrations is an always-open nav cluster when the sidebar is expanded (**OCP Module** + **External Services** children; F-031) — no accordion; children align with top-level rows. **OmniCall Kit** is a top-level nav leaf immediately below Integrations. Pre-auth: **OCP Module** and **External Services** gated (visible + soft disabled + tooltip), **OmniCall Kit reachable** (ADR-AF-005 / ADR-AF-004 amended by ADR-0018).
+  - Settings → Integrations is an always-open nav cluster when the sidebar is expanded (**OCP Module** + **External Services** + **External Applications** children; F-031 / F-032) — no accordion; children align with top-level rows. **OmniCall Kit** is a top-level nav leaf immediately below Integrations. Pre-auth: Integrations children gated (visible + soft disabled + tooltip), **OmniCall Kit reachable** (ADR-AF-005 / ADR-AF-004 amended by ADR-0018).
   - Operator status selector visible only when `ocpSession.isAuthenticated === true`.
   - Ephemeral `softphone_auth_token` via `GET https://{ocpDomain}/proxy/authenticate?login={sipUsername}` with header `Ocp-Proxy-Api-Key`; **`ocpDomain` is the OCP proxy host** (`ocpIntegration.domain` / `profile.ocpDomain`), **never** the SIP PBX domain from `entity:creds`; token is never persisted; Application acquires a **fresh** token before every new socket (ADR-AF-002).
   - **Account sole OCP sign-in (ADR-AF-003):** Settings → Account OCP module mode owns login/domain/key input and the only sign-in command; Save profile / Remember password available in OCP mode; complete OCP profiles hide domain/key; incomplete profiles ask only missing fields.
@@ -1041,9 +1041,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-076`, `LF-077` (portable prefs transfer; secrets remain machine-local per F-023)
 - Context: Settings
 - Priority: high
-- Status: **implemented** (2026-07-24; F-031 External Services nested slice extended 2026-07-29; v13 trigger delays 2026-07-30)
+- Status: **implemented** (2026-07-24; F-031 External Services nested slice extended 2026-07-29; v13 trigger delays 2026-07-30; **F-032** External Applications nested slice 2026-07-31 / schema **v14**)
 - Owner: TBD
-- Related: **F-031** (nested `UserSettings.externalServices` round-trips inside the same v1 bundle; journal excluded; v13 delay bindings migrate from v12 string triggers)
+- Related: **F-031** (nested `UserSettings.externalServices` round-trips inside the same v1 bundle; journal excluded; v13 delay bindings migrate from v12 string triggers); **F-032** (`UserSettings.externalApplications` portable in the same v1 bundle)
 - Inputs: operator Export/Import in Settings → General; active profile `UserSettings`; native JSON file dialogs
 - Outputs: portable `omnicall.preferences` v1 JSON; imported prefs applied to active profile via `migrateUserSettings`
 - Acceptance Criteria:
@@ -1052,8 +1052,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Authored External Services header/query values are portable by product decision; they are not a substitute for a secrets vault.
   - Machine device ids (`preferredAudio/Video`, headset preferred) and `dismissedUpdateBannerVersion` are cleared; `ocpIntegration.linked` reset to `false`.
   - Import targets the **active** profile; invalid / newer unsupported schema or formatVersion fails closed without mutation (settings + F-031 runtime unchanged).
-  - Older `UserSettings.schemaVersion` inside a bundle migrates forward; new fields on a newer app get defaults (empty External Services when absent).
-  - Outer bundle stays `PREFERENCES_EXPORT_FORMAT_VERSION = 1`; nested schema follows `SETTINGS_SCHEMA_VERSION` (v13+; v12 string triggers migrate to delay bindings).
+  - Older `UserSettings.schemaVersion` inside a bundle migrates forward; new fields on a newer app get defaults (empty External Services / External Applications when absent).
+  - Outer bundle stays `PREFERENCES_EXPORT_FORMAT_VERSION = 1`; nested schema follows `SETTINGS_SCHEMA_VERSION` (v14+; v13→v14 adds empty `externalApplications`; v12 string triggers migrate to delay bindings).
   - Successful import refreshes headset settings and F-031 runtime registry without restart; renderer applies returned `UserSettings`.
   - UI copy (all locales) states SIP/OCP/SDK secrets are excluded and re-login / device reselect may be required.
 - Test Coverage:
@@ -1071,17 +1071,18 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Priority: high
 - Status: **implemented** (2026-07-30; WU-00…WU-13 + WU-12 closeout)
 - Owner: TBD
-- Related: F-016 (Settings Integrations nav), F-023 (account profile persistence), F-024 (active account profile), F-028 (consume-only campaign/ACD facts), F-030 (preferences export/import extension)
+- Related: F-016 (Settings Integrations nav), F-023 (account profile persistence), F-024 (active account profile), F-028 (consume-only campaign/ACD facts), F-030 (preferences export/import extension), **F-032** (sibling Integrations leaf for screen-pop windows — separate settings slice)
 - Explicit non-overlap:
   - **Not F-011:** inbound OmniCall Kit / host SDK; F-031 does not expose config or journal through SDK snapshots, events, or capabilities.
-  - **Not F-028:** OCP control plane / wire protocol; F-031 only consumes already-published focused-call and campaign/ACD Domain facts.
-- Inputs: active-profile External Services configuration; selected focused-call / campaign / ACD Domain events; manual Run now from Settings UI
+  - **Not F-028:** OCP control plane / wire protocol; F-031 only consumes already-published focused-call, campaign/ACD, and post-call status Domain facts (no OCP commands).
+  - **Not F-032:** Electron/browser screen-pop windows; F-031 remains outbound HTTP only.
+- Inputs: active-profile External Services configuration; selected focused-call / campaign / ACD / post-call Domain events; manual Run now from Settings UI
 - Outputs: isolated fire-and-forget outbound HTTP attempts; Run now result view model; redacted per-profile journal (latest 100)
 - Acceptance Criteria:
   - Settings → Integrations → External Services is a profile-scoped child beside OCP; OmniCall Kit remains a separate top-level leaf.
   - Collections and flat requests have stable UUIDs; both must be enabled for automatic dispatch; no nested folders or hard count limits.
   - Methods GET/POST/PUT/PATCH/DELETE; body modes none/json/x-www-form-urlencoded/raw; `{{name}}` templates; missing variable → literal `undefined`; Variables tab surfaces Domain `EXTERNAL_SERVICE_VARIABLE_CATALOG` with Insert into URL/Body.
-  - Ten automatic stable trigger codes plus `manual_run`; every call-related trigger evaluates focused call at event time; hold/mute/register/OCP-session/SDK/transfer-specific triggers do not exist.
+  - Eleven automatic stable trigger codes plus `manual_run` (includes operator-level `post_call_processing` from OCP `OperatorStatusChanged` → `POST_CALL_PROCESSING`); every call-related trigger evaluates focused call at event time; hold/mute/register/OCP-session/SDK/transfer-specific triggers do not exist; other OCP status transitions do not fire automations.
   - Per-trigger delay bindings `{ eventType, delaySeconds }` (0–180); delay zero immediate; Manual Run ignores delay; Queue monitor + logout warning for waiting jobs (ADR-0023).
   - Trigger publication / Call Engine / telephony Use Cases never await matcher, queue, HTTP, journal, or UI; FIFO queue max concurrency three; timeout fixed 10s; no retries or response-driven commands.
   - HTTP/HTTPS including localhost/LAN/private IPs allowed; main-process transport behind `OutboundHttpPort` + typed IPC (ADR-0022).
@@ -1115,3 +1116,35 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (collection variables UX 2026-07-30): Domain `normalizeExternalServiceCollectionVariables` + row inspection; mutation rejects duplicate/empty-key-with-value; compact collection workspace hint/example/`{{token}}` preview; dialog validation + system-name soft warning; i18n keys under `collections.variables*` / `validation.*Variable*`; tests `normalizeExternalServiceCollectionVariables.test.ts`, `ExternalServicesVariablesDialog.test.tsx`, RequestsView coverage; docs `02-DATA-MODEL.md` / `03` / `05` / `11` + UI catalog synced.
 - Implementation evidence (variables UI polish 2026-07-30): removed URL-bar template hint; compact Variables labels/descriptions; tab content spacing aligned to `--space-sm`/`--space-md`.
 - Implementation evidence (template autocomplete 2026-07-30): URL/Params/Headers/Body fields open suggestions on `{{` (system + collection; case-sensitive prefix filter; Enter/click insert; single `{` ignored); caret-aware Variables Insert; pure helpers + field tests under `templateAutocomplete/`; docs `05-UI-UX.md`; i18n `variables.autocomplete*`.
+- Implementation evidence (post-call trigger 2026-07-31): additive automatic code `post_call_processing` shared with F-032; `mapDomainEventToExternalServiceTrigger` maps `OperatorStatusChanged` only when `newStatus === POST_CALL_PROCESSING`; operator-level (not focus-gated); call variables unset; i18n `settings.integrations.externalServices.trigger.post_call_processing` ru/en/fr/de/bg; mapper + match tests; docs `03-EVENTS-AND-VARIABLES.md` / handoff / product spec synced; no schema bump (additive allowlist).
+
+## F-032: External Applications (Call Screen-Pop Windows)
+
+- Legacy IDs: `_none_ (new product feature)`
+- Context: Integration (primary); Settings (profile persistence / F-030 portability)
+- Priority: high
+- Status: **implemented** (2026-07-31)
+- Owner: TBD
+- Related: F-016 (Settings Integrations nav), F-023 / F-024 (profile settings), F-028 (consume-only campaign/ACD facts), F-030 (preferences round-trip), F-031 (shared event mapper + `{{` template catalog/autocomplete)
+- Explicit non-overlap:
+  - **Not F-031:** no outbound HTTP journal/queue; F-032 opens windows/browser only.
+  - **Not F-011 / F-028:** no SDK or OCP control-plane mutation.
+- Inputs: profile `UserSettings.externalApplications` (schema **v14**); focused-call / campaign / ACD / post-call Domain events (shared F-031 codes); manual Open now
+- Outputs: sandboxed Electron `BrowserWindow` (`loadURL`) or system browser via existing F-020 HTTPS gateway
+- Acceptance Criteria:
+  - Settings → Integrations → **External Applications** leaf beside External Services; pre-auth soft-gated like OCP/ES; OmniCall Kit stays top-level.
+  - Flat application list (name, enabled, URL template, triggers + delay, window W×H, open mode, authored variables).
+  - URL field reuses F-031 `{{` autocomplete; system variables from shared catalog; missing token → literal `undefined`.
+  - Multiple matching apps on one event → multiple windows; same `applicationId:callId` focuses existing window.
+  - Invalid resolved URL skipped (logged); focus-gated call events; operator-level `campaign_*` + `post_call_processing`; logout/profile switch cancels delayed jobs.
+  - Typed IPC only (`OpenExternalApplicationWindowContract`); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated.
+  - F-030 export/import round-trips config; empty default is inert; SIP-only bootstrap unchanged.
+- Test Coverage:
+  - Unit: parse/match settings; IPC contract; navigation availability; settings panel/sidebar
+  - Integration: automation multi-app open + invalid URL skip; migrate v13→v14
+  - E2E: deferred (manual smoke: create app → incoming → window)
+- Design: `docs/softphone/P14-External-Applications-Design.md`
+- ADR: `docs/softphone/adr/ADR-0024-external-applications-screen-pop-windows.md` (**Accepted**)
+- Implementation evidence: `src/domain/integration/external-applications/**`; `ExternalApplicationsComposition` + binder; `registerExternalApplicationWindowIpc`; Settings panel `external-applications/*`; `useExternalApplicationsPanel`; i18n `settings.integrations.externalApplications.*` ru/en/fr/de/bg
+- Implementation evidence (post-call trigger 2026-07-31): reuses F-031 `post_call_processing` via shared mapper + `ExternalServicesTriggerList`; match test covers operator-level (no focus gate); design `P14-External-Applications-Design.md` synced
+- Implementation evidence (Settings UI refresh 2026-07-31): sidebar without header chrome; fixed Add footer; per-item status dots + actions (enable/disable/rename/duplicate/delete); editor inline name rename; sticky URL bar with Open; pinned General/Events/Variables tabs; `ExternalApplicationsPanel.test.tsx`

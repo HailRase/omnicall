@@ -63,6 +63,11 @@ import {
   parseExternalServicesSettings,
   type ExternalServicesSettings,
 } from "../integration/external-services/index.js";
+import {
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  parseExternalApplicationsSettings,
+  type ExternalApplicationsSettings,
+} from "../integration/external-applications/index.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
@@ -189,6 +194,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
   const ocpIntegration = readOcpIntegration(record, errors);
   const sdkIntegration = readSdkIntegration(record, errors);
   const externalServices = readExternalServices(record, errors);
+  const externalApplications = readExternalApplications(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -232,6 +238,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       ocpIntegration,
       sdkIntegration,
       externalServices,
+      externalApplications,
     },
   };
 }
@@ -580,6 +587,25 @@ function readExternalServices(
       ),
     );
     return EXTERNAL_SERVICES_DEFAULTS;
+  }
+  return parsed.value;
+}
+
+function readExternalApplications(
+  record: Record<string, unknown>,
+  errors: string[],
+): ExternalApplicationsSettings {
+  if (record["externalApplications"] === undefined) {
+    return EXTERNAL_APPLICATIONS_DEFAULTS;
+  }
+  const parsed = parseExternalApplicationsSettings(record["externalApplications"]);
+  if (!parsed.ok) {
+    errors.push(
+      ...parsed.errors.map(
+        (error) => `externalApplications.${error.path}_${error.code}`,
+      ),
+    );
+    return EXTERNAL_APPLICATIONS_DEFAULTS;
   }
   return parsed.value;
 }

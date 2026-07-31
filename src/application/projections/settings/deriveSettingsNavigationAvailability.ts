@@ -16,6 +16,7 @@ export const SETTINGS_NAV_SECTION_IDS = [
   "headset",
   "integrations",
   "integrations-external-services",
+  "integrations-external-applications",
   "integrations-sdk",
 ] as const;
 

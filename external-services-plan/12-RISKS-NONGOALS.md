@@ -53,7 +53,8 @@
 - Full PII redaction policy.
 - Per-request timeout/concurrency/redirect configuration.
 - Campaign-to-call association if a future typed F-028 event exposes it.
-- Additional trigger codes or variables.
+- Attaching last-call party variables to `post_call_processing` (operator-level edge today).
+- Further automatic trigger codes or variables beyond the current eleven.
 
 ## Review stop conditions
 

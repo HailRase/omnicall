@@ -30,6 +30,7 @@ import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
 import { registerPreferencesFileIpc } from "./settings/registerPreferencesFileIpc.js";
 import { registerExternalServicesHttpIpc } from "./integration/registerExternalServicesHttpIpc.js";
 import { registerExternalServicesCollectionFileIpc } from "./integration/registerExternalServicesCollectionFileIpc.js";
+import { registerExternalApplicationWindowIpc } from "./externalApplications/registerExternalApplicationWindowIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
@@ -607,6 +608,7 @@ void app.whenReady().then(() => {
   registerPreferencesFileIpc();
   registerExternalServicesHttpIpc();
   registerExternalServicesCollectionFileIpc();
+  registerExternalApplicationWindowIpc();
   registerSdkBrokerIpc();
   setupHidPermissions();
   registerDisplayCaptureIpc();

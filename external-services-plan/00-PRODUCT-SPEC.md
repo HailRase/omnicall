@@ -56,8 +56,9 @@ Each request independently enables any number of:
 - `campaign_accepted`
 - `campaign_rejected`
 - `acd_context_appeared`
+- `post_call_processing`
 
-Manual execution uses `manual_run`. Hold, mute, SIP registration, OCP login/logout/status, SDK pairing, and dedicated transfer triggers are excluded.
+Manual execution uses `manual_run`. Hold, mute, SIP registration, OCP login/logout, other OCP status transitions, SDK pairing, and dedicated transfer triggers are excluded. `post_call_processing` is the sole operator-status edge (OCP `POST_CALL_PROCESSING` transition only).
 
 ## Focus policy
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 import { createSettingsAccountKey } from "@domain/settings/SettingsAccountKey.js";
 import type { DomainEvent } from "@domain/shared/DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -177,6 +178,38 @@ describe("mapDomainEventToExternalServiceTrigger", () => {
     expect(mapDomainEventToExternalServiceTrigger(acd, context(tracker, "call-a"))).toBeNull();
     expect(
       mapDomainEventToExternalServiceTrigger(event("CallHeld", { callId: "call-a" }), context(tracker, "call-a")),
+    ).toBeNull();
+  });
+
+  it("maps only the transition into POST_CALL_PROCESSING as an operator-level trigger", () => {
+    const tracker = new ExternalServicesCallContextTracker();
+    expect(
+      mapDomainEventToExternalServiceTrigger(
+        event("OperatorStatusChanged", {
+          operatorId: 5,
+          prevStatus: OperatorStatus.TALKING,
+          newStatus: OperatorStatus.POST_CALL_PROCESSING,
+          reasonId: OperatorStatus.POST_CALL_PROCESSING,
+        }),
+        context(tracker, null),
+      ),
+    ).toMatchObject({
+      focusedAtEvent: true,
+      trigger: {
+        eventType: "post_call_processing",
+        userLogin: "agent",
+      },
+    });
+    expect(
+      mapDomainEventToExternalServiceTrigger(
+        event("OperatorStatusChanged", {
+          operatorId: 5,
+          prevStatus: OperatorStatus.READY,
+          newStatus: OperatorStatus.BREAK,
+          reasonId: 7,
+        }),
+        context(tracker, null),
+      ),
     ).toBeNull();
   });
 });

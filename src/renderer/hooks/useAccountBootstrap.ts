@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { bindExternalServicesAutomation } from "../bootstrap/bindExternalServicesAutomation.js";
+import { bindExternalApplicationsAutomation } from "../bootstrap/bindExternalApplicationsAutomation.js";
 import { bindSdkBrokerSession } from "../bootstrap/bindSdkBrokerSession.js";
 import { createRendererComposition } from "../bootstrap/createRendererComposition.js";
 import { translateCurrent } from "../i18n/index.js";
@@ -21,6 +22,7 @@ export function useAccountBootstrap(): Readonly<{
   useEffect(() => {
     let unsubscribe = (): void => undefined;
     let disposeExternalServicesAutomation = (): void => undefined;
+    let disposeExternalApplicationsAutomation = (): void => undefined;
     let disposeSdkBroker = (): void => undefined;
     let cancelled = false;
     let activeFacade: AccountBootstrapFacade | null = null;
@@ -45,6 +47,8 @@ export function useAccountBootstrap(): Readonly<{
           });
           disposeExternalServicesAutomation =
             bindExternalServicesAutomation(activeFacade).dispose;
+          disposeExternalApplicationsAutomation =
+            bindExternalApplicationsAutomation(activeFacade).dispose;
           disposeSdkBroker = bound.dispose;
           setStatus("ready");
         }
@@ -65,6 +69,7 @@ export function useAccountBootstrap(): Readonly<{
     return () => {
       cancelled = true;
       disposeExternalServicesAutomation();
+      disposeExternalApplicationsAutomation();
       disposeSdkBroker();
       unsubscribe();
       activeFacade?.dispose();

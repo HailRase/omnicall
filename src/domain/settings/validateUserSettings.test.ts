@@ -24,13 +24,14 @@ describe("validateUserSettings", () => {
     }
   });
 
-  it("accepts empty External Services defaults at schema v13", () => {
+  it("accepts empty External Services and Applications defaults at schema v14", () => {
     const result = validateUserSettings(createDefaultUserSettings());
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(13);
+      expect(result.value.schemaVersion).toBe(14);
       expect(result.value.externalServices.collections).toEqual([]);
+      expect(result.value.externalApplications.applications).toEqual([]);
     }
   });
 

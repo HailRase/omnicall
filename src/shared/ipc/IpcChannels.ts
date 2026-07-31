@@ -49,6 +49,8 @@ export const IPC_CHANNELS = {
   /** Renderer → main: External Services single-collection export dialog (F-031). */
   externalServicesCollectionSaveExportDialog:
     "external-services:collection-save-export-dialog",
+  /** Renderer → main: F-032 External Application screen-pop window. */
+  externalApplicationsOpenWindow: "external-applications:open-window",
 } as const;
 
 export type IpcChannel =
@@ -82,3 +84,7 @@ export type {
   ExternalServicesCollectionSaveExportDialogPayload,
   ExternalServicesCollectionSaveExportDialogResponse,
 } from "./ExternalServicesCollectionFileContract.js";
+export type {
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResponse,
+} from "./OpenExternalApplicationWindowContract.js";

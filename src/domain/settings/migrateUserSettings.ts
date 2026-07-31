@@ -22,6 +22,10 @@ import {
   EXTERNAL_SERVICES_DEFAULTS,
   parseExternalServicesSettings,
 } from "../integration/external-services/index.js";
+import {
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  parseExternalApplicationsSettings,
+} from "../integration/external-applications/index.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -72,6 +76,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 13 ||
     version === 12 ||
     version === 11 ||
     version === 10 ||
@@ -156,6 +161,16 @@ function coerceToCurrentUserSettings(
       },
     };
   }
+  const externalApplications = parseExternalApplicationsForMigration(record);
+  if (externalApplications === null) {
+    return {
+      ok: false,
+      error: {
+        code: "validation_failed",
+        message: "externalApplications_invalid",
+      },
+    };
+  }
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -203,6 +218,7 @@ function coerceToCurrentUserSettings(
     ocpIntegration: parsedOcp,
     sdkIntegration: parsedSdk,
     externalServices,
+    externalApplications,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -222,6 +238,17 @@ function parseExternalServicesForMigration(
     return EXTERNAL_SERVICES_DEFAULTS;
   }
   const parsed = parseExternalServicesSettings(migrateExternalServiceTriggers(raw));
+  return parsed.ok ? parsed.value : null;
+}
+
+function parseExternalApplicationsForMigration(
+  record: Record<string, unknown>,
+): UserSettings["externalApplications"] | null {
+  const raw = record["externalApplications"];
+  if (raw === undefined) {
+    return EXTERNAL_APPLICATIONS_DEFAULTS;
+  }
+  const parsed = parseExternalApplicationsSettings(raw);
   return parsed.ok ? parsed.value : null;
 }
 
@@ -311,6 +338,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
     externalServices: EXTERNAL_SERVICES_DEFAULTS,
+    externalApplications: EXTERNAL_APPLICATIONS_DEFAULTS,
   };
 }
 

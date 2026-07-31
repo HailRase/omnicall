@@ -3,6 +3,7 @@ import { OCP_INTEGRATION_DEFAULTS, SDK_INTEGRATION_DEFAULTS } from "@application
 import type { OcpModuleSettingsCardProps } from "./OcpModuleSettingsCard.js";
 import type { SdkModuleSettingsCardProps } from "./SdkModuleSettingsCard.js";
 import type { ExternalServicesPanelProps } from "../external-services/ExternalServicesPanel.js";
+import type { ExternalApplicationsPanelProps } from "../external-applications/ExternalApplicationsPanel.js";
 
 const ocpCardDefaults = {
   settings: { ...OCP_INTEGRATION_DEFAULTS, linked: true, enabled: true, domain: "ocp.example" },
@@ -103,11 +104,30 @@ const externalServicesDefaults = {
   variablesDialog: null,
 } satisfies ExternalServicesPanelProps;
 
+const externalApplicationsDefaults = {
+  applications: [],
+  selectedApplication: null,
+  busy: false,
+  loadError: false,
+  saveError: false,
+  forceNameEditKey: 0,
+  onSelect: vi.fn(),
+  onCreate: vi.fn(),
+  onToggle: vi.fn(),
+  onRename: vi.fn(),
+  onDuplicate: vi.fn(),
+  onDelete: vi.fn(),
+  onChange: vi.fn(),
+  onSave: vi.fn(),
+  onOpenNow: vi.fn(),
+} satisfies ExternalApplicationsPanelProps;
+
 export const settingsIntegrationsTestDefaults = {
   integrations: {
     ocp: ocpCardDefaults,
     sdk: sdkCardDefaults,
     externalServices: externalServicesDefaults,
+    externalApplications: externalApplicationsDefaults,
   },
 } as const;
 
@@ -169,5 +189,17 @@ export const settingsIntegrationsStoryDefaults = {
       },
       variablesDialog: null,
     } satisfies ExternalServicesPanelProps,
+    externalApplications: {
+      ...externalApplicationsDefaults,
+      onSelect: () => undefined,
+      onCreate: () => undefined,
+      onToggle: () => undefined,
+      onRename: () => undefined,
+      onDuplicate: () => undefined,
+      onDelete: () => undefined,
+      onChange: () => undefined,
+      onSave: () => undefined,
+      onOpenNow: () => undefined,
+    } satisfies ExternalApplicationsPanelProps,
   },
 } as const;

@@ -88,6 +88,28 @@ describe("External Services domain policies", () => {
     expect(matchExternalServiceRequests({ collections: [collection] }, trigger, true)).toHaveLength(1);
   });
 
+  it("matches post_call_processing as an operator-level trigger without focus", () => {
+    const collection: ExternalServiceCollection = {
+      id: collectionId,
+      name: "Primary",
+      enabled: true,
+      variables: [],
+      requests: [
+        createRequest({
+          triggers: [{ eventType: "post_call_processing", delaySeconds: 0 }],
+        }),
+      ],
+    };
+    const trigger = {
+      eventType: "post_call_processing" as const,
+      occurredAt: "2026-07-29T19:00:00.000Z",
+      profileKey,
+    };
+    expect(
+      matchExternalServiceRequests({ collections: [collection] }, trigger, false),
+    ).toHaveLength(1);
+  });
+
   it("builds one-encoded query, preserves duplicate headers, and warns for invalid JSON", () => {
     const request = createRequest({
       url: "https://example.test/{{path}}",

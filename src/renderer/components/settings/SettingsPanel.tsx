@@ -45,6 +45,7 @@ import styles from "./SettingsPanel.module.css";
 import type { OcpModuleSettingsCardProps } from "./panels/OcpModuleSettingsCard.js";
 import type { SdkModuleSettingsCardProps } from "./panels/SdkModuleSettingsCard.js";
 import type { ExternalServicesPanelProps } from "./external-services/ExternalServicesPanel.js";
+import type { ExternalApplicationsPanelProps } from "./external-applications/ExternalApplicationsPanel.js";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
@@ -148,6 +149,7 @@ export type SettingsPanelProps = Readonly<{
     ocp: OcpModuleSettingsCardProps;
     sdk: SdkModuleSettingsCardProps;
     externalServices: ExternalServicesPanelProps;
+    externalApplications: ExternalApplicationsPanelProps;
   }>;
   account: Readonly<{
     form: SipAccountInput;
@@ -495,6 +497,7 @@ export function SettingsPanel({
       break;
     case "integrations":
     case "integrations-external-services":
+    case "integrations-external-applications":
     case "integrations-sdk":
       sectionContent = (
         <SettingsIntegrationsPanel
@@ -502,6 +505,7 @@ export function SettingsPanel({
           ocp={integrations.ocp}
           sdk={integrations.sdk}
           externalServices={integrations.externalServices}
+          externalApplications={integrations.externalApplications}
         />
       );
       break;

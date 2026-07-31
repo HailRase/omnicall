@@ -34,6 +34,10 @@ function createSoftphonePreloadApiMock(
     invokeProfilesFilesystem: vi.fn().mockResolvedValue({ ok: true }),
     invokeSecretStorage: vi.fn().mockResolvedValue({ ok: true }),
     openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),
+    openExternalApplicationWindow: vi.fn().mockResolvedValue({
+      ok: true,
+      focusedExisting: false,
+    }),
     setNativeTheme: vi.fn().mockResolvedValue({ ok: true }),
     onBeforeClose: vi.fn().mockReturnValue(() => {}),
     acknowledgeShutdown: vi.fn().mockResolvedValue({ ok: true }),

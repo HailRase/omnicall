@@ -22,6 +22,7 @@ describe("SettingsIntegrationsPanel", () => {
         ocp={settingsIntegrationsTestDefaults.integrations.ocp}
         sdk={settingsIntegrationsTestDefaults.integrations.sdk}
         externalServices={settingsIntegrationsTestDefaults.integrations.externalServices}
+        externalApplications={settingsIntegrationsTestDefaults.integrations.externalApplications}
       />,
     );
 
@@ -39,6 +40,7 @@ describe("SettingsIntegrationsPanel", () => {
         ocp={settingsIntegrationsTestDefaults.integrations.ocp}
         sdk={settingsIntegrationsTestDefaults.integrations.sdk}
         externalServices={settingsIntegrationsTestDefaults.integrations.externalServices}
+        externalApplications={settingsIntegrationsTestDefaults.integrations.externalApplications}
       />,
     );
 
@@ -54,6 +56,7 @@ describe("SettingsIntegrationsPanel", () => {
         ocp={settingsIntegrationsTestDefaults.integrations.ocp}
         sdk={settingsIntegrationsTestDefaults.integrations.sdk}
         externalServices={settingsIntegrationsTestDefaults.integrations.externalServices}
+        externalApplications={settingsIntegrationsTestDefaults.integrations.externalApplications}
       />,
     );
 

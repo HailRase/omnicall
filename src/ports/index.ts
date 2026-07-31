@@ -109,6 +109,11 @@ export type {
   ExternalGatewayValidationSuccess,
 } from "./integration/ExternalClientGateway.js";
 export type {
+  ExternalApplicationWindowGateway,
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResult,
+} from "./integration/ExternalApplicationWindowGateway.js";
+export type {
   BrokerProductRequest,
   BrokerRequestFailure,
   BrokerRequestResult,

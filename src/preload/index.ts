@@ -64,6 +64,7 @@ import {
   parseExternalServicesCollectionSaveExportDialogPayload,
   parseExternalServicesCollectionSaveExportDialogResponse,
 } from "@shared/ipc/ExternalServicesCollectionFileContract.js";
+import { parseOpenExternalApplicationWindowPayload } from "@shared/ipc/OpenExternalApplicationWindowContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -124,6 +125,27 @@ const softphoneApi: SoftphonePreloadApi = {
     return candidate.ok
       ? { ok: true }
       : { ok: false, reason: candidate.reason ?? "open_failed" };
+  },
+  openExternalApplicationWindow: async (payload) => {
+    const parsed = parseOpenExternalApplicationWindowPayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalApplicationsOpenWindow,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false, reason: "open_failed" };
+    }
+    const candidate = response as Record<string, unknown>;
+    return candidate["ok"] === true && typeof candidate["focusedExisting"] === "boolean"
+      ? { ok: true, focusedExisting: candidate["focusedExisting"] }
+      : { ok: false, reason: "open_failed" };
   },
   setNativeTheme: async (payload) => {
     const parsed = parseSetNativeThemePayload(payload);

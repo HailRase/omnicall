@@ -19,7 +19,7 @@
 
 ## Triggers and variables
 
-- [x] All ten automatic stable codes and `manual_run` are implemented exactly.
+- [x] All eleven automatic stable codes (including `post_call_processing`) and `manual_run` are implemented exactly.
 - [x] Missed and rejected are independent switches/facts.
 - [x] Hold/mute/register/OCP session/SDK/transfer-specific triggers do not exist.
 - [x] Every call trigger, including ringing, is evaluated against focused call at event time.

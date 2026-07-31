@@ -63,6 +63,10 @@ import type {
   ExternalServicesCollectionSaveExportDialogPayload,
   ExternalServicesCollectionSaveExportDialogResponse,
 } from "./ExternalServicesCollectionFileContract.js";
+import type {
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResponse,
+} from "./OpenExternalApplicationWindowContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -148,6 +152,10 @@ export type SoftphonePreloadApi = Readonly<{
   saveExternalServicesCollectionExportDialog: (
     payload: ExternalServicesCollectionSaveExportDialogPayload,
   ) => Promise<ExternalServicesCollectionSaveExportDialogResponse>;
+  /** F-032: open or focus an External Application screen-pop window. */
+  openExternalApplicationWindow: (
+    payload: OpenExternalApplicationWindowPayload,
+  ) => Promise<OpenExternalApplicationWindowResponse>;
 }>;
 
 declare global {

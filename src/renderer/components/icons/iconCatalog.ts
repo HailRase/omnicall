@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { translateCurrent, type TranslationKey } from "../../i18n/index.js";
 import {
   Activity,
+  AppWindow,
   AudioLines,
   Bell,
   BellOff,
@@ -19,6 +20,7 @@ import {
   Delete,
   Download,
   Eraser,
+  ExternalLink,
   Eye,
   EyeOff,
   Gauge,
@@ -124,6 +126,8 @@ export type IconSemanticId =
   | "settings.integrations"
   | "settings.integrations.ocp"
   | "settings.integrations.external-services"
+  | "settings.integrations.external-applications"
+  | "settings.integrations.external-applications.open"
   | "settings.integrations.external-services.send"
   | "settings.integrations.external-services.add"
   | "settings.integrations.external-services.panelExpand"
@@ -341,6 +345,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-external-services"],
   },
+  "settings.integrations.external-applications": {
+    static: AppWindow,
+    defaultLabelKey: "icons.settings.integrations.externalApplications",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-external-applications"],
+  },
+  "settings.integrations.external-applications.open": {
+    static: ExternalLink,
+    defaultLabelKey: "icons.settings.integrations.externalApplications.open",
+    defaultSize: 14,
+    usage: ["ExternalApplicationsEditor: external-applications-open-now"],
+  },
   "settings.integrations.external-services.send": {
     static: Send,
     defaultLabelKey: "icons.settings.integrations.externalServices.send",
@@ -354,6 +370,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: [
       "ExternalServicesSidebar: external-services-create-collection",
       "ExternalServicesSidebar: quick-add request",
+      "ExternalApplicationsSidebar: external-applications-add",
     ],
   },
   "settings.integrations.external-services.panelExpand": {
