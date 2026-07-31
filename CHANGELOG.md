@@ -7,6 +7,26 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-31
+
+### Added
+
+- **F-031** External Services: profile-scoped outbound HTTP automations under Settings →
+  Integrations → External Services (Postman-like collections workspace, Run now, journal,
+  template variables, per-trigger delay queue). Isolated from SIP/OCP/SDK control paths
+  (ADR-0022 / ADR-0023). Nested config round-trips in F-030 preferences export/import
+  (journal excluded). Schema **v13** trigger bindings `{ eventType, delaySeconds }` (0–180).
+- Settings → Integrations always-open nav cluster (OCP Module + External Services);
+  OmniCall Kit remains a separate top-level leaf.
+- Settings-only work-area fill maximize via layout-owned `setBounds` (OS maximize disabled).
+
+### Fixed
+
+- **F-028** OCP auto-recovery banner stays sticky across brief reconnect flaps during
+  `recoverWithFreshToken`.
+- Lint blockers in OCP transport recovery tests and shell maximizable resolver for release
+  preflight.
+
 ## [1.1.2] - 2026-07-28
 
 ### Fixed
@@ -421,7 +441,8 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.1.2...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.2.0...main
+[1.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.2.0
 [1.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.2
 [1.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.1
 [1.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.0

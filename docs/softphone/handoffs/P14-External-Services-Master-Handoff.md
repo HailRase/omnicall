@@ -12,7 +12,7 @@
 | Task | T-052 **done** |
 | Plan | `external-services-plan/` (all WUs **done**) |
 | ADR | [ADR-0022](../adr/ADR-0022-external-services-http-isolation.md) + [ADR-0023](../adr/ADR-0023-external-services-per-trigger-delay.md) — **Accepted** |
-| Next | `/review` for F-031; SemVer MINOR `1.1.2`→`1.2.0` pending explicit ship authorization |
+| Next | Shipped in **1.2.0** (2026-07-31); optional `/review` archive hygiene |
 
 ## Mission
 

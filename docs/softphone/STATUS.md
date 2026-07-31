@@ -102,9 +102,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **1.1.2** (2026-07-28) — protocol `tsc -b --force` in postinstall; first published 1.x installers |
-| Previous | **1.1.1** / **1.1.0** tag CI failed; **1.0.0**, **0.15.0**…**0.11.2** |
-| Next cut | **F-031** MINOR `1.2.0` pending explicit ship auth; PATCH hotfix as needed; npm `latest` OTP for `@softomnitel/omnicall-kit` if still pending |
+| Shipped | **1.2.0** (2026-07-31) — F-031 External Services outbound HTTP automations |
+| Previous | **1.1.2**, **1.1.1** / **1.1.0** tag CI failed; **1.0.0**, **0.15.0**…**0.11.2** |
+| Next cut | PATCH hotfix as needed; npm `latest` OTP for `@softomnitel/omnicall-kit` if still pending |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (public: installers + manifest) |
 | Manifest (live) | `omnicall-releases/main/update-manifest.json` |

@@ -5,6 +5,19 @@ Public release history for **OmniCall** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [1.2.0] - 2026-07-31
+
+### Added
+
+- External Services: outbound HTTP automations in Settings → Integrations (collections, requests, Run now, history journal, template variables)
+- Optional delay before each automatic trigger (0–180 seconds) with a Queue monitor and logout warning for waiting jobs
+- Settings Integrations always shows OCP Module and External Services together; OmniCall Kit stays a separate top-level item
+- Settings window can fill the work area without using the OS maximize button
+
+### Fixed
+
+- OCP reconnect banner no longer disappears during brief recovery reconnect flaps
+
 ## [1.1.2] - 2026-07-28
 
 ### Fixed

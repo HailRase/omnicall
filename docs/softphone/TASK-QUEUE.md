@@ -6,7 +6,7 @@
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| T-052 | 0 | External Services outbound HTTP automations (WU-00…WU-12) | F-031 | `/logic` → `/ui` | done | closed 2026-07-30 — F-031 `implemented`; WU-00…WU-13 + WU-12 closeout; ADR-0022/0023 Accepted; SemVer MINOR pending ship auth; next `/review` |
+| T-052 | 0 | External Services outbound HTTP automations (WU-00…WU-12) | F-031 | `/logic` → `/ui` | done | closed 2026-07-30 — F-031 `implemented`; shipped **1.2.0** (2026-07-31); ADR-0022/0023 Accepted |
 | T-051 | 0 | Toast viewport geometry during compact/settings layout transition | F-016 | `/ui` | done | closed 2026-07-28 — LF-060; clamp Sonner viewport/toast to BrowserWindow width, retain 24px edge and titlebar-safe top inset; compact notification tests pass |
 | T-050 | 0 | OCP queue badges + campaign progressive gate + preview modal blur | F-028 | `/logic` → `/ui` | done | closed 2026-07-26 — `OCP-Call-Context.md`; LF-037…040 parity; v0.13.0 |
 | T-049 | 0 | Overwrite modal: dismiss before sign-in settles + restore ButtonGroup footer | F-024 | `/logic` → `/ui` | done | closed 2026-07-19 — confirm closes immediately; Cancel + ButtonGroup continue/menu-overwrite |
