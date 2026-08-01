@@ -50,6 +50,14 @@ Semantic names only:
 
 Migrate values from legacy globals without visual redesign in UI-1 (done via WU5).
 
+### Shell always-on-top pin (F-016)
+
+- Pin control sits **centered** in the window-controls cluster on Win/Linux/macOS.
+- Icons: `shell.window.pin` / `shell.window.unpin` (Lucide `Pin` / `PinOff`).
+- Active pin: `aria-pressed="true"`, accent color + subtle tint (`window-control-button-pin-active`).
+- Ownership: Electron main `setAlwaysOnTop`; renderer projects state via IPC; persists `UserSettings.windowAlwaysOnTop`.
+- Must not fight ADR-0013 raise pulse (pulse restores prior pin).
+
 ### Floating UI vs window controls (mandatory)
 
 Frameless shell owns custom window controls (Win/Linux trailing buttons; macOS traffic lights). Any **fixed** toast, banner, or compact overlay that can sit in a top corner **must** clear that chrome on all platforms:

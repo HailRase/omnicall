@@ -89,6 +89,7 @@ type UseSettingsActionsResult = Readonly<{
   onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
   onConferenceNumberSubstringChange: (value: string | null) => void;
   onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
+  onWindowAlwaysOnTopChange: (alwaysOnTop: boolean) => void;
   applyUserSettingsSnapshot: (settings: UserSettings) => void;
 }>;
 
@@ -102,6 +103,10 @@ function syncNativeTheme(theme: AppTheme): void {
   void window.softphone.setNativeTheme({ theme });
 }
 
+function syncWindowAlwaysOnTop(alwaysOnTop: boolean): void {
+  void window.softphone?.setWindowAlwaysOnTop({ alwaysOnTop });
+}
+
 function applyLoadedUserSettings(
   settings: UserSettings,
   applyMultiCallSettings: (settings: MultiCallSettings) => void,
@@ -109,6 +114,7 @@ function applyLoadedUserSettings(
   setRendererLanguage(settings.language);
   applyAppTheme(settings.theme);
   syncNativeTheme(settings.theme);
+  syncWindowAlwaysOnTop(settings.windowAlwaysOnTop);
   applyMultiCallSettings({
     multiSessionsEnabled: settings.multiSessionsEnabled,
     autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure,
@@ -612,6 +618,19 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onWindowAlwaysOnTopChange = useCallback(
+    (alwaysOnTop: boolean): void => {
+      if (userSettings.windowAlwaysOnTop === alwaysOnTop) {
+        return;
+      }
+      persistUserSettings({
+        ...userSettings,
+        windowAlwaysOnTop: alwaysOnTop,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   const applyUserSettingsSnapshot = useCallback(
     (settings: UserSettings): void => {
       setUserSettings(settings);
@@ -673,6 +692,7 @@ export function useSettingsActions(
     onAutoFullscreenOnConferenceChange,
     onConferenceNumberSubstringChange,
     onEnableLocalVideoAfterConnectChange,
+    onWindowAlwaysOnTopChange,
     applyUserSettingsSnapshot,
   };
 }

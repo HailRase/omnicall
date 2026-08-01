@@ -12,6 +12,14 @@ export const IPC_CHANNELS = {
   shellWindowGetMaximized: "shell:window-get-maximized",
   /** Main → renderer: BrowserWindow maximize/restore changed (settings-only). */
   shellWindowMaximizedChanged: "shell:window-maximized-changed",
+  /** Renderer → main: set shell always-on-top pin (F-016). */
+  shellWindowSetAlwaysOnTop: "shell:window-set-always-on-top",
+  /** Renderer → main: toggle shell always-on-top pin (F-016). */
+  shellWindowToggleAlwaysOnTop: "shell:window-toggle-always-on-top",
+  /** Renderer → main: read shell always-on-top pin (F-016). */
+  shellWindowGetAlwaysOnTop: "shell:window-get-always-on-top",
+  /** Main → renderer: always-on-top pin changed (F-016). */
+  shellWindowAlwaysOnTopChanged: "shell:window-always-on-top-changed",
   shellApplyWindowLayout: "shell:apply-window-layout",
   /** Renderer → main: raise softphone above other apps (ADR-0013). */
   shellWindowRaise: "shell:window-raise",

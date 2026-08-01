@@ -50,6 +50,35 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v16 settings and defaults windowAlwaysOnTop to false", () => {
+    const v16 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 16 as const,
+    };
+    delete (v16 as { windowAlwaysOnTop?: unknown }).windowAlwaysOnTop;
+
+    const result = migrateUserSettings(v16);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.windowAlwaysOnTop).toBe(false);
+    }
+  });
+
+  it("preserves windowAlwaysOnTop when migrating from v16", () => {
+    const v16 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 16 as const,
+      windowAlwaysOnTop: true,
+    };
+    const result = migrateUserSettings(v16);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.windowAlwaysOnTop).toBe(true);
+    }
+  });
+
   it("migrates v11 with an External Services default without data loss", () => {
     const v11 = {
       ...createDefaultUserSettings(),

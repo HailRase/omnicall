@@ -7,6 +7,13 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Added
+
+- **F-016** Shell always-on-top pin in window controls (Win/macOS/Linux): centered
+  Pin/PinOff toggle with clear pressed state; persists `windowAlwaysOnTop` in
+  UserSettings schema **v17**; compatible with ADR-0013 raise pulse and SDK
+  `window:show` / `window:hide` (pin is not cleared by hide/show).
+
 ## [1.2.0] - 2026-07-31
 
 ### Added

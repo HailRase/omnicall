@@ -16,10 +16,12 @@ const storyWindowControls: ShellWindowControlsViewModel = {
   isShuttingDown: false,
   maximizeEnabled: true,
   isMaximized: false,
+  isPinned: false,
   onMinimize: () => undefined,
   onClose: () => undefined,
   onRestart: () => undefined,
   onToggleMaximize: () => undefined,
+  onTogglePin: () => undefined,
 };
 
 const meta = {

@@ -50,7 +50,7 @@ import {
   type ExternalApplicationsSettings,
 } from "../integration/external-applications/ExternalApplicationsSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 16 as const;
+export const SETTINGS_SCHEMA_VERSION = 17 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -84,6 +84,8 @@ export type UserSettings = Readonly<{
   codecPreferences: CodecPreferences;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  /** Softphone BrowserWindow always-on-top pin (titlebar control; F-016). */
+  windowAlwaysOnTop: boolean;
   /** Last successfully connected headset id (`vendorId:productId:productName`). */
   headsetPreferredDeviceId: string | null;
   /** Preferred mic deviceId; null = browser/system default. */
@@ -142,6 +144,7 @@ export function createDefaultUserSettings(): UserSettings {
     codecPreferences: createDefaultCodecPreferences(),
     headsetEnabled: false,
     headsetAutoReconnect: true,
+    windowAlwaysOnTop: false,
     headsetPreferredDeviceId: null,
     preferredAudioInputDeviceId: DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
     preferredVideoInputDeviceId: DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,

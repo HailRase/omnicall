@@ -10,6 +10,7 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseShellWindowAlwaysOnTopPayload } from "@shared/ipc/ShellWindowAlwaysOnTopContract.js";
 import { parseShellWindowRaisePayload } from "@shared/ipc/ShellWindowRaiseContract.js";
 import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
@@ -145,6 +146,14 @@ function createMainWindow(): BrowserWindow {
     }
     mainWindow.webContents.send(IPC_CHANNELS.shellWindowMaximizedChanged, {
       maximized,
+    });
+  });
+  shellWindowController.onAlwaysOnTopChange((alwaysOnTop) => {
+    if (mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.webContents.send(IPC_CHANNELS.shellWindowAlwaysOnTopChanged, {
+      alwaysOnTop,
     });
   });
 
@@ -459,6 +468,34 @@ function registerIpcHandlers(): void {
     return {
       ok: true as const,
       maximized: shellWindowController.isMaximized(),
+    };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowSetAlwaysOnTop, (_event, payload: unknown) => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    const parsed = parseShellWindowAlwaysOnTopPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" };
+    }
+    return shellWindowController.setAlwaysOnTop(parsed.alwaysOnTop);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowToggleAlwaysOnTop, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    return shellWindowController.toggleAlwaysOnTop();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowGetAlwaysOnTop, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    return {
+      ok: true as const,
+      alwaysOnTop: shellWindowController.isAlwaysOnTop(),
     };
   });
 

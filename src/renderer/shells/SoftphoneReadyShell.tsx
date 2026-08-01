@@ -444,6 +444,7 @@ function SoftphoneShellLayoutRoute({
   const windowControls = useShellWindowControls({
     isShuttingDown,
     settingsOpen: settingsChromeActive,
+    onPinnedPersist: settingsActions.onWindowAlwaysOnTopChange,
   });
 
   return (

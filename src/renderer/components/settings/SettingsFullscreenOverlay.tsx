@@ -61,10 +61,12 @@ export function SettingsFullscreenOverlay({
       isShuttingDown={windowControls.isShuttingDown}
       maximizeEnabled={windowControls.maximizeEnabled}
       isMaximized={windowControls.isMaximized}
+      isPinned={windowControls.isPinned}
       onMinimize={windowControls.onMinimize}
       onClose={windowControls.onClose}
       onRestart={windowControls.onRestart}
       onToggleMaximize={windowControls.onToggleMaximize}
+      onTogglePin={windowControls.onTogglePin}
     />
   );
 

@@ -72,6 +72,28 @@
   background: var(--shell-mac-traffic-light-maximize);
 }
 
+.mac-os-pin-control {
+  width: 22px;
+  height: 22px;
+  margin: 0 2px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  background: transparent;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.mac-os-pin-control:hover:not(:disabled) {
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.mac-os-pin-control svg {
+  width: 12px;
+  height: 12px;
+}
+
 .mac-os-restart-after-traffic-lights {
   width: 28px;
   height: 28px;
@@ -161,4 +183,16 @@
 .window-control-button-close:active:not(:disabled) {
   background: var(--color-text-danger);
   color: var(--color-text-on-accent);
+}
+
+.window-control-button-pin-active,
+.mac-os-pin-control.window-control-button-pin-active {
+  color: var(--color-accent-primary);
+  background: color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+}
+
+.window-control-button-pin-active:hover:not(:disabled),
+.mac-os-pin-control.window-control-button-pin-active:hover:not(:disabled) {
+  color: var(--color-accent-primary-hover);
+  background: color-mix(in srgb, var(--color-accent-primary) 24%, transparent);
 }

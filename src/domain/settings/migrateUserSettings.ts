@@ -76,6 +76,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 16 ||
     version === 15 ||
     version === 14 ||
     version === 13 ||
@@ -182,6 +183,10 @@ function coerceToCurrentUserSettings(
       typeof record["headsetAutoReconnect"] === "boolean"
         ? record["headsetAutoReconnect"]
         : true,
+    windowAlwaysOnTop:
+      typeof record["windowAlwaysOnTop"] === "boolean"
+        ? record["windowAlwaysOnTop"]
+        : false,
     headsetPreferredDeviceId:
       typeof preferredRaw === "string" && preferredRaw.trim().length > 0
         ? preferredRaw.trim()
@@ -330,6 +335,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     codecPreferences: defaults.codecPreferences,
     headsetEnabled: defaults.headsetEnabled,
     headsetAutoReconnect: defaults.headsetAutoReconnect,
+    windowAlwaysOnTop: defaults.windowAlwaysOnTop,
     headsetPreferredDeviceId: defaults.headsetPreferredDeviceId,
     preferredAudioInputDeviceId: defaults.preferredAudioInputDeviceId,
     preferredVideoInputDeviceId: defaults.preferredVideoInputDeviceId,

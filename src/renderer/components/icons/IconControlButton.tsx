@@ -19,6 +19,7 @@ export type IconControlButtonProps = Readonly<{
   className?: string | undefined;
   disabled?: boolean;
   ariaExpanded?: boolean;
+  ariaPressed?: boolean;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   onMouseDown?: (event: MouseEvent<HTMLButtonElement>) => void;
   onMouseUp?: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -40,6 +41,7 @@ export function IconControlButton({
   className,
   disabled = false,
   ariaExpanded,
+  ariaPressed,
   onClick,
   onMouseDown,
   onMouseUp,
@@ -50,6 +52,8 @@ export function IconControlButton({
   const isDisabled = disabled || disabledReason !== null;
   const expandedProps =
     ariaExpanded === undefined ? {} : ({ "aria-expanded": ariaExpanded } as const);
+  const pressedProps =
+    ariaPressed === undefined ? {} : ({ "aria-pressed": ariaPressed } as const);
 
   return (
     <IconTooltip label={tooltip}>
@@ -64,6 +68,7 @@ export function IconControlButton({
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
         {...expandedProps}
+        {...pressedProps}
       >
         <AppIcon id={iconId} decorative preferAnimated={preferAnimated} />
       </button>

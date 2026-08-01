@@ -12,12 +12,15 @@ Related: **F-016**, **LF-076**, **LF-077**, **LF-016**, **LF-033**, **LF-032**. 
 
 ## Schema version
 
+Source of truth: `SETTINGS_SCHEMA_VERSION` in `src/domain/settings/UserSettings.ts` (currently **v17**).
+
 | Version | Status | Notes |
 | --- | --- | --- |
 | v0 | legacy | Fragmented in-memory: `multiCallSettings` + `autoAnswerTimeoutSec` without `schemaVersion`. |
 | v1 | legacy | Typed `UserSettings` aggregate (superseded). |
 | v2 | legacy | Added language + SIP recovery fields. |
-| v3 | current | Adds `codecPreferences`, `dismissedUpdateBannerVersion`. |
+| v3…v16 | legacy | Incremental fields (codecs, notifications, headset, OCP/SDK, external services/apps, …). |
+| **v17** | **current** | Adds `windowAlwaysOnTop` (shell titlebar always-on-top pin; F-016). |
 
 ## UserSettings v1 fields
 

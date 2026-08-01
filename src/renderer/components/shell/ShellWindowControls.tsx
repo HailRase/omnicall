@@ -11,10 +11,12 @@ export type ShellWindowControlsProps = Readonly<{
   isShuttingDown: boolean;
   maximizeEnabled?: boolean;
   isMaximized?: boolean;
+  isPinned?: boolean;
   onMinimize: () => void;
   onClose: () => void;
   onRestart: () => void;
   onToggleMaximize?: () => void;
+  onTogglePin?: () => void;
 }>;
 
 type MacOsTrafficLightProps = Readonly<{
@@ -76,17 +78,53 @@ function MacOsTrafficLight({
   );
 }
 
+function PinWindowControlButton({
+  isPinned,
+  isShuttingDown,
+  className,
+  onTogglePin,
+}: Readonly<{
+  isPinned: boolean;
+  isShuttingDown: boolean;
+  className: string;
+  onTogglePin?: (() => void) | undefined;
+}>): JSX.Element {
+  const { t } = useI18n();
+  const ariaLabel = isPinned
+    ? t("shell.window.unpinAria")
+    : t("shell.window.pinAria");
+
+  return (
+    <IconControlButton
+      iconId={isPinned ? "shell.window.unpin" : "shell.window.pin"}
+      preferAnimated={false}
+      ariaLabel={ariaLabel}
+      tooltipLabel={ariaLabel}
+      ariaPressed={isPinned}
+      testId="control-window-pin"
+      disabled={isShuttingDown}
+      onClick={() => {
+        onTogglePin?.();
+      }}
+      className={clsx(className, isPinned && styles.windowControlButtonPinActive)}
+    />
+  );
+}
+
 function MacOsShellWindowControls({
   isShuttingDown,
   maximizeEnabled,
   isMaximized,
+  isPinned,
   onMinimize,
   onClose,
   onRestart,
   onToggleMaximize,
+  onTogglePin,
 }: Omit<ShellWindowControlsProps, "platform" | "showNativeWindowControls">): JSX.Element {
   const { t } = useI18n();
   const showMaximize = maximizeEnabled === true;
+  const pinned = isPinned === true;
 
   return (
     <div
@@ -106,6 +144,12 @@ function MacOsShellWindowControls({
         testId="control-window-minimize"
         disabled={isShuttingDown}
         onClick={onMinimize}
+      />
+      <PinWindowControlButton
+        isPinned={pinned}
+        isShuttingDown={isShuttingDown}
+        className={styles.macOsPinControl}
+        onTogglePin={onTogglePin}
       />
       {showMaximize ? (
         <MacOsTrafficLight
@@ -151,8 +195,8 @@ function MacOsShellWindowControls({
 }
 
 /**
- * - Purpose: render custom shell window controls; settings work-area fill toggle (F-016).
- * - Inputs: platform visibility, shutdown, maximize state, and control callbacks.
+ * - Purpose: render custom shell window controls; settings work-area fill + always-on-top pin (F-016).
+ * - Inputs: platform visibility, shutdown, maximize/pin state, and control callbacks.
  * - Outputs: draggable-safe window control buttons for frameless shell.
  * @uiMeta lf=LF-079 f=F-016
  */
@@ -162,10 +206,12 @@ export function ShellWindowControls({
   isShuttingDown,
   maximizeEnabled = false,
   isMaximized = false,
+  isPinned = false,
   onMinimize,
   onClose,
   onRestart,
   onToggleMaximize,
+  onTogglePin,
 }: ShellWindowControlsProps): JSX.Element {
   const { t } = useI18n();
   const isMacOs = platform === "darwin";
@@ -177,10 +223,12 @@ export function ShellWindowControls({
         isShuttingDown={isShuttingDown}
         maximizeEnabled={maximizeEnabled}
         isMaximized={isMaximized}
+        isPinned={isPinned}
         onMinimize={onMinimize}
         onClose={onClose}
         onRestart={onRestart}
         {...(onToggleMaximize !== undefined ? { onToggleMaximize } : {})}
+        {...(onTogglePin !== undefined ? { onTogglePin } : {})}
       />
     );
   }
@@ -223,6 +271,12 @@ export function ShellWindowControls({
           className={styles.windowControlButton}
         />
       ) : null}
+      <PinWindowControlButton
+        isPinned={isPinned}
+        isShuttingDown={isShuttingDown}
+        className={styles.windowControlButton}
+        onTogglePin={onTogglePin}
+      />
       <IconControlButton
         iconId="shell.restart"
         preferAnimated={false}

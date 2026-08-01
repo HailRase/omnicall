@@ -160,6 +160,12 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     true,
     errors,
   );
+  const windowAlwaysOnTop = readBooleanWithDefault(
+    record,
+    "windowAlwaysOnTop",
+    false,
+    errors,
+  );
   const headsetPreferredDeviceId = readOptionalNonEmptyString(
     record,
     "headsetPreferredDeviceId",
@@ -228,6 +234,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       codecPreferences,
       headsetEnabled,
       headsetAutoReconnect,
+      windowAlwaysOnTop,
       headsetPreferredDeviceId,
       preferredAudioInputDeviceId,
       preferredVideoInputDeviceId,

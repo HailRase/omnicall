@@ -42,6 +42,8 @@ import {
   PhoneOff,
   PhoneOutgoing,
   Pencil,
+  Pin,
+  PinOff,
   Play,
   Plus,
   RefreshCcw,
@@ -109,6 +111,8 @@ export type IconSemanticId =
   | "shell.window.minimize"
   | "shell.window.maximize"
   | "shell.window.restore"
+  | "shell.window.pin"
+  | "shell.window.unpin"
   | "shell.window.close"
   | "shell.nav.back"
   | "shell.contacts"
@@ -235,6 +239,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.shell.window.restore",
     defaultSize: 16,
     usage: ["ShellWindowControls: control-window-maximize (restore)"],
+  },
+  "shell.window.pin": {
+    static: Pin,
+    defaultLabelKey: "icons.shell.window.pin",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-pin"],
+  },
+  "shell.window.unpin": {
+    static: PinOff,
+    defaultLabelKey: "icons.shell.window.unpin",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-pin (active)"],
   },
   "shell.window.close": {
     static: X,
