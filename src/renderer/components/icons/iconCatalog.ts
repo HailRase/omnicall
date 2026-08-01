@@ -15,6 +15,7 @@ import {
   CircleAlert,
   CircleCheck,
   CircleDashed,
+  CircleHelp,
   CircleX,
   Coffee,
   Delete,
@@ -77,6 +78,7 @@ import {
   ChevronRightIcon,
   CircleCheckIcon,
   CircleDashedIcon,
+  CircleHelpIcon,
   CoffeeIcon,
   DeleteIcon,
   HourglassIcon,
@@ -137,6 +139,7 @@ export type IconSemanticId =
   | "settings.integrations.external-services.add"
   | "settings.integrations.external-services.panelExpand"
   | "settings.integrations.external-services.panelCollapse"
+  | "settings.integrations.external-services.variableHelp"
   | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
@@ -407,6 +410,13 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.externalServices.panelCollapse",
     defaultSize: 14,
     usage: ["ExternalServicesResponsePane: collapse"],
+  },
+  "settings.integrations.external-services.variableHelp": {
+    static: CircleHelp,
+    animated: CircleHelpIcon,
+    defaultLabelKey: "icons.settings.integrations.externalServices.variableHelp",
+    defaultSize: 14,
+    usage: ["ExternalServicesSystemVariablesHelp: variable help"],
   },
   "settings.integrations.sdk": {
     static: Blocks,

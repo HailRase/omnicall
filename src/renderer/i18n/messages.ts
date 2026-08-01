@@ -26,6 +26,7 @@ const ruMessages = {
   "icons.settings.integrations.externalServices.add": "Добавить",
   "icons.settings.integrations.externalServices.panelExpand": "Развернуть панель ответа",
   "icons.settings.integrations.externalServices.panelCollapse": "Свернуть панель ответа",
+  "icons.settings.integrations.externalServices.variableHelp": "Справка по переменной",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Подключение внешних модулей к softphone.",
   "settings.integrations.externalApplications.title": "Внешние приложения",
@@ -53,8 +54,9 @@ const ruMessages = {
   "settings.integrations.externalApplications.actions.rename": "Переименовать",
   "settings.integrations.externalApplications.actions.duplicate": "Дублировать",
   "settings.integrations.externalApplications.actions.delete": "Удалить",
-  "settings.integrations.externalApplications.variables": "Переменные",
+  "settings.integrations.externalApplications.variables": "Свои переменные",
   "settings.integrations.externalApplications.variablesAdd": "Добавить переменную",
+  "settings.integrations.externalApplications.variablesWhenHint": "Свои · всегда",
   "settings.integrations.externalApplications.variableKey": "Ключ",
   "settings.integrations.externalApplications.variableValue": "Значение",
   "settings.integrations.externalApplications.welcome": "Выберите приложение",
@@ -127,9 +129,9 @@ const ruMessages = {
     `Коллекция «${params.name}» и все её запросы будут удалены из активного профиля.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Переменные коллекции",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Свои константы для всех запросов коллекции. В URL, Params, Headers и Body пишите {{ключ}}.",
+    "Свои константы для всех запросов коллекции (всегда доступны). В URL, Params, Headers и Body пишите {{ключ}}.",
   "settings.integrations.externalServices.collections.variablesHint":
-    "Общие значения коллекции (хост, токен). Системные поля звонка — во вкладке Variables у запроса; системные имена нельзя подменить.",
+    "Общие значения коллекции (хост, токен) — всегда. Системные поля — во вкладке Variables у запроса; системные имена нельзя подменить.",
   "settings.integrations.externalServices.collections.variablesExample":
     "Пример: {{base_url}}/hooks/ring · {{api_token}}",
   "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
@@ -307,6 +309,54 @@ const ruMessages = {
     "Подсказки переменных шаблона",
   "settings.integrations.externalServices.variables.autocompleteKind.system": "Системная",
   "settings.integrations.externalServices.variables.autocompleteKind.collection": "Коллекция",
+  "settings.integrations.externalServices.variables.when.always": "Всегда",
+  "settings.integrations.externalServices.variables.when.call": "Звонок",
+  "settings.integrations.externalServices.variables.when.campaign": "Кампания",
+  "settings.integrations.externalServices.variables.when.acd": "ACD",
+  "settings.integrations.externalServices.variables.when.campaignAndAcd": "Кампания / ACD",
+  "settings.integrations.externalServices.variables.whenHint.always": "На любом событии",
+  "settings.integrations.externalServices.variables.whenHint.call": "Только события звонка",
+  "settings.integrations.externalServices.variables.whenHint.campaign": "Только события кампании",
+  "settings.integrations.externalServices.variables.whenHint.acd": "Только ACD-контекст",
+  "settings.integrations.externalServices.variables.contextHint":
+    "Вне своего контекста → undefined",
+  "settings.integrations.externalServices.variables.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Что означает «${params.name}»`,
+  "settings.integrations.externalServices.variables.help.timestamp":
+    "Время, когда сработало событие (UTC).",
+  "settings.integrations.externalServices.variables.help.event_type":
+    "Код события триггера — что именно произошло (звонок, кампания и т.д.).",
+  "settings.integrations.externalServices.variables.help.user_login":
+    "Логин оператора активного профиля.",
+  "settings.integrations.externalServices.variables.help.call_id":
+    "Внутренний ID звонка в softphone.",
+  "settings.integrations.externalServices.variables.help.caller_id":
+    "Кто звонит — номер или ID абонента.",
+  "settings.integrations.externalServices.variables.help.called_id":
+    "Кому звонят — номер или ID.",
+  "settings.integrations.externalServices.variables.help.call_direction":
+    "Направление звонка: inbound (входящий) или outbound (исходящий).",
+  "settings.integrations.externalServices.variables.help.hangup_reason":
+    "Почему звонок завершился (отклонение, пропуск, DND). При обычном сбросе после разговора часто undefined.",
+  "settings.integrations.externalServices.variables.help.campaign_id":
+    "Идентификатор кампании из OCP.",
+  "settings.integrations.externalServices.variables.help.campaign_progressive":
+    "Прогрессивная кампания: true или false.",
+  "settings.integrations.externalServices.variables.help.campaign_client_phone":
+    "Телефон клиента из предложения кампании.",
+  "settings.integrations.externalServices.variables.help.campaign_company":
+    "Название компании в кампании.",
+  "settings.integrations.externalServices.variables.help.campaign_strategy":
+    "Название стратегии кампании.",
+  "settings.integrations.externalServices.variables.help.campaign_selection":
+    "Название выборки кампании.",
+  "settings.integrations.externalServices.variables.help.queue_name":
+    "Название очереди (из кампании или ACD).",
+  "settings.integrations.externalServices.variables.help.acd_phase":
+    "Когда softphone получил данные очереди: progress — ещё идёт звонок, accepted — уже после ответа.",
+  "settings.integrations.externalServices.variables.help.acd_event":
+    "Какое событие очереди прислала OCP (например queued). Нужно для интеграций, не для экрана оператора.",
   "settings.integrations.externalServices.variables.group.always": "Общие",
   "settings.integrations.externalServices.variables.group.call": "Звонок",
   "settings.integrations.externalServices.variables.group.campaign": "Кампания",
@@ -335,7 +385,8 @@ const ruMessages = {
   "settings.integrations.externalServices.variables.desc.caller_id": "Номер или ID звонящего",
   "settings.integrations.externalServices.variables.desc.called_id": "Номер или ID вызываемого",
   "settings.integrations.externalServices.variables.desc.call_direction": "inbound или outbound",
-  "settings.integrations.externalServices.variables.desc.hangup_reason": "Причина hangup",
+  "settings.integrations.externalServices.variables.desc.hangup_reason":
+    "Причина hangup · обычно call_ended",
   "settings.integrations.externalServices.variables.desc.campaign_id": "Идентификатор кампании",
   "settings.integrations.externalServices.variables.desc.campaign_progressive": "true или false",
   "settings.integrations.externalServices.variables.desc.campaign_client_phone": "Телефон клиента",
@@ -1730,6 +1781,7 @@ const enMessages: MessageShape = {
   "icons.settings.integrations.externalServices.add": "Add",
   "icons.settings.integrations.externalServices.panelExpand": "Expand response pane",
   "icons.settings.integrations.externalServices.panelCollapse": "Collapse response pane",
+  "icons.settings.integrations.externalServices.variableHelp": "Variable help",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connect external modules to the softphone.",
   "settings.integrations.externalApplications.title": "External Applications",
@@ -1757,8 +1809,9 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Rename",
   "settings.integrations.externalApplications.actions.duplicate": "Duplicate",
   "settings.integrations.externalApplications.actions.delete": "Delete",
-  "settings.integrations.externalApplications.variables": "Variables",
+  "settings.integrations.externalApplications.variables": "Custom variables",
   "settings.integrations.externalApplications.variablesAdd": "Add variable",
+  "settings.integrations.externalApplications.variablesWhenHint": "Custom · always",
   "settings.integrations.externalApplications.variableKey": "Key",
   "settings.integrations.externalApplications.variableValue": "Value",
   "settings.integrations.externalApplications.welcome": "Select an application",
@@ -1831,9 +1884,9 @@ const enMessages: MessageShape = {
     `Collection “${params.name}” and all of its requests will be removed from the active profile.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Collection variables",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Shared constants for every request in this collection. Use {{key}} in URL, Params, Headers, and Body.",
+    "Shared constants for every request in this collection (always available). Use {{key}} in URL, Params, Headers, and Body.",
   "settings.integrations.externalServices.collections.variablesHint":
-    "Collection-wide values (host, token). Call system fields live on the request Variables tab; system names cannot be overridden.",
+    "Collection-wide values (host, token) — always. System call fields live on the request Variables tab; system names cannot be overridden.",
   "settings.integrations.externalServices.collections.variablesExample":
     "Example: {{base_url}}/hooks/ring · {{api_token}}",
   "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
@@ -1977,6 +2030,54 @@ const enMessages: MessageShape = {
     "Template variable suggestions",
   "settings.integrations.externalServices.variables.autocompleteKind.system": "System",
   "settings.integrations.externalServices.variables.autocompleteKind.collection": "Collection",
+  "settings.integrations.externalServices.variables.when.always": "Always",
+  "settings.integrations.externalServices.variables.when.call": "Call",
+  "settings.integrations.externalServices.variables.when.campaign": "Campaign",
+  "settings.integrations.externalServices.variables.when.acd": "ACD",
+  "settings.integrations.externalServices.variables.when.campaignAndAcd": "Campaign / ACD",
+  "settings.integrations.externalServices.variables.whenHint.always": "On every trigger",
+  "settings.integrations.externalServices.variables.whenHint.call": "Call events only",
+  "settings.integrations.externalServices.variables.whenHint.campaign": "Campaign events only",
+  "settings.integrations.externalServices.variables.whenHint.acd": "ACD context only",
+  "settings.integrations.externalServices.variables.contextHint":
+    "Outside its context → undefined",
+  "settings.integrations.externalServices.variables.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `What “${params.name}” means`,
+  "settings.integrations.externalServices.variables.help.timestamp":
+    "When the trigger fired (UTC time).",
+  "settings.integrations.externalServices.variables.help.event_type":
+    "Trigger event code — what happened (call, campaign, etc.).",
+  "settings.integrations.externalServices.variables.help.user_login":
+    "Login of the active operator profile.",
+  "settings.integrations.externalServices.variables.help.call_id":
+    "Internal softphone call ID.",
+  "settings.integrations.externalServices.variables.help.caller_id":
+    "Who is calling — number or party ID.",
+  "settings.integrations.externalServices.variables.help.called_id":
+    "Who is being called — number or party ID.",
+  "settings.integrations.externalServices.variables.help.call_direction":
+    "Call direction: inbound or outbound.",
+  "settings.integrations.externalServices.variables.help.hangup_reason":
+    "Why the call ended (reject, miss, DND). After a normal hangup often undefined.",
+  "settings.integrations.externalServices.variables.help.campaign_id":
+    "Campaign ID from OCP.",
+  "settings.integrations.externalServices.variables.help.campaign_progressive":
+    "Whether the campaign is progressive: true or false.",
+  "settings.integrations.externalServices.variables.help.campaign_client_phone":
+    "Client phone from the campaign offer.",
+  "settings.integrations.externalServices.variables.help.campaign_company":
+    "Company name from the campaign offer.",
+  "settings.integrations.externalServices.variables.help.campaign_strategy":
+    "Strategy title from the campaign offer.",
+  "settings.integrations.externalServices.variables.help.campaign_selection":
+    "Selection title from the campaign offer.",
+  "settings.integrations.externalServices.variables.help.queue_name":
+    "Queue name from campaign or ACD context.",
+  "settings.integrations.externalServices.variables.help.acd_phase":
+    "When queue data arrived: progress — during the call, accepted — after answer.",
+  "settings.integrations.externalServices.variables.help.acd_event":
+    "Queue event name from OCP (e.g. queued). For integrations, not for the operator screen.",
   "settings.integrations.externalServices.variables.group.always": "General",
   "settings.integrations.externalServices.variables.group.call": "Call",
   "settings.integrations.externalServices.variables.group.campaign": "Campaign",
@@ -2005,7 +2106,8 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.variables.desc.caller_id": "Caller number or ID",
   "settings.integrations.externalServices.variables.desc.called_id": "Called number or ID",
   "settings.integrations.externalServices.variables.desc.call_direction": "inbound or outbound",
-  "settings.integrations.externalServices.variables.desc.hangup_reason": "Hangup reason",
+  "settings.integrations.externalServices.variables.desc.hangup_reason":
+    "Hangup reason · usually call_ended",
   "settings.integrations.externalServices.variables.desc.campaign_id": "Campaign identifier",
   "settings.integrations.externalServices.variables.desc.campaign_progressive": "true or false",
   "settings.integrations.externalServices.variables.desc.campaign_client_phone": "Campaign client phone",
@@ -3371,6 +3473,7 @@ const frMessages: MessageShape = {
   "icons.settings.integrations.externalServices.add": "Ajouter",
   "icons.settings.integrations.externalServices.panelExpand": "Agrandir le panneau de réponse",
   "icons.settings.integrations.externalServices.panelCollapse": "Réduire le panneau de réponse",
+  "icons.settings.integrations.externalServices.variableHelp": "Aide sur la variable",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connecter des modules externes au softphone.",
   "settings.integrations.externalApplications.title": "Applications externes",
@@ -3398,8 +3501,9 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Renommer",
   "settings.integrations.externalApplications.actions.duplicate": "Dupliquer",
   "settings.integrations.externalApplications.actions.delete": "Supprimer",
-  "settings.integrations.externalApplications.variables": "Variables",
+  "settings.integrations.externalApplications.variables": "Variables personnalisees",
   "settings.integrations.externalApplications.variablesAdd": "Ajouter une variable",
+  "settings.integrations.externalApplications.variablesWhenHint": "Perso · toujours",
   "settings.integrations.externalApplications.variableKey": "Clé",
   "settings.integrations.externalApplications.variableValue": "Valeur",
   "settings.integrations.externalApplications.welcome": "Sélectionnez une application",
@@ -3453,6 +3557,55 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.actions.menu": "Actions de la collection",
   "settings.integrations.externalServices.actions.editVariables": "Variables",
   "settings.integrations.externalServices.variables.group.always": "Général",
+  "settings.integrations.externalServices.variables.when.always": "Toujours",
+  "settings.integrations.externalServices.variables.when.call": "Appel",
+  "settings.integrations.externalServices.variables.when.campaign": "Campagne",
+  "settings.integrations.externalServices.variables.when.acd": "ACD",
+  "settings.integrations.externalServices.variables.when.campaignAndAcd": "Campagne / ACD",
+  "settings.integrations.externalServices.variables.whenHint.always": "A chaque declencheur",
+  "settings.integrations.externalServices.variables.whenHint.call": "Evenements d'appel uniquement",
+  "settings.integrations.externalServices.variables.whenHint.campaign":
+    "Evenements de campagne uniquement",
+  "settings.integrations.externalServices.variables.whenHint.acd": "Contexte ACD uniquement",
+  "settings.integrations.externalServices.variables.contextHint":
+    "Hors contexte → undefined",
+  "settings.integrations.externalServices.variables.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Que signifie « ${params.name} »`,
+  "settings.integrations.externalServices.variables.help.timestamp":
+    "Moment du declenchement (heure UTC).",
+  "settings.integrations.externalServices.variables.help.event_type":
+    "Code de l'evenement declencheur — ce qui s'est produit.",
+  "settings.integrations.externalServices.variables.help.user_login":
+    "Identifiant de l'operateur du profil actif.",
+  "settings.integrations.externalServices.variables.help.call_id":
+    "ID interne de l'appel dans le softphone.",
+  "settings.integrations.externalServices.variables.help.caller_id":
+    "Qui appelle — numero ou ID.",
+  "settings.integrations.externalServices.variables.help.called_id":
+    "Qui est appele — numero ou ID.",
+  "settings.integrations.externalServices.variables.help.call_direction":
+    "Sens de l'appel : inbound ou outbound.",
+  "settings.integrations.externalServices.variables.help.hangup_reason":
+    "Pourquoi l'appel s'est termine (rejet, manque, DND). Apres un raccroche normal souvent undefined.",
+  "settings.integrations.externalServices.variables.help.campaign_id":
+    "ID de campagne OCP.",
+  "settings.integrations.externalServices.variables.help.campaign_progressive":
+    "Campagne progressive : true ou false.",
+  "settings.integrations.externalServices.variables.help.campaign_client_phone":
+    "Telephone client de l'offre de campagne.",
+  "settings.integrations.externalServices.variables.help.campaign_company":
+    "Nom de l'entreprise de la campagne.",
+  "settings.integrations.externalServices.variables.help.campaign_strategy":
+    "Titre de la strategie de campagne.",
+  "settings.integrations.externalServices.variables.help.campaign_selection":
+    "Titre de la selection de campagne.",
+  "settings.integrations.externalServices.variables.help.queue_name":
+    "Nom de la file (campagne ou ACD).",
+  "settings.integrations.externalServices.variables.help.acd_phase":
+    "Quand les donnees de file sont arrivees : progress — pendant l'appel, accepted — apres reponse.",
+  "settings.integrations.externalServices.variables.help.acd_event":
+    "Nom d'evenement de file OCP (ex. queued). Pour les integrations, pas pour l'ecran operateur.",
   "settings.integrations.externalServices.collections.emptyTitle": "Aucune collection",
   "settings.integrations.externalServices.collections.emptyDescription":
     "Creez une collection de requetes HTTP ou importez un fichier JSON.",
@@ -3474,9 +3627,9 @@ const frMessages: MessageShape = {
     `La collection « ${params.name} » et toutes ses requetes seront supprimees du profil actif.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Variables de collection",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Constantes partagees pour toutes les requetes. Ecrivez {{cle}} dans URL, Params, Headers et Body.",
+    "Constantes partagees pour toutes les requetes (toujours disponibles). Ecrivez {{cle}} dans URL, Params, Headers et Body.",
   "settings.integrations.externalServices.collections.variablesHint":
-    "Valeurs communes (hote, jeton). Les champs systeme d'appel sont dans l'onglet Variables de la requete ; les noms systeme ne peuvent pas etre remplaces.",
+    "Valeurs communes (hote, jeton) — toujours. Les champs systeme sont dans l'onglet Variables de la requete ; les noms systeme ne peuvent pas etre remplaces.",
   "settings.integrations.externalServices.collections.variablesExample":
     "Exemple : {{base_url}}/hooks/ring · {{api_token}}",
   "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
@@ -4960,6 +5113,7 @@ const deMessages: MessageShape = {
   "icons.settings.integrations.externalServices.add": "Hinzufügen",
   "icons.settings.integrations.externalServices.panelExpand": "Antwortbereich erweitern",
   "icons.settings.integrations.externalServices.panelCollapse": "Antwortbereich einklappen",
+  "icons.settings.integrations.externalServices.variableHelp": "Hilfe zur Variable",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Externe Module mit dem Softphone verbinden.",
   "settings.integrations.externalApplications.title": "Externe Anwendungen",
@@ -4987,8 +5141,9 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Umbenennen",
   "settings.integrations.externalApplications.actions.duplicate": "Duplizieren",
   "settings.integrations.externalApplications.actions.delete": "Löschen",
-  "settings.integrations.externalApplications.variables": "Variablen",
+  "settings.integrations.externalApplications.variables": "Eigene Variablen",
   "settings.integrations.externalApplications.variablesAdd": "Variable hinzufügen",
+  "settings.integrations.externalApplications.variablesWhenHint": "Eigene · immer",
   "settings.integrations.externalApplications.variableKey": "Schlüssel",
   "settings.integrations.externalApplications.variableValue": "Wert",
   "settings.integrations.externalApplications.welcome": "Anwendung auswählen",
@@ -5042,6 +5197,54 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.actions.menu": "Sammlungsaktionen",
   "settings.integrations.externalServices.actions.editVariables": "Variablen",
   "settings.integrations.externalServices.variables.group.always": "Allgemein",
+  "settings.integrations.externalServices.variables.when.always": "Immer",
+  "settings.integrations.externalServices.variables.when.call": "Anruf",
+  "settings.integrations.externalServices.variables.when.campaign": "Kampagne",
+  "settings.integrations.externalServices.variables.when.acd": "ACD",
+  "settings.integrations.externalServices.variables.when.campaignAndAcd": "Kampagne / ACD",
+  "settings.integrations.externalServices.variables.whenHint.always": "Bei jedem Trigger",
+  "settings.integrations.externalServices.variables.whenHint.call": "Nur Anruf-Ereignisse",
+  "settings.integrations.externalServices.variables.whenHint.campaign": "Nur Kampagnen-Ereignisse",
+  "settings.integrations.externalServices.variables.whenHint.acd": "Nur ACD-Kontext",
+  "settings.integrations.externalServices.variables.contextHint":
+    "Ausserhalb des Kontexts → undefined",
+  "settings.integrations.externalServices.variables.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Was bedeutet „${params.name}“`,
+  "settings.integrations.externalServices.variables.help.timestamp":
+    "Zeitpunkt des Triggers (UTC).",
+  "settings.integrations.externalServices.variables.help.event_type":
+    "Ereigniscode — was ausgeloest wurde.",
+  "settings.integrations.externalServices.variables.help.user_login":
+    "Login des aktiven Operator-Profils.",
+  "settings.integrations.externalServices.variables.help.call_id":
+    "Interne Softphone-Anruf-ID.",
+  "settings.integrations.externalServices.variables.help.caller_id":
+    "Wer anruft — Nummer oder ID.",
+  "settings.integrations.externalServices.variables.help.called_id":
+    "Wen angerufen wird — Nummer oder ID.",
+  "settings.integrations.externalServices.variables.help.call_direction":
+    "Richtung: inbound oder outbound.",
+  "settings.integrations.externalServices.variables.help.hangup_reason":
+    "Warum der Anruf endete (Ablehnung, verpasst, DND). Nach normalem Auflegen oft undefined.",
+  "settings.integrations.externalServices.variables.help.campaign_id":
+    "Kampagnen-ID aus OCP.",
+  "settings.integrations.externalServices.variables.help.campaign_progressive":
+    "Progressive Kampagne: true oder false.",
+  "settings.integrations.externalServices.variables.help.campaign_client_phone":
+    "Kundentelefon aus dem Kampagnenangebot.",
+  "settings.integrations.externalServices.variables.help.campaign_company":
+    "Firmenname der Kampagne.",
+  "settings.integrations.externalServices.variables.help.campaign_strategy":
+    "Strategietitel der Kampagne.",
+  "settings.integrations.externalServices.variables.help.campaign_selection":
+    "Auswahltitel der Kampagne.",
+  "settings.integrations.externalServices.variables.help.queue_name":
+    "Warteschlangenname (Kampagne oder ACD).",
+  "settings.integrations.externalServices.variables.help.acd_phase":
+    "Wann Warteschlangendaten kamen: progress — waehrend des Anrufs, accepted — nach Annahme.",
+  "settings.integrations.externalServices.variables.help.acd_event":
+    "Warteschlangen-Ereignisname von OCP (z. B. queued). Fuer Integrationen, nicht fuer die Operator-UI.",
   "settings.integrations.externalServices.collections.emptyTitle": "Noch keine Sammlungen",
   "settings.integrations.externalServices.collections.emptyDescription":
     "Erstellen Sie eine HTTP-Anfragesammlung oder importieren Sie eine JSON-Datei.",
@@ -5063,9 +5266,9 @@ const deMessages: MessageShape = {
     `Sammlung „${params.name}“ und alle zugehoerigen Anfragen werden aus dem aktiven Profil entfernt.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Sammlungsvariablen",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Gemeinsame Konstanten fuer alle Anfragen. Schreiben Sie {{schluessel}} in URL, Params, Headers und Body.",
+    "Gemeinsame Konstanten fuer alle Anfragen (immer verfuegbar). Schreiben Sie {{schluessel}} in URL, Params, Headers und Body.",
   "settings.integrations.externalServices.collections.variablesHint":
-    "Sammlungswerte (Host, Token). Systemfelder des Anrufs stehen im Reiter Variables der Anfrage; Systemnamen koennen nicht ersetzt werden.",
+    "Sammlungswerte (Host, Token) — immer. Systemfelder stehen im Reiter Variables der Anfrage; Systemnamen koennen nicht ersetzt werden.",
   "settings.integrations.externalServices.collections.variablesExample":
     "Beispiel: {{base_url}}/hooks/ring · {{api_token}}",
   "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",

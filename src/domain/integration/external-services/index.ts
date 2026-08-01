@@ -68,6 +68,7 @@ export type {
 } from "./template/buildExternalServiceVariables.js";
 export { buildExternalServiceVariables } from "./template/buildExternalServiceVariables.js";
 export type {
+  ExternalServiceVariableAvailabilityId,
   ExternalServiceVariableCatalogEntry,
   ExternalServiceVariableCatalogGroupId,
 } from "./template/ExternalServiceVariableCatalog.js";
@@ -78,6 +79,7 @@ export {
   formatExternalServiceVariableToken,
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
+  resolveExternalServiceSystemVariableAvailability,
 } from "./template/ExternalServiceVariableCatalog.js";
 export type {
   ExternalServiceCollectionVariableRowInspection,

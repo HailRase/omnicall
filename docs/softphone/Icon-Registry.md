@@ -45,6 +45,7 @@
 | `settings.integrations.external-services.add` | New collection / quick-add in External Services; Add in External Applications sidebar | `Plus` | — | `ExternalServicesSidebar`, `ExternalApplicationsSidebar` | active |
 | `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |
 | `settings.integrations.external-services.panelCollapse` | Collapse Response/History pane | `Minimize2` | — | `ExternalServicesResponsePane` | active |
+| `settings.integrations.external-services.variableHelp` | Explain a template variable in Variables catalog | `CircleHelp` | `CircleHelpIcon` | `ExternalServicesSystemVariablesHelp` | active |
 | `settings.integrations.sdk` | Settings OmniCall Kit child under Integrations | `Blocks` | — | `SettingsSidebar` | active |
 | `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |

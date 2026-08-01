@@ -340,6 +340,7 @@
 }
 
 .editor-tab-body {
+  position: relative;
   min-height: 0;
   margin-top: var(--space-sm);
   padding-bottom: var(--space-md);
@@ -486,6 +487,13 @@
   color: var(--color-text-danger);
 }
 
+.variables-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
 .variables {
   display: flex;
   flex: 0 0 auto;
@@ -500,9 +508,23 @@
 
 .variables-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-sm);
+}
+
+.variables-header-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.variables-when-hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.35;
 }
 
 .section-title,

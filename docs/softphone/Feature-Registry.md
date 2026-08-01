@@ -1118,6 +1118,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (variables UI polish 2026-07-30): removed URL-bar template hint; compact Variables labels/descriptions; tab content spacing aligned to `--space-sm`/`--space-md`.
 - Implementation evidence (template autocomplete 2026-07-30): URL/Params/Headers/Body fields open suggestions on `{{` (system + collection; case-sensitive prefix filter; Enter/click insert; single `{` ignored); caret-aware Variables Insert; pure helpers + field tests under `templateAutocomplete/`; docs `05-UI-UX.md`; i18n `variables.autocomplete*`.
 - Implementation evidence (post-call trigger 2026-07-31): additive automatic code `post_call_processing` shared with F-032; `mapDomainEventToExternalServiceTrigger` maps `OperatorStatusChanged` only when `newStatus === POST_CALL_PROCESSING`; operator-level (not focus-gated); call variables unset; i18n `settings.integrations.externalServices.trigger.post_call_processing` ru/en/fr/de/bg; mapper + match tests; docs `03-EVENTS-AND-VARIABLES.md` / handoff / product spec synced; no schema bump (additive allowlist).
+- Implementation evidence (variable availability UX 2026-08-01): Domain `resolveExternalServiceSystemVariableAvailability`; `{{` autocomplete shows `System|Collection · {when}`; Variables tab group when-hints + context line; i18n `variables.when*` / `whenHint*` / `contextHint` ru/en/fr/de/bg; tests catalog + autocomplete builders/field; docs `03-EVENTS-AND-VARIABLES.md` / `05-UI-UX.md` synced; template resolve behavior unchanged.
+- Implementation evidence (variable help popups 2026-08-01): Variables catalog rows show `?` (`settings.integrations.external-services.variableHelp`) opening click popup with `variables.help.*`; shared ES/EA Variables tab; tests `ExternalServicesVariableHelpButton.test.tsx`; Icon-Registry synced.
 
 ## F-032: External Applications (Call Screen-Pop Windows)
 
@@ -1138,7 +1140,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Own **Conditions** tab: direction (default any) + multi-queue list (empty = any); shared by every trigger; fail-closed when facts missing; Open now ignores conditions.
   - **Window behavior** (electron_window): raise on open, always-on-top during call, on call end leave/minimize/close; lifecycle runs before terminal-event opens.
   - Sidebar **History** lists last 100 opens/skips/failures (journal excluded from F-030).
-  - URL field reuses F-031 `{{` autocomplete; system variables from shared catalog; missing token → literal `undefined`.
+  - URL field reuses F-031 `{{` autocomplete with when-available labels; Variables tab shows shared system catalog (browse) + authored vars (always); missing token → literal `undefined`.
   - Multiple matching apps on one event → multiple windows; same `applicationId:callId` focuses existing window.
   - Invalid resolved URL skipped (logged + journal); focus-gated call events; operator-level `campaign_*` + `post_call_processing`; logout/profile switch cancels delayed jobs.
   - Typed IPC only (`OpenExternalApplicationWindowContract` + `apply-call-ended`); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated.
@@ -1153,3 +1155,4 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (post-call trigger 2026-07-31): reuses F-031 `post_call_processing` via shared mapper + `ExternalServicesTriggerList`; match test covers operator-level (no focus gate); design `P14-External-Applications-Design.md` synced
 - Implementation evidence (Settings UI refresh 2026-07-31): sidebar without header chrome; fixed Add footer; per-item status dots + actions; History nav; conditions + window behavior; `ExternalApplicationsPanel.test.tsx`
 - Implementation evidence (conditions/history/lifecycle 2026-07-31): `evaluateExternalApplicationConditions`; journal port/file adapter; `applyCallEndedLifecycle` IPC; schema **v16** multi-queue Conditions tab; migration + unit/panel tests
+- Implementation evidence (variable availability UX 2026-08-01): Variables tab embeds shared F-031 system catalog (browse-only + when subtitles + `?` help) above authored key/value (`variablesWhenHint`); reuses F-031 autocomplete when labels; design `P14-External-Applications-Design.md` synced

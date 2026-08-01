@@ -109,8 +109,8 @@ external-services-variables-system-warning
 - Tabs: Params / Headers / Body / Triggers / Variables; Params/Headers/Triggers show `(N)` for enabled/selected counts when N > 0; Body uses horizontal radio body-mode selector (none/json/urlencoded/raw only).
 - Compact key/value rows for Params and Headers (narrow inputs + compact Add row).
 - Triggers list uses padded card layout under tabs and explains focused-line + Variables tab.
-- Variables tab: compact catalog (groups always/call/campaign/acd) with short label + `{{token}}` + brief description, insert-target line, and Insert into focused URL/Body.
-- Template fields (URL, Params/Headers values, Body): typing `{{` opens variable autocomplete (system + collection); prefix filters; Enter/click inserts `{{name}}`; single `{` does not open.
+- Variables tab: compact catalog (groups always/call/campaign/acd) with **when-available subtitle per group**, short label + clickable `?` help popup (operator-facing meaning; portals into nearest scroll pane with Floating UI flip/shift; local z-index, not `document.body`) + `{{token}}`, one-line context hint (`Outside its context → undefined`), insert-target line, and Insert into focused URL/Body.
+- Template fields (URL, Params/Headers values, Body): typing `{{` opens variable autocomplete (system + collection); each option shows `System|Collection · {when}`; prefix filters; Enter/click inserts `{{name}}`; single `{` does not open.
 - URL placeholder demonstrates `{{call_id}}`.
 - Collection variables dialog clarifies custom vs system names (system precedence) with validation (see Collection variables dialog).
 - Bottom pane: taller Response | History with collapse/expand icon toggle.

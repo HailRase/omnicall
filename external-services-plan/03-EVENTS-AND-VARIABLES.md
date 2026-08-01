@@ -111,13 +111,26 @@ Do not expose `mainAcallId`, `acallId`, raw OCP payloads, OCP auth material, or 
 
 ### Discoverability (product UI)
 
-- Domain SSoT: `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`).
-- Request editor Variables tab renders that catalog with localized descriptions and Insert into URL/Body.
-- Collection workspace always shows a compact custom-variables preview (hint, example, `{{token}}` column).
+- Domain SSoT: `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`, `resolveExternalServiceSystemVariableAvailability`).
+- Request editor Variables tab renders that catalog with localized labels, clickable `?` help popups (operator-facing `variables.help.*`), **group when-available subtitles** (`always` / `call` / `campaign` / `acd`), compact context hint (`Outside its context → undefined`), and Insert into URL/Body.
+- `{{` autocomplete shows `System|Collection · {when}` (authored collection keys → Always; dual-listed `queue_name` → Campaign / ACD).
+- Collection workspace always shows a compact custom-variables preview (hint, example, `{{token}}` column); collection vars are always available.
 - Collection variables dialog: example syntax, live inspection via `inspectExternalServiceCollectionVariableRows`, save blocked on duplicate/empty-key-with-value; soft warning for system-name collisions.
 - Normalize/save path: `normalizeExternalServiceCollectionVariables` (Domain) used by `replaceExternalServiceCollectionVariables`.
-- URL bar hint + collection-variables dialog explain `{{name}}` syntax and system-name precedence.
 - Keep UI catalog names in sync with `buildExternalServiceVariables` and campaign/ACD mappers; extend Domain catalog first when adding variables.
+
+### Availability labels (UI contract)
+
+| Catalog group | When label (compact) | Filled on |
+| --- | --- | --- |
+| `always` | Always | Every trigger / manual run |
+| `call` | Call | Focused call lifecycle (+ ACD merge into call tracker) |
+| `campaign` | Campaign | `campaign_offered` / `accepted` / `rejected` |
+| `acd` | ACD | `acd_context_appeared` |
+| authored (collection / EA) | Always | Every run (user constants) |
+| `queue_name` (dual) | Campaign / ACD | Campaign or ACD additive maps |
+
+Missing / out-of-context tokens still resolve to the literal `undefined` (template algorithm unchanged).
 
 ## Collection variables (authored)
 

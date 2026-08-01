@@ -634,6 +634,7 @@ export const bgMessages: MessageShape = {
   "icons.settings.integrations.externalServices.add": "Добави",
   "icons.settings.integrations.externalServices.panelExpand": "Разгъни панела за отговор",
   "icons.settings.integrations.externalServices.panelCollapse": "Свий панела за отговор",
+  "icons.settings.integrations.externalServices.variableHelp": "Справка за променливата",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Свързване на външни модули към softphone.",
   "settings.integrations.externalApplications.title": "Външни приложения",
@@ -661,8 +662,9 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Преименувай",
   "settings.integrations.externalApplications.actions.duplicate": "Дублирай",
   "settings.integrations.externalApplications.actions.delete": "Изтрий",
-  "settings.integrations.externalApplications.variables": "Променливи",
+  "settings.integrations.externalApplications.variables": "Собствени променливи",
   "settings.integrations.externalApplications.variablesAdd": "Добави променлива",
+  "settings.integrations.externalApplications.variablesWhenHint": "Собствени · винаги",
   "settings.integrations.externalApplications.variableKey": "Ключ",
   "settings.integrations.externalApplications.variableValue": "Стойност",
   "settings.integrations.externalApplications.welcome": "Изберете приложение",
@@ -736,9 +738,9 @@ export const bgMessages: MessageShape = {
     `Колекция „${params.name}“ и всичките ѝ заявки ще бъдат премахнати от активния профил.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Променливи на колекцията",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Общи константи за всички заявки в колекцията. В URL, Params, Headers и Body пишете {{ключ}}.",
+    "Общи константи за всички заявки в колекцията (винаги налични). В URL, Params, Headers и Body пишете {{ключ}}.",
   "settings.integrations.externalServices.collections.variablesHint":
-    "Общи стойности (хост, токен). Системните полета на обаждането са във вкладката Variables на заявката; системните имена не могат да се подменят.",
+    "Общи стойности (хост, токен) — винаги. Системните полета са във вкладката Variables на заявката; системните имена не могат да се подменят.",
   "settings.integrations.externalServices.collections.variablesExample":
     "Пример: {{base_url}}/hooks/ring · {{api_token}}",
   "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
@@ -916,6 +918,54 @@ export const bgMessages: MessageShape = {
     "Подсказки за шаблонни променливи",
   "settings.integrations.externalServices.variables.autocompleteKind.system": "Системна",
   "settings.integrations.externalServices.variables.autocompleteKind.collection": "Колекция",
+  "settings.integrations.externalServices.variables.when.always": "Винаги",
+  "settings.integrations.externalServices.variables.when.call": "Обаждане",
+  "settings.integrations.externalServices.variables.when.campaign": "Кампания",
+  "settings.integrations.externalServices.variables.when.acd": "ACD",
+  "settings.integrations.externalServices.variables.when.campaignAndAcd": "Кампания / ACD",
+  "settings.integrations.externalServices.variables.whenHint.always": "При всяко събитие",
+  "settings.integrations.externalServices.variables.whenHint.call": "Само събития на обаждане",
+  "settings.integrations.externalServices.variables.whenHint.campaign": "Само събития на кампания",
+  "settings.integrations.externalServices.variables.whenHint.acd": "Само ACD контекст",
+  "settings.integrations.externalServices.variables.contextHint":
+    "Извън своя контекст → undefined",
+  "settings.integrations.externalServices.variables.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Какво означава „${params.name}“`,
+  "settings.integrations.externalServices.variables.help.timestamp":
+    "Време на събитието (UTC).",
+  "settings.integrations.externalServices.variables.help.event_type":
+    "Код на събитието — какво се е случило.",
+  "settings.integrations.externalServices.variables.help.user_login":
+    "Логин на активния операторски профил.",
+  "settings.integrations.externalServices.variables.help.call_id":
+    "Вътрешен ID на обаждането в softphone.",
+  "settings.integrations.externalServices.variables.help.caller_id":
+    "Кой звъни — номер или ID.",
+  "settings.integrations.externalServices.variables.help.called_id":
+    "На кого се звъни — номер или ID.",
+  "settings.integrations.externalServices.variables.help.call_direction":
+    "Посока: inbound или outbound.",
+  "settings.integrations.externalServices.variables.help.hangup_reason":
+    "Защо обаждането приключи (отказ, пропуснато, DND). След нормално затваряне често undefined.",
+  "settings.integrations.externalServices.variables.help.campaign_id":
+    "ID на кампанията от OCP.",
+  "settings.integrations.externalServices.variables.help.campaign_progressive":
+    "Прогресивна кампания: true или false.",
+  "settings.integrations.externalServices.variables.help.campaign_client_phone":
+    "Телефон на клиента от предложението за кампания.",
+  "settings.integrations.externalServices.variables.help.campaign_company":
+    "Име на компанията в кампанията.",
+  "settings.integrations.externalServices.variables.help.campaign_strategy":
+    "Заглавие на стратегията на кампанията.",
+  "settings.integrations.externalServices.variables.help.campaign_selection":
+    "Заглавие на избора на кампанията.",
+  "settings.integrations.externalServices.variables.help.queue_name":
+    "Име на опашката (кампания или ACD).",
+  "settings.integrations.externalServices.variables.help.acd_phase":
+    "Кога са получени данните за опашката: progress — по време на обаждане, accepted — след отговор.",
+  "settings.integrations.externalServices.variables.help.acd_event":
+    "Име на събитието от опашката в OCP (напр. queued). За интеграции, не за екрана на оператора.",
   "settings.integrations.externalServices.variables.group.always": "Общи",
   "settings.integrations.externalServices.variables.group.call": "Обаждане",
   "settings.integrations.externalServices.variables.group.campaign": "Кампания",
@@ -944,7 +994,8 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.variables.desc.caller_id": "Номер или ID на обаждащия",
   "settings.integrations.externalServices.variables.desc.called_id": "Номер или ID на повикания",
   "settings.integrations.externalServices.variables.desc.call_direction": "inbound или outbound",
-  "settings.integrations.externalServices.variables.desc.hangup_reason": "Причина за hangup",
+  "settings.integrations.externalServices.variables.desc.hangup_reason":
+    "Причина за hangup · обикновено call_ended",
   "settings.integrations.externalServices.variables.desc.campaign_id": "Идентификатор на кампанията",
   "settings.integrations.externalServices.variables.desc.campaign_progressive": "true или false",
   "settings.integrations.externalServices.variables.desc.campaign_client_phone": "Телефон на клиент",

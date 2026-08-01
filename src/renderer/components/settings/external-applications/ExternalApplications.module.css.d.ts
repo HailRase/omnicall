@@ -49,6 +49,9 @@ declare const classes: {
   readonly variableRow: string;
   readonly variables: string;
   readonly variablesHeader: string;
+  readonly variablesHeaderText: string;
+  readonly variablesStack: string;
+  readonly variablesWhenHint: string;
   readonly welcome: string;
   readonly welcomeDescription: string;
   readonly welcomeTitle: string;

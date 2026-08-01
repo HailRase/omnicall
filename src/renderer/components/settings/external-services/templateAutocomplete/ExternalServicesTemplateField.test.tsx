@@ -42,6 +42,8 @@ describe("ExternalServicesTemplateField", () => {
     expect(
       screen.queryByTestId("external-services-template-autocomplete-option-call_id"),
     ).not.toBeInTheDocument();
+    expect(screen.getByText("Коллекция")).toBeInTheDocument();
+    expect(screen.getByText("Всегда")).toBeInTheDocument();
   });
 
   it("inserts the selected token and closes the popup", async () => {

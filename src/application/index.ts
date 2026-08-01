@@ -604,11 +604,13 @@ export {
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
   normalizeExternalServiceCollectionVariables,
+  resolveExternalServiceSystemVariableAvailability,
 } from "@domain/index.js";
 export type {
   ExternalServiceCollectionVariableRowInspection,
   ExternalServiceCollectionVariableRowIssue,
   ExternalServiceCollectionVariablesNormalizeError,
+  ExternalServiceVariableAvailabilityId,
   ExternalServiceVariableCatalogEntry,
   ExternalServiceVariableCatalogGroupId,
   NormalizeExternalServiceCollectionVariablesResult,
