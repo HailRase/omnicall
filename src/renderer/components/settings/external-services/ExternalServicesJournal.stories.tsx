@@ -31,6 +31,8 @@ const fixtureEntry: ExternalServicesJournalEntryVm = {
     { id: "header-cookie", key: "Cookie", value: "***" },
     { id: "header-trace", key: "X-Trace", value: "safe-value" },
   ],
+  requestBody: "{\"event\":\"manual_run\"}",
+  requestBodyTruncated: false,
   responseBody: "{\"ok\":true,\"truncated\":false}",
   responseBodyTruncated: true,
   errorCode: null,

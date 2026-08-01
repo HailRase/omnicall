@@ -4,6 +4,8 @@
  * - Outputs: ExternalServicesRequestEditorProps bag.
  */
 
+import { buildExternalServicesManualRunFacts } from "@application/integration/buildExternalServicesManualRunFacts.js";
+import { readExternalServicesProductStateFromStore } from "@application/integration/readExternalServicesProductStateFromStore.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type {
   ExternalServicesSettings,
@@ -11,6 +13,7 @@ import type {
 } from "@application/index.js";
 import type { ExternalServicesQueueProps } from "../../components/settings/external-services/ExternalServicesQueue.js";
 import type { ExternalServicesRequestEditorProps } from "../../components/settings/external-services/ExternalServicesRequestEditor.js";
+import { useAccountBootstrapStore } from "../../stores/useAccountBootstrapStore.js";
 import type { UseExternalServicesRequestActionsResult } from "../useExternalServicesRequestActions.js";
 import type { UseExternalServicesPanelSelectionResult } from "./useExternalServicesPanelSelection.js";
 
@@ -124,12 +127,18 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
           setRunState("idle");
           return;
         }
+        const manualFacts = buildExternalServicesManualRunFacts(
+          readExternalServicesProductStateFromStore(
+            useAccountBootstrapStore.getState(),
+          ),
+        );
         const result = await facade.runExternalServiceRequestNow({
           collectionId: selectedCollection.id,
           requestId: persistedRequest.id,
           expectedSettingsRevision: saveResult.settingsRevision,
           profileKey,
           occurredAt: new Date().toISOString(),
+          ...manualFacts,
         });
         setRunResult(result);
         setRunState("idle");

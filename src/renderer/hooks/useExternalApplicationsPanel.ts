@@ -5,6 +5,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildExternalServicesManualRunFacts } from "@application/integration/buildExternalServicesManualRunFacts.js";
+import { readExternalServicesProductStateFromStore } from "@application/integration/readExternalServicesProductStateFromStore.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type {
   ExternalApplicationsJournalEntryVm,
@@ -14,6 +16,7 @@ import type {
   ExternalApplicationsPanelProps,
   ExternalApplicationsSidebarSelection,
 } from "../components/settings/external-applications/ExternalApplicationsPanel.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 type ExternalApplicationsSettings = UserSettings["externalApplications"];
 type ExternalApplication = ExternalApplicationsSettings["applications"][number];
@@ -237,7 +240,12 @@ export function useExternalApplicationsPanel(
     if (facade === null || selection?.kind !== "application") return;
     setBusy(true);
     try {
-      await facade.openExternalApplicationNow(selection.id);
+      const manualFacts = buildExternalServicesManualRunFacts(
+        readExternalServicesProductStateFromStore(
+          useAccountBootstrapStore.getState(),
+        ),
+      );
+      await facade.openExternalApplicationNow(selection.id, manualFacts);
       if (selection.kind === "application") {
         void loadHistory();
       }

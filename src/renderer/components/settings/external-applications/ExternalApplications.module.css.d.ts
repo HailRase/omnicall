@@ -25,8 +25,6 @@ declare const classes: {
   readonly historyHeader: string;
   readonly historyList: string;
   readonly historyMuted: string;
-  readonly historyNavButton: string;
-  readonly historyNavButtonSelected: string;
   readonly historyOutcome: string;
   readonly historyPanel: string;
   readonly historyRow: string;
@@ -40,9 +38,7 @@ declare const classes: {
   readonly queueRow: string;
   readonly sectionTitle: string;
   readonly sidebar: string;
-  readonly sidebarAddButton: string;
   readonly sidebarFooter: string;
-  readonly sidebarTools: string;
   readonly switchRow: string;
   readonly urlBar: string;
   readonly urlBarBlock: string;

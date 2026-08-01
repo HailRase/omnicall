@@ -166,6 +166,9 @@ const ruMessages = {
   "settings.integrations.externalServices.journal.url": "URL",
   "settings.integrations.externalServices.journal.headers": "Заголовки",
   "settings.integrations.externalServices.journal.headersEmpty": "Нет заголовков",
+  "settings.integrations.externalServices.journal.requestBody": "Тело запроса",
+  "settings.integrations.externalServices.journal.requestBodyTruncated":
+    "Тело запроса обрезано.",
   "settings.integrations.externalServices.journal.body": "Тело ответа",
   "settings.integrations.externalServices.journal.truncated": "Тело ответа обрезано.",
   "settings.integrations.externalServices.journal.error": "Ошибка",
@@ -1920,6 +1923,9 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.journal.url": "URL",
   "settings.integrations.externalServices.journal.headers": "Headers",
   "settings.integrations.externalServices.journal.headersEmpty": "No headers",
+  "settings.integrations.externalServices.journal.requestBody": "Request body",
+  "settings.integrations.externalServices.journal.requestBodyTruncated":
+    "Request body truncated.",
   "settings.integrations.externalServices.journal.body": "Response body",
   "settings.integrations.externalServices.journal.truncated": "Response body truncated.",
   "settings.integrations.externalServices.journal.error": "Error",
@@ -3664,6 +3670,9 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.journal.url": "URL",
   "settings.integrations.externalServices.journal.headers": "En-tetes",
   "settings.integrations.externalServices.journal.headersEmpty": "Aucun en-tete",
+  "settings.integrations.externalServices.journal.requestBody": "Corps de la requete",
+  "settings.integrations.externalServices.journal.requestBodyTruncated":
+    "Corps de la requete tronque.",
   "settings.integrations.externalServices.journal.body": "Corps de la reponse",
   "settings.integrations.externalServices.journal.truncated": "Corps de la reponse tronque.",
   "settings.integrations.externalServices.journal.error": "Erreur",
@@ -5303,6 +5312,9 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.journal.url": "URL",
   "settings.integrations.externalServices.journal.headers": "Header",
   "settings.integrations.externalServices.journal.headersEmpty": "Keine Header",
+  "settings.integrations.externalServices.journal.requestBody": "Anfragekoerper",
+  "settings.integrations.externalServices.journal.requestBodyTruncated":
+    "Anfragekoerper gekuerzt.",
   "settings.integrations.externalServices.journal.body": "Antwortkoerper",
   "settings.integrations.externalServices.journal.truncated": "Antwortkoerper gekuerzt.",
   "settings.integrations.externalServices.journal.error": "Fehler",

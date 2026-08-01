@@ -152,7 +152,7 @@ external-services-discard-changes
 - No duplicate “Journal” heading/description under History tab (tab label is enough).
 - Compact single-line collapsed summary: time · names · badges · status · duration.
 - Latest 100 records, newest first in UI.
-- Expandable detail: URL, redacted headers, error, and truncated body.
+- Expandable detail: URL, redacted headers, non-empty truncated request body, error, and truncated response body.
 - Empty state, loading state, load error with Retry.
 - No rerun-from-journal or response-driven action in v1.
 

@@ -19,7 +19,7 @@
 | `campaign_rejected` | `OperatorCampaignCleared` with `reasonCode: "rejected"` | same | Join cached offer fields by `campaignId`; emit, then clear cache. |
 | `acd_context_appeared` | `CallOcpContextResolved` | `src/domain/integration/ocp/events/CallOcpContextResolved.ts` | Emit once per call/context fingerprint when queue/context becomes available. |
 | `post_call_processing` | `OperatorStatusChanged` with `newStatus: POST_CALL_PROCESSING` | `src/domain/integration/ocp/events/OperatorStatusChanged.ts` | Operator-level (no call-focus gate); fires only on transition into post-call processing from a live OCP session. Call variables stay unset (same class as campaign triggers). |
-| `manual_run` | `RunExternalServiceRequestNowUseCase` | new Application use case | Build from active profile plus current focused call when one exists. |
+| `manual_run` | `RunExternalServiceRequestNowUseCase` | new Application use case | Build from active profile identity (`user_login`: SIP username, else OCP `authenticatedLogin`) plus current focused call when one exists (parties enriched from the call-context tracker when available). |
 
 `CallFailed`, hold/resume, registration, OCP login/logout/session, other OCP status transitions, SDK, and transfer facts do not map to automatic trigger codes.
 
@@ -75,7 +75,7 @@ Always available:
 | --- | --- |
 | `timestamp` | event occurrence time normalized to ISO-8601 UTC |
 | `event_type` | stable external code |
-| `user_login` | active profile/account identity, or missing |
+| `user_login` | active profile identity: SIP `sipUsername` when present, otherwise OCP `authenticatedLogin`; missing → literal `undefined` |
 
 Call variables:
 
@@ -131,6 +131,14 @@ Do not expose `mainAcallId`, `acallId`, raw OCP payloads, OCP auth material, or 
 | `queue_name` (dual) | Campaign / ACD | Campaign or ACD additive maps |
 
 Missing / out-of-context tokens still resolve to the literal `undefined` (template algorithm unchanged).
+
+### Manual Run now / Open now
+
+- Same template algorithm as automatic triggers; event code is `manual_run`.
+- Always group resolves: `timestamp` = click time, `event_type` = `manual_run`, `user_login` from active profile identity (SIP username preferred, else OCP authenticated login).
+- Call group resolves only when a focused call id is supplied (parties filled from the automation tracker when that call was previously tracked).
+- Campaign/ACD groups stay `undefined` on manual run (no synthetic campaign/ACD injection in v1).
+- Operators should not hardcode always-group values for Send/Open now; out-of-context call/campaign/acd tokens may still show `undefined` by design.
 
 ## Collection variables (authored)
 

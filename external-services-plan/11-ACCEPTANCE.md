@@ -50,6 +50,7 @@
 ## Manual Run
 
 - [x] Run now uses the same queue/transport/journal path and `manual_run`.
+- [x] Manual Run now resolves always-group `user_login` from active profile (SIP username, else OCP authenticated login) and optional focused-call facts.
 - [x] Disabled definitions can run manually when they still exist.
 - [x] Result always shows duration and status when available.
 - [x] 2xx is success; non-2xx is error while body remains visible.

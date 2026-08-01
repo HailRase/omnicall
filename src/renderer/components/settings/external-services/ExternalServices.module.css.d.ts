@@ -105,9 +105,6 @@ declare const classes: {
   readonly systemVariablesTitle: string;
   readonly systemVariablesTitleRow: string;
   readonly systemVariablesToken: string;
-  readonly variableHelpButton: string;
-  readonly variableHelpHost: string;
-  readonly variableHelpPopup: string;
   readonly templateAutocompleteHost: string;
   readonly templateAutocompleteKind: string;
   readonly templateAutocompleteMeta: string;
@@ -150,6 +147,9 @@ declare const classes: {
   readonly triggerRow: string;
   readonly urlBar: string;
   readonly urlBarBlock: string;
+  readonly variableHelpButton: string;
+  readonly variableHelpHost: string;
+  readonly variableHelpPopup: string;
   readonly variableRow: string;
   readonly variableRowActions: string;
   readonly variablesExample: string;

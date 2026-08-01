@@ -156,13 +156,12 @@ export function ExternalApplicationsSidebar({
           );
         })}
       </ul>
-      <div className={styles.sidebarTools}>
-        <button
+      <div className={styles.sidebarFooter}>
+        <Button
           type="button"
-          className={clsx(
-            styles.historyNavButton,
-            historySelected && styles.historyNavButtonSelected,
-          )}
+          size="sm"
+          variant={historySelected ? "secondary" : "outline"}
+          fullWidth
           aria-current={historySelected ? "page" : undefined}
           disabled={busy}
           data-testid="external-applications-history-nav"
@@ -175,14 +174,12 @@ export function ExternalApplicationsSidebar({
             preferAnimated={false}
           />
           {t("settings.integrations.externalApplications.history.nav")}
-        </button>
-      </div>
-      <div className={styles.sidebarFooter}>
+        </Button>
         <Button
           type="button"
           size="sm"
           variant="outline"
-          className={styles.sidebarAddButton}
+          fullWidth
           disabled={busy}
           data-testid="external-applications-add"
           onClick={onCreate}

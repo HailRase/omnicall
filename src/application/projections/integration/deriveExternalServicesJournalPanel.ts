@@ -40,6 +40,8 @@ export type ExternalServicesJournalEntryVm = Readonly<{
   durationMs: number;
   requestUrl: string;
   requestHeaders: ReadonlyArray<ExternalServicesJournalHeaderVm>;
+  requestBody: string;
+  requestBodyTruncated: boolean;
   responseBody: string;
   responseBodyTruncated: boolean;
   errorCode: string | null;
@@ -104,6 +106,8 @@ function toJournalEntryVm(
       key: header.key,
       value: header.value,
     })),
+    requestBody: entry.requestBody,
+    requestBodyTruncated: entry.requestBodyTruncated,
     responseBody: entry.responseBody,
     responseBodyTruncated: entry.responseBodyTruncated,
     errorCode: entry.errorCode,

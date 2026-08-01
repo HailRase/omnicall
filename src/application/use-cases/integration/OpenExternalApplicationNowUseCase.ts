@@ -16,6 +16,13 @@ import type { ExternalServiceTriggerContext } from "@domain/index.js";
 export type OpenExternalApplicationNowInput = Readonly<{
   profileKey: SettingsAccountKey;
   applicationId: ExternalApplicationId;
+  userLogin?: string;
+  focusedCallContext?: Readonly<{
+    callId: string;
+    callerId?: string;
+    calledId?: string;
+    callDirection?: "inbound" | "outbound";
+  }>;
 }>;
 
 export type OpenExternalApplicationNowUseCaseDeps = Readonly<{
@@ -58,12 +65,21 @@ export class OpenExternalApplicationNowUseCase {
       eventType: "manual_run",
       occurredAt: new Date().toISOString(),
       profileKey: input.profileKey,
-      callId: undefined,
-      callerId: undefined,
-      calledId: undefined,
-      callDirection: undefined,
-      userLogin: undefined,
-      hangupReason: undefined,
+      ...(input.userLogin !== undefined ? { userLogin: input.userLogin } : {}),
+      ...(input.focusedCallContext !== undefined
+        ? {
+            callId: input.focusedCallContext.callId,
+            ...(input.focusedCallContext.callerId !== undefined
+              ? { callerId: input.focusedCallContext.callerId }
+              : {}),
+            ...(input.focusedCallContext.calledId !== undefined
+              ? { calledId: input.focusedCallContext.calledId }
+              : {}),
+            ...(input.focusedCallContext.callDirection !== undefined
+              ? { callDirection: input.focusedCallContext.callDirection }
+              : {}),
+          }
+        : {}),
     };
     const jobId = this.deps.uuidGenerator.generate();
     const job: ExternalApplicationDispatchJob = {

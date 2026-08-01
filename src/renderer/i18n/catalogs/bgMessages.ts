@@ -775,6 +775,9 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.journal.url": "URL",
   "settings.integrations.externalServices.journal.headers": "Заглавки",
   "settings.integrations.externalServices.journal.headersEmpty": "Няма заглавки",
+  "settings.integrations.externalServices.journal.requestBody": "Тяло на заявката",
+  "settings.integrations.externalServices.journal.requestBodyTruncated":
+    "Тялото на заявката е съкратено.",
   "settings.integrations.externalServices.journal.body": "Тяло на отговора",
   "settings.integrations.externalServices.journal.truncated": "Тялото на отговора е съкратено.",
   "settings.integrations.externalServices.journal.error": "Грешка",

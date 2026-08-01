@@ -4616,6 +4616,10 @@ export class AccountBootstrapFacade {
 
   async openExternalApplicationNow(
     applicationId: ExternalApplicationId,
+    manualFacts: Readonly<{
+      userLogin?: string;
+      focusedCallContext?: OpenExternalApplicationNowInput["focusedCallContext"];
+    }> = {},
   ): Promise<Result<{ jobId: string }, PlatformError>> {
     const composition = this.deps.externalApplicationsComposition;
     if (composition === undefined) {
@@ -4629,7 +4633,16 @@ export class AccountBootstrapFacade {
     }
     try {
       const profileKey = await this.resolveSettingsAccountKey();
-      const input: OpenExternalApplicationNowInput = { profileKey, applicationId };
+      const input: OpenExternalApplicationNowInput = {
+        profileKey,
+        applicationId,
+        ...(manualFacts.userLogin !== undefined
+          ? { userLogin: manualFacts.userLogin }
+          : {}),
+        ...(manualFacts.focusedCallContext !== undefined
+          ? { focusedCallContext: manualFacts.focusedCallContext }
+          : {}),
+      };
       return composition.openExternalApplicationNow(input);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
