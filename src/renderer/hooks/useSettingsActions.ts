@@ -54,6 +54,9 @@ type UseSettingsActionsResult = Readonly<{
   onAutoAnswerEnabledToggle: (enabled: boolean) => void;
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   onAutoAnswerDuringActiveSessionToggle: (enabled: boolean) => void;
+  onIncomingRingtoneIdChange: (ringtoneId: UserSettings["incomingRingtoneId"]) => void;
+  onPreviewIncomingRingtone: (ringtoneId: UserSettings["incomingRingtoneId"]) => void;
+  onStopIncomingRingtonePreview: () => void;
   onSipAutoReregisterToggle: (enabled: boolean) => void;
   onSipReregisterIntervalChange: (intervalSec: number) => void;
   onSipAutoReconnectToggle: (enabled: boolean) => void;
@@ -322,6 +325,33 @@ export function useSettingsActions(
     },
     [persistUserSettings, userSettings],
   );
+
+  const onIncomingRingtoneIdChange = useCallback(
+    (ringtoneId: UserSettings["incomingRingtoneId"]): void => {
+      persistUserSettings({
+        ...userSettings,
+        incomingRingtoneId: ringtoneId,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onPreviewIncomingRingtone = useCallback(
+    (ringtoneId: UserSettings["incomingRingtoneId"]): void => {
+      if (facade === null) {
+        return;
+      }
+      void facade.previewIncomingRingtone(ringtoneId);
+    },
+    [facade],
+  );
+
+  const onStopIncomingRingtonePreview = useCallback((): void => {
+    if (facade === null) {
+      return;
+    }
+    void facade.stopIncomingRingtonePreview();
+  }, [facade]);
 
   const onSipAutoReregisterToggle = useCallback(
     (enabled: boolean): void => {
@@ -657,6 +687,9 @@ export function useSettingsActions(
     onAutoAnswerEnabledToggle,
     onAutoAnswerTimeoutChange,
     onAutoAnswerDuringActiveSessionToggle,
+    onIncomingRingtoneIdChange,
+    onPreviewIncomingRingtone,
+    onStopIncomingRingtonePreview,
     onSipAutoReregisterToggle,
     onSipReregisterIntervalChange,
     onSipAutoReconnectToggle,

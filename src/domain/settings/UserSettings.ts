@@ -49,8 +49,12 @@ import {
   EXTERNAL_APPLICATIONS_DEFAULTS,
   type ExternalApplicationsSettings,
 } from "../integration/external-applications/ExternalApplicationsSettings.js";
+import {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  type IncomingRingtoneId,
+} from "../media/IncomingRingtoneId.js";
 
-export const SETTINGS_SCHEMA_VERSION = 17 as const;
+export const SETTINGS_SCHEMA_VERSION = 18 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -72,6 +76,8 @@ export type UserSettings = Readonly<{
   autoAnswerTimeoutSec: number | null;
   autoAnswerDuringActiveSessionEnabled: boolean;
   ringbackToneEnabled: boolean;
+  /** Selected incoming ringtone preset; classic preserves pre-v18 WebAudio dual-tone. */
+  incomingRingtoneId: IncomingRingtoneId;
   sipAutoReconnectEnabled: boolean;
   sipReconnectIntervalSec: number;
   sipReconnectMaxAttempts: number;
@@ -133,6 +139,7 @@ export function createDefaultUserSettings(): UserSettings {
     autoAnswerTimeoutSec: null,
     autoAnswerDuringActiveSessionEnabled: false,
     ringbackToneEnabled: true,
+    incomingRingtoneId: DEFAULT_INCOMING_RINGTONE_ID,
     sipAutoReconnectEnabled: true,
     sipReconnectIntervalSec: DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
     sipReconnectMaxAttempts: DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,

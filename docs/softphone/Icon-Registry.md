@@ -31,6 +31,8 @@
 | `account.profile.delete` | Delete saved SIP profile | `Trash2` | — | `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
 | `settings.sessions` | Settings sessions section | `Layers` | `LayersIcon` | `SettingsSidebar` | active |
+| `settings.sessions.ringtone.preview` | Start incoming ringtone preview | `Volume2` | `VolumeIcon` | `SettingsRingtoneSection` | active |
+| `settings.sessions.ringtone.previewStop` | Stop incoming ringtone preview | `VolumeX` | — | `SettingsRingtoneSection` | active |
 | `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |

@@ -676,6 +676,10 @@ function SoftphoneShellLayoutRoute({
               onAutoAnswerDuringActiveSessionChange={
                 settingsActions.onAutoAnswerDuringActiveSessionToggle
               }
+              incomingRingtoneId={settingsActions.userSettings.incomingRingtoneId}
+              onIncomingRingtoneIdChange={settingsActions.onIncomingRingtoneIdChange}
+              onPreviewIncomingRingtone={settingsActions.onPreviewIncomingRingtone}
+              onStopIncomingRingtonePreview={settingsActions.onStopIncomingRingtonePreview}
               currentVersion={appUpdate.snapshot.currentVersion}
               latestVersion={appUpdate.snapshot.latestVersion}
               updateStatusMessage={appUpdate.statusMessage}

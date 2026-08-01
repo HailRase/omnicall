@@ -68,6 +68,10 @@ import {
   parseExternalApplicationsSettings,
   type ExternalApplicationsSettings,
 } from "../integration/external-applications/index.js";
+import {
+  resolveIncomingRingtoneId,
+  type IncomingRingtoneId,
+} from "../media/IncomingRingtoneId.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
@@ -119,6 +123,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     errors,
   );
   const ringbackToneEnabled = readBoolean(record, "ringbackToneEnabled", errors);
+  const incomingRingtoneId = readIncomingRingtoneId(record);
   const sipAutoReconnectEnabled = readBooleanWithDefault(
     record,
     "sipAutoReconnectEnabled",
@@ -223,6 +228,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       autoAnswerTimeoutSec,
       autoAnswerDuringActiveSessionEnabled,
       ringbackToneEnabled,
+      incomingRingtoneId,
       sipAutoReconnectEnabled,
       sipReconnectIntervalSec,
       sipReconnectMaxAttempts,
@@ -248,6 +254,10 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       externalApplications,
     },
   };
+}
+
+function readIncomingRingtoneId(record: Record<string, unknown>): IncomingRingtoneId {
+  return resolveIncomingRingtoneId(record["incomingRingtoneId"]);
 }
 
 function readLanguage(

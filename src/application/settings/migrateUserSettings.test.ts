@@ -65,6 +65,48 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v17 settings and defaults incomingRingtoneId to classic", () => {
+    const v17 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 17 as const,
+    };
+    delete (v17 as { incomingRingtoneId?: unknown }).incomingRingtoneId;
+
+    const result = migrateUserSettings(v17);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.incomingRingtoneId).toBe("classic");
+    }
+  });
+
+  it("preserves incomingRingtoneId when migrating from v17", () => {
+    const v17 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 17 as const,
+      incomingRingtoneId: "soft-chime" as const,
+    };
+    const result = migrateUserSettings(v17);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.incomingRingtoneId).toBe("soft-chime");
+    }
+  });
+
+  it("maps unknown incomingRingtoneId to classic during migration", () => {
+    const v17 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 17 as const,
+      incomingRingtoneId: "iphone-official",
+    };
+    const result = migrateUserSettings(v17);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.incomingRingtoneId).toBe("classic");
+    }
+  });
+
   it("preserves windowAlwaysOnTop when migrating from v16", () => {
     const v16 = {
       ...createDefaultUserSettings(),

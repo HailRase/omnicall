@@ -77,6 +77,35 @@ describe("BrowserMediaAdapter", () => {
     adapter.dispose();
   });
 
+  it("configures and previews selectable incoming ringtone presets", async () => {
+    const tonePlayer = new WebAudioTonePlayer({
+      createAudioContext: createMockAudioContext,
+    });
+    const adapter = createAdapter(() => null, tonePlayer);
+    const correlationId = createCorrelationId();
+
+    const configureResult = await adapter.configureIncomingRingtone({
+      ringtoneId: "soft-chime",
+      correlationId,
+    });
+    expect(configureResult.ok).toBe(true);
+    expect(tonePlayer.getActiveRingtoneId()).toBe("soft-chime");
+
+    const previewResult = await adapter.previewIncomingRingtone({
+      ringtoneId: "digital-pulse",
+      correlationId,
+    });
+    expect(previewResult.ok).toBe(true);
+    expect(adapter.isTonePlaying(createCallId("__incoming_ringtone_preview__"))).toBe(true);
+
+    const stopPreviewResult = await adapter.stopIncomingRingtonePreview({ correlationId });
+    expect(stopPreviewResult.ok).toBe(true);
+    expect(adapter.isTonePlaying(createCallId("__incoming_ringtone_preview__"))).toBe(false);
+    expect(tonePlayer.getActiveRingtoneId()).toBe("soft-chime");
+
+    adapter.dispose();
+  });
+
   it("plays ringback and busy tones", async () => {
     const tonePlayer = new WebAudioTonePlayer({
       createAudioContext: createMockAudioContext,

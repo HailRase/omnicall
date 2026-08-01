@@ -125,6 +125,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Priority: critical
 - Status: implemented
 - Owner: TBD
+- Related: **F-033** (selectable incoming ringtone catalog; default `classic` preserves prior audible tone)
 - Inputs: incoming session event from telephony adapter
 - Outputs: `IncomingCallReceived`, `IncomingCallRingingStarted`, `CallAnswered`, `CallRejected`, `CallAutoAnswered`, `CallRejectedByDnd`, ringing projection, host break-reason mapping
 - Acceptance Criteria:
@@ -620,6 +621,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Priority: high
 - Status: done
 - Owner: domain-agent
+- Related: **F-033** (ringtone melody selection is orthogonal; configure/preview bypass coordinator request map)
 - Inputs: concurrent tone requests from call orchestrators (ringtone, ringback, busy, failed)
 - Outputs: single audible tone stream via `MediaGateway`; suppressed requests remain pending until they win arbitration
 - Acceptance Criteria:
@@ -1160,3 +1162,31 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (variable availability UX 2026-08-01): Variables tab embeds shared F-031 system catalog (browse-only + when subtitles + `?` help) above authored key/value (`variablesWhenHint`); reuses F-031 autocomplete when labels; design `P14-External-Applications-Design.md` synced
 - Implementation evidence (sidebar History button 2026-08-01): History uses UI Kit `Button` (`sm` / outline|secondary when selected) stacked with Add in sidebar footer; panel test covers history nav.
 - Implementation evidence (manual Open now variables 2026-08-01): Open now passes shared F-031 manual-run facts (`user_login` + optional focused call); design `P14-External-Applications-Design.md` synced.
+
+## F-033: Selectable Incoming Ringtone Catalog
+
+- Legacy IDs: `LF-012`, `LF-076`
+- Context: Media (primary); Settings (persistence / UI)
+- Priority: medium
+- Status: **implemented** (2026-08-01)
+- Owner: TBD
+- Related: F-002 (incoming call), F-016 (Settings Sessions), F-018 (tone priority FSM), F-021 (i18n), F-030 (preferences round-trip)
+- Explicit non-overlap:
+  - **Not F-018:** does not change tone priority arbitration; only which ringtone synthesis profile plays when ringtone wins.
+  - **Not OEM assets:** WebAudio presets only; no copyrighted iPhone/Huawei samples.
+- Inputs: `UserSettings.incomingRingtoneId` (schema **v18**, default `classic`); Settings → Sessions select + preview
+- Outputs: `MediaGateway.configureIncomingRingtone` / `previewIncomingRingtone` / `stopIncomingRingtonePreview`; audible catalog of ≥10 presets
+- Acceptance Criteria:
+  - Fresh install and migrated v17→v18 profiles keep **classic** dual-tone (no audible downgrade).
+  - Unknown persisted ids resolve to `classic` without failing settings load.
+  - Incoming ringtone still stops on answer/reject/release; multi-call Tone FSM unchanged (one audible ringtone).
+  - Preview plays via dedicated preview session (not through Tone coordinator request map); stops on panel unmount / timeout.
+  - F-030 portable preferences include `incomingRingtoneId`.
+  - i18n keys `settings.sessions.ringtone.*` for ru/en/fr/de/bg.
+- Test Coverage:
+  - Unit: `IncomingRingtoneId`, migrate v17→v18, `ringtonePresets`, BrowserMediaAdapter configure/preview
+  - UI: `SettingsSessionsPanel` preview callback
+  - Integration: existing incoming ringtone / TonePlaybackPriority suites remain green
+  - E2E: deferred (manual: Settings → Sessions → select + preview; inbound call uses selection)
+- Design: `docs/softphone/P11-Incoming-Ringtone-Catalog-Design.md`
+- Implementation evidence: `src/domain/media/IncomingRingtoneId.ts`; `UserSettings` v18; `WebAudioTonePlayer` + `ringtonePresets.ts`; `BrowserMediaAdapter` / `ArbiterMediaGateway` / `MockMediaGateway`; facade apply on init/save/import; Settings Sessions UI

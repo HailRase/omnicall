@@ -12,7 +12,7 @@ Related: **F-016**, **LF-076**, **LF-077**, **LF-016**, **LF-033**, **LF-032**. 
 
 ## Schema version
 
-Source of truth: `SETTINGS_SCHEMA_VERSION` in `src/domain/settings/UserSettings.ts` (currently **v17**).
+Source of truth: `SETTINGS_SCHEMA_VERSION` in `src/domain/settings/UserSettings.ts` (currently **v18**).
 
 | Version | Status | Notes |
 | --- | --- | --- |
@@ -20,7 +20,8 @@ Source of truth: `SETTINGS_SCHEMA_VERSION` in `src/domain/settings/UserSettings.
 | v1 | legacy | Typed `UserSettings` aggregate (superseded). |
 | v2 | legacy | Added language + SIP recovery fields. |
 | v3…v16 | legacy | Incremental fields (codecs, notifications, headset, OCP/SDK, external services/apps, …). |
-| **v17** | **current** | Adds `windowAlwaysOnTop` (shell titlebar always-on-top pin; F-016). |
+| v17 | legacy | Adds `windowAlwaysOnTop` (shell titlebar always-on-top pin; F-016). |
+| **v18** | **current** | Adds `incomingRingtoneId` (F-033 selectable incoming ringtone; default `classic`). |
 
 ## UserSettings v1 fields
 
@@ -31,6 +32,7 @@ Source of truth: `SETTINGS_SCHEMA_VERSION` in `src/domain/settings/UserSettings.
 | `autoUnholdOnTransferFailure` | `boolean` | `true` | transfer policy | Required boolean. |
 | `autoAnswerTimeoutSec` | `number \| null` | `null` | LF-016 | `null` or integer `0…300`. |
 | `ringbackToneEnabled` | `boolean` | `true` | LF-033 | Required boolean; wire-ready for RBT policy. |
+| `incomingRingtoneId` | `IncomingRingtoneId` | `classic` | LF-012 / F-033 | Catalog whitelist; unknown → `classic` (no load failure). |
 
 legacy operator platform-only break-reason lists remain in `IncomingCallSettings` (synced from operator gateway), not in `UserSettings`.
 

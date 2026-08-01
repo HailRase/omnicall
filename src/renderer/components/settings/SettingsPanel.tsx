@@ -4,6 +4,7 @@ import type {
   AudioCodecId,
   CodecPreferenceMutationMessageKey,
   CodecPreferences,
+  IncomingRingtoneId,
   NotificationPlacement,
   NotificationStacking,
   SessionViewMode,
@@ -75,6 +76,10 @@ export type SettingsPanelProps = Readonly<{
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   autoAnswerDuringActiveSessionEnabled: boolean;
   onAutoAnswerDuringActiveSessionChange: (enabled: boolean) => void;
+  incomingRingtoneId: IncomingRingtoneId;
+  onIncomingRingtoneIdChange: (ringtoneId: IncomingRingtoneId) => void;
+  onPreviewIncomingRingtone: (ringtoneId: IncomingRingtoneId) => void;
+  onStopIncomingRingtonePreview: () => void;
   currentVersion: string;
   latestVersion: string | undefined;
   updateStatusMessage: string;
@@ -236,6 +241,10 @@ export function SettingsPanel({
   onAutoAnswerTimeoutChange,
   autoAnswerDuringActiveSessionEnabled,
   onAutoAnswerDuringActiveSessionChange,
+  incomingRingtoneId,
+  onIncomingRingtoneIdChange,
+  onPreviewIncomingRingtone,
+  onStopIncomingRingtonePreview,
   currentVersion,
   latestVersion,
   updateStatusMessage,
@@ -401,6 +410,10 @@ export function SettingsPanel({
           onAutoAnswerTimeoutChange={onAutoAnswerTimeoutChange}
           autoAnswerDuringActiveSessionEnabled={autoAnswerDuringActiveSessionEnabled}
           onAutoAnswerDuringActiveSessionChange={onAutoAnswerDuringActiveSessionChange}
+          incomingRingtoneId={incomingRingtoneId}
+          onIncomingRingtoneIdChange={onIncomingRingtoneIdChange}
+          onPreviewIncomingRingtone={onPreviewIncomingRingtone}
+          onStopIncomingRingtonePreview={onStopIncomingRingtonePreview}
         />
       );
       break;

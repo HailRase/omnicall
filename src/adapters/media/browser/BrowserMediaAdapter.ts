@@ -1,7 +1,8 @@
-import type { CallId } from "@domain/index.js";
+import { createCallId, type CallId } from "@domain/index.js";
 import type {
   AttachRemoteAudioCommand,
   BindCallVideoSurfacesCommand,
+  ConfigureIncomingRingtoneCommand,
   MediaGateway,
   MuteCallCommand,
   PlayBusyToneCommand,
@@ -9,7 +10,9 @@ import type {
   PlayIncomingRingtoneCommand,
   PlayRingbackToneCommand,
   PlayRingtoneCommand,
+  PreviewIncomingRingtoneCommand,
   RemoteAudioAttachOutcome,
+  StopIncomingRingtonePreviewCommand,
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
@@ -33,6 +36,8 @@ import { WebAudioTonePlayer } from "./WebAudioTonePlayer.js";
 
 const FEATURE_ID = "F-005";
 const FEATURE_ID_VIDEO = "F-027";
+const FEATURE_ID_RINGTONE = "F-033";
+const RINGTONE_PREVIEW_CALL_ID = createCallId("__incoming_ringtone_preview__");
 
 export type PeerConnectionProvider = (callId: CallId) => unknown;
 export type LocalVideoStreamProvider = (callId: CallId) => MediaStream | null;
@@ -234,6 +239,72 @@ export class BrowserMediaAdapter implements MediaGateway {
       );
       return Promise.resolve(err(normalized));
     }
+  }
+
+  async configureIncomingRingtone(
+    command: ConfigureIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.runMediaOperation(
+      RINGTONE_PREVIEW_CALL_ID,
+      command.correlationId,
+      "configure_incoming_ringtone",
+      () => {
+        this.tonePlayer.setActiveRingtoneId(command.ringtoneId);
+        this.logger.info("browser_media_incoming_ringtone_configured", {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID_RINGTONE,
+          boundedContext: "Media",
+          operation: "configure_incoming_ringtone",
+          ringtoneId: command.ringtoneId,
+          result: "succeeded",
+        });
+        return ok(undefined);
+      },
+    );
+  }
+
+  async previewIncomingRingtone(
+    command: PreviewIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.runMediaOperation(
+      RINGTONE_PREVIEW_CALL_ID,
+      command.correlationId,
+      "preview_incoming_ringtone",
+      async () => {
+        await this.tonePlayer.play(RINGTONE_PREVIEW_CALL_ID, "ringtone", {
+          ringtoneId: command.ringtoneId,
+        });
+        this.logger.info("browser_media_incoming_ringtone_preview_started", {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID_RINGTONE,
+          boundedContext: "Media",
+          operation: "preview_incoming_ringtone",
+          ringtoneId: command.ringtoneId,
+          result: "succeeded",
+        });
+      },
+    );
+  }
+
+  async stopIncomingRingtonePreview(
+    command: StopIncomingRingtonePreviewCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.runMediaOperation(
+      RINGTONE_PREVIEW_CALL_ID,
+      command.correlationId,
+      "stop_incoming_ringtone_preview",
+      () => {
+        this.tonePlayer.stop(RINGTONE_PREVIEW_CALL_ID);
+        this.logger.info("browser_media_incoming_ringtone_preview_stopped", {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID_RINGTONE,
+          boundedContext: "Media",
+          operation: "stop_incoming_ringtone_preview",
+          result: "succeeded",
+        });
+        return ok(undefined);
+      },
+    );
   }
 
   async playRingbackTone(

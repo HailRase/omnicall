@@ -1,6 +1,11 @@
+import {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  type IncomingRingtoneId,
+} from "@domain/index.js";
 import type {
   AttachRemoteAudioCommand,
   BindCallVideoSurfacesCommand,
+  ConfigureIncomingRingtoneCommand,
   MediaGateway,
   MuteCallCommand,
   PlayBusyToneCommand,
@@ -8,8 +13,10 @@ import type {
   PlayIncomingRingtoneCommand,
   PlayRingtoneCommand,
   PlayRingbackToneCommand,
+  PreviewIncomingRingtoneCommand,
   RemoteAudioAttachOutcome,
   ReleaseAllMediaCommand,
+  StopIncomingRingtonePreviewCommand,
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
@@ -36,6 +43,8 @@ export class MockMediaGateway implements MediaGateway {
   private readonly mutedCalls = new Set<string>();
   private readonly failureTones: string[] = [];
   private releaseAllInvocations = 0;
+  private activeRingtoneId: IncomingRingtoneId = DEFAULT_INCOMING_RINGTONE_ID;
+  private previewRingtoneId: IncomingRingtoneId | null = null;
 
   constructor(scenario: MockMediaScenario = "success") {
     this.scenario = scenario;
@@ -59,6 +68,14 @@ export class MockMediaGateway implements MediaGateway {
 
   isIncomingRingtonePlaying(callId: string): boolean {
     return this.incomingRingtoneCalls.has(callId);
+  }
+
+  getActiveRingtoneId(): IncomingRingtoneId {
+    return this.activeRingtoneId;
+  }
+
+  getPreviewRingtoneId(): IncomingRingtoneId | null {
+    return this.previewRingtoneId;
   }
 
   getFailureTones(): ReadonlyArray<string> {
@@ -110,6 +127,58 @@ export class MockMediaGateway implements MediaGateway {
       );
     }
     this.videoSurfaceBoundCalls.add(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  configureIncomingRingtone(
+    command: ConfigureIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Configure incoming ringtone failed for ${command.ringtoneId}`,
+          ),
+        ),
+      );
+    }
+    this.activeRingtoneId = command.ringtoneId;
+    return Promise.resolve(ok(undefined));
+  }
+
+  previewIncomingRingtone(
+    command: PreviewIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Preview incoming ringtone failed for ${command.ringtoneId}`,
+          ),
+        ),
+      );
+    }
+    this.previewRingtoneId = command.ringtoneId;
+    return Promise.resolve(ok(undefined));
+  }
+
+  stopIncomingRingtonePreview(
+    command: StopIncomingRingtonePreviewCommand,
+  ): Promise<Result<void, PlatformError>> {
+    void command;
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            "Stop incoming ringtone preview failed",
+          ),
+        ),
+      );
+    }
+    this.previewRingtoneId = null;
     return Promise.resolve(ok(undefined));
   }
 
@@ -253,6 +322,7 @@ export class MockMediaGateway implements MediaGateway {
     this.busyToneCalls.clear();
     this.mutedCalls.clear();
     this.failureTones.length = 0;
+    this.previewRingtoneId = null;
     return Promise.resolve(ok(undefined));
   }
 }

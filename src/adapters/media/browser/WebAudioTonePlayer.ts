@@ -1,6 +1,12 @@
+import {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  type IncomingRingtoneId,
+} from "@domain/index.js";
+import { resolveRingtonePreset } from "./ringtonePresets.js";
+
 /**
  * - Purpose: play and stop telephony tones via Web Audio API.
- * - Inputs: call id, tone kind, optional AudioContext factory.
+ * - Inputs: call id, tone kind, optional ringtone id / AudioContext factory.
  * - Outputs: started or stopped tone session per call id.
  */
 
@@ -12,24 +18,39 @@ type ToneSession = Readonly<{
 
 type WebAudioTonePlayerOptions = Readonly<{
   createAudioContext?: () => AudioContext;
+  initialRingtoneId?: IncomingRingtoneId;
 }>;
 
 export class WebAudioTonePlayer {
   private readonly createAudioContext: () => AudioContext;
   private context: AudioContext | null = null;
   private readonly sessions = new Map<string, ToneSession>();
+  private activeRingtoneId: IncomingRingtoneId;
 
   constructor(options: WebAudioTonePlayerOptions = {}) {
     this.createAudioContext =
       options.createAudioContext ??
       ((): AudioContext => new AudioContext());
+    this.activeRingtoneId = options.initialRingtoneId ?? DEFAULT_INCOMING_RINGTONE_ID;
+  }
+
+  getActiveRingtoneId(): IncomingRingtoneId {
+    return this.activeRingtoneId;
+  }
+
+  setActiveRingtoneId(ringtoneId: IncomingRingtoneId): void {
+    this.activeRingtoneId = ringtoneId;
   }
 
   isPlaying(callId: string): boolean {
     return this.sessions.has(callId);
   }
 
-  async play(callId: string, kind: ToneKind): Promise<void> {
+  async play(
+    callId: string,
+    kind: ToneKind,
+    options: Readonly<{ ringtoneId?: IncomingRingtoneId }> = {},
+  ): Promise<void> {
     this.stop(callId);
 
     const context = this.getOrCreateContext();
@@ -37,7 +58,8 @@ export class WebAudioTonePlayer {
       await context.resume();
     }
 
-    const session = createToneSession(context, kind);
+    const ringtoneId = options.ringtoneId ?? this.activeRingtoneId;
+    const session = createToneSession(context, kind, ringtoneId);
     this.sessions.set(callId, session);
   }
 
@@ -69,15 +91,21 @@ export class WebAudioTonePlayer {
   }
 }
 
-function createToneSession(context: AudioContext, kind: ToneKind): ToneSession {
+function createToneSession(
+  context: AudioContext,
+  kind: ToneKind,
+  ringtoneId: IncomingRingtoneId,
+): ToneSession {
   const gainNode = context.createGain();
   gainNode.gain.value = 0.12;
   gainNode.connect(context.destination);
 
   const oscillator = context.createOscillator();
+  oscillator.type = "sine";
   oscillator.connect(gainNode);
 
-  const timers: ReturnType<typeof setInterval>[] = [];
+  const intervalTimers: ReturnType<typeof setInterval>[] = [];
+  const timeoutTimers: ReturnType<typeof setTimeout>[] = [];
   let stopped = false;
 
   const stop = (): void => {
@@ -86,8 +114,11 @@ function createToneSession(context: AudioContext, kind: ToneKind): ToneSession {
     }
 
     stopped = true;
-    for (const timer of timers) {
+    for (const timer of intervalTimers) {
       clearInterval(timer);
+    }
+    for (const timer of timeoutTimers) {
+      clearTimeout(timer);
     }
 
     try {
@@ -102,18 +133,21 @@ function createToneSession(context: AudioContext, kind: ToneKind): ToneSession {
 
   switch (kind) {
     case "ringtone":
-      oscillator.frequency.value = 440;
-      oscillator.start();
-      timers.push(
-        setInterval(() => {
-          oscillator.frequency.value = oscillator.frequency.value === 440 ? 480 : 440;
-        }, 1000),
+      startRingtoneCadence(
+        context,
+        oscillator,
+        gainNode,
+        ringtoneId,
+        intervalTimers,
+        timeoutTimers,
+        () => stopped,
       );
       break;
     case "ringback":
+      gainNode.gain.value = 0.12;
       oscillator.frequency.value = 440;
       oscillator.start();
-      timers.push(
+      intervalTimers.push(
         setInterval(() => {
           const isOn = gainNode.gain.value > 0;
           gainNode.gain.value = isOn ? 0 : 0.12;
@@ -121,9 +155,10 @@ function createToneSession(context: AudioContext, kind: ToneKind): ToneSession {
       );
       break;
     case "busy":
+      gainNode.gain.value = 0.12;
       oscillator.frequency.value = 480;
       oscillator.start();
-      timers.push(
+      intervalTimers.push(
         setInterval(() => {
           const isOn = gainNode.gain.value > 0;
           gainNode.gain.value = isOn ? 0 : 0.12;
@@ -131,9 +166,10 @@ function createToneSession(context: AudioContext, kind: ToneKind): ToneSession {
       );
       break;
     case "failed":
+      gainNode.gain.value = 0.12;
       oscillator.frequency.value = 300;
       oscillator.start();
-      timers.push(
+      intervalTimers.push(
         setInterval(() => {
           const isOn = gainNode.gain.value > 0;
           gainNode.gain.value = isOn ? 0 : 0.12;
@@ -143,4 +179,55 @@ function createToneSession(context: AudioContext, kind: ToneKind): ToneSession {
   }
 
   return { stop };
+}
+
+function startRingtoneCadence(
+  _context: AudioContext,
+  oscillator: OscillatorNode,
+  gainNode: GainNode,
+  ringtoneId: IncomingRingtoneId,
+  intervalTimers: ReturnType<typeof setInterval>[],
+  timeoutTimers: ReturnType<typeof setTimeout>[],
+  isStopped: () => boolean,
+): void {
+  const preset = resolveRingtonePreset(ringtoneId);
+  gainNode.gain.value = 0;
+  oscillator.frequency.value = Math.max(preset.steps[0]?.frequencyHz ?? 440, 1);
+  oscillator.start();
+
+  // Classic dual-tone must remain identical to the pre-catalog interval flip.
+  if (ringtoneId === "classic") {
+    gainNode.gain.value = preset.masterGain;
+    oscillator.frequency.value = 440;
+    intervalTimers.push(
+      setInterval(() => {
+        oscillator.frequency.value = oscillator.frequency.value === 440 ? 480 : 440;
+      }, 1000),
+    );
+    return;
+  }
+
+  let stepIndex = 0;
+
+  const applyStep = (): void => {
+    if (isStopped()) {
+      return;
+    }
+    const step = preset.steps[stepIndex % preset.steps.length];
+    if (step === undefined) {
+      return;
+    }
+    if (step.frequencyHz > 0) {
+      oscillator.frequency.value = step.frequencyHz;
+    }
+    gainNode.gain.value = step.gain > 0 ? preset.masterGain * step.gain : 0;
+    stepIndex += 1;
+    timeoutTimers.push(
+      setTimeout(() => {
+        applyStep();
+      }, step.durationMs),
+    );
+  };
+
+  applyStep();
 }

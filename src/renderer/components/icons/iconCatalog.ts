@@ -61,6 +61,8 @@ import {
   Users,
   Video,
   VideoOff,
+  Volume2,
+  VolumeX,
   MonitorUp,
   Maximize2,
   Minimize2,
@@ -99,6 +101,7 @@ import {
   SettingsIcon,
   SlidersHorizontalIcon,
   UserIcon,
+  VolumeIcon,
   XIcon,
 } from "lucide-animated";
 
@@ -125,6 +128,8 @@ export type IconSemanticId =
   | "account.profile.delete"
   | "settings.general"
   | "settings.sessions"
+  | "settings.sessions.ringtone.preview"
+  | "settings.sessions.ringtone.previewStop"
   | "settings.system-state"
   | "settings.codecs"
   | "settings.video"
@@ -321,6 +326,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.sessions",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-sessions"],
+  },
+  "settings.sessions.ringtone.preview": {
+    static: Volume2,
+    animated: VolumeIcon,
+    defaultLabelKey: "icons.settings.sessions.ringtone.preview",
+    defaultSize: 20,
+    usage: ["SettingsRingtoneSection"],
+  },
+  "settings.sessions.ringtone.previewStop": {
+    static: VolumeX,
+    defaultLabelKey: "icons.settings.sessions.ringtone.previewStop",
+    defaultSize: 20,
+    usage: ["SettingsRingtoneSection"],
   },
   "settings.system-state": {
     static: Gauge,

@@ -2,11 +2,11 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-31
+**Updated:** 2026-08-01
 **Version:** `1.2.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
-**Tests:** F-032 v15 conditions/history/window lifecycle + prior F-031/F-032 suites; SemVer MINOR for F-032 extensions pending `/release`
+**Tests:** F-033 incoming ringtone catalog + prior F-031/F-032 suites; SemVer MINOR for F-033 (+ pending F-032) via `/release`
 **Settings nav:** Integrations = always-open cluster when expanded (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
-**Settings schema:** `UserSettings` **v16** (`externalApplications.conditions.queueNames` + `windowBehavior`; v15/v14 migrate forward)
+**Settings schema:** `UserSettings` **v18** (`incomingRingtoneId`; v17→v18 defaults to `classic`)
 **OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
 **Lint / typecheck:** `npm run lint` PASS · `npm run typecheck` PASS · `npm run registry:check` **75/0**
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + min visible dwell 4000ms + exit crossfade; do not reintroduce React loading splash handoff; do not delay `initialize` for dwell
@@ -43,6 +43,18 @@
 | Release | MINOR `1.2.0` → `1.3.0` **pending** `/release` |
 | Non-overlap | Not F-031 HTTP; not F-011 SDK; not F-028 OCP control |
 | Extensions (2026-07-31) | App-level open conditions; sidebar History journal; raise/always-on-top/on-call-ended window lifecycle |
+
+## Closed — F-033 Selectable Incoming Ringtone Catalog
+
+| Field | Value |
+| --- | --- |
+| Feature | **F-033** Selectable Incoming Ringtone Catalog |
+| Status | **implemented** (2026-08-01) |
+| Design | `P11-Incoming-Ringtone-Catalog-Design.md` |
+| Schema | `UserSettings` **v18** (`incomingRingtoneId`, default `classic`) |
+| Release | MINOR pending `/release` (bundle with other user-visible work) |
+| Non-overlap | Not F-018 Tone FSM; WebAudio presets only (no OEM assets) |
+| UX | Settings → Sessions: select ≥10 presets + preview |
 
 ## Active phase
 

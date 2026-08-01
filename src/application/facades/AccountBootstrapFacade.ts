@@ -1052,6 +1052,7 @@ export class AccountBootstrapFacade {
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
     await this.purgeLegacyOcpAuthToken();
     await this.applyHeadsetUserSettings(userSettings);
+    await this.applyIncomingRingtoneSettings(userSettings);
 
     const phoneStatus = await this.deps.settingsRepository.getPhoneStatus();
     const existingAccount = await this.deps.settingsRepository.getSipAccount();
@@ -1536,6 +1537,7 @@ export class AccountBootstrapFacade {
     }
 
     await this.applyHeadsetUserSettings(importResult.value.settings);
+    await this.applyIncomingRingtoneSettings(importResult.value.settings);
     this.deps.externalServicesComposition?.replaceActiveSettings(
       importResult.value.settings.externalServices,
     );
@@ -2594,6 +2596,7 @@ export class AccountBootstrapFacade {
     this.sipRecoveryOrchestration.applyRecoverySettings(settings);
     await this.callEngine.refreshAutoAnswerSchedules();
     await this.applyHeadsetUserSettings(settings);
+    await this.applyIncomingRingtoneSettings(settings);
   }
 
   private async saveUserSettingsInternal(
@@ -2616,6 +2619,7 @@ export class AccountBootstrapFacade {
       this.deps.externalApplicationsComposition?.replaceActiveSettings(
         validated.value.externalApplications,
       );
+      await this.applyIncomingRingtoneSettings(validated.value);
     }
     return validated.value;
   }
@@ -2798,6 +2802,37 @@ export class AccountBootstrapFacade {
 
   async applyHeadsetUserSettings(settings: UserSettings): Promise<void> {
     await this.headsetIntegration.applySettings(settings);
+  }
+
+  async applyIncomingRingtoneSettings(settings: UserSettings): Promise<void> {
+    const result = await this.deps.mediaGateway.configureIncomingRingtone({
+      ringtoneId: settings.incomingRingtoneId,
+      correlationId: createCorrelationId(),
+    });
+    if (!result.ok) {
+      this.deps.logger.warn("incoming_ringtone_configure_failed", {
+        featureId: "F-033",
+        boundedContext: "Media",
+        operation: "configure_incoming_ringtone",
+        ringtoneId: settings.incomingRingtoneId,
+        result: result.error.code,
+      });
+    }
+  }
+
+  async previewIncomingRingtone(
+    ringtoneId: UserSettings["incomingRingtoneId"],
+  ): Promise<Result<void, PlatformError>> {
+    return this.deps.mediaGateway.previewIncomingRingtone({
+      ringtoneId,
+      correlationId: createCorrelationId(),
+    });
+  }
+
+  async stopIncomingRingtonePreview(): Promise<Result<void, PlatformError>> {
+    return this.deps.mediaGateway.stopIncomingRingtonePreview({
+      correlationId: createCorrelationId(),
+    });
   }
 
   async persistHeadsetPreferredDeviceId(deviceId: string): Promise<void> {

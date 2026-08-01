@@ -293,6 +293,12 @@ export {
   type SdkOriginTrustEntry,
   type SdkOriginTrustState,
   type UserSettings,
+  type IncomingRingtoneId,
+  DEFAULT_INCOMING_RINGTONE_ID,
+  INCOMING_RINGTONE_IDS,
+  listIncomingRingtoneIds,
+  parseIncomingRingtoneId,
+  resolveIncomingRingtoneId,
 } from "@domain/index.js";
 export {
   persistSdkIntegrationSettings,

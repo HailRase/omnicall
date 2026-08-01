@@ -26,6 +26,7 @@ import {
   EXTERNAL_APPLICATIONS_DEFAULTS,
   parseExternalApplicationsSettings,
 } from "../integration/external-applications/index.js";
+import { resolveIncomingRingtoneId } from "../media/IncomingRingtoneId.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -42,7 +43,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v11.
+ * - Purpose: upgrade persisted or in-memory settings to current UserSettings schema.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -76,6 +77,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 17 ||
     version === 16 ||
     version === 15 ||
     version === 14 ||
@@ -187,6 +189,7 @@ function coerceToCurrentUserSettings(
       typeof record["windowAlwaysOnTop"] === "boolean"
         ? record["windowAlwaysOnTop"]
         : false,
+    incomingRingtoneId: resolveIncomingRingtoneId(record["incomingRingtoneId"]),
     headsetPreferredDeviceId:
       typeof preferredRaw === "string" && preferredRaw.trim().length > 0
         ? preferredRaw.trim()
@@ -321,6 +324,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
       v1Validated.autoAnswerDuringActiveSessionEnabled ??
       defaults.autoAnswerDuringActiveSessionEnabled,
     ringbackToneEnabled: v1Validated.ringbackToneEnabled ?? defaults.ringbackToneEnabled,
+    incomingRingtoneId: defaults.incomingRingtoneId,
     sipAutoReconnectEnabled: defaults.sipAutoReconnectEnabled,
     sipReconnectIntervalSec: defaults.sipReconnectIntervalSec,
     sipReconnectMaxAttempts: defaults.sipReconnectMaxAttempts,

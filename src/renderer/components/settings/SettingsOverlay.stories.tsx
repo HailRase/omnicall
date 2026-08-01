@@ -71,6 +71,10 @@ const autoAnswerDefaults = {
   onAutoAnswerTimeoutChange: () => undefined,
   autoAnswerDuringActiveSessionEnabled: true,
   onAutoAnswerDuringActiveSessionChange: () => undefined,
+  incomingRingtoneId: "classic" as const,
+  onIncomingRingtoneIdChange: () => undefined,
+  onPreviewIncomingRingtone: () => undefined,
+  onStopIncomingRingtonePreview: () => undefined,
 } as const;
 
 const appUpdateDefaults = {

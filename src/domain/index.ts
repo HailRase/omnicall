@@ -35,6 +35,14 @@ export {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   SETTINGS_SCHEMA_VERSION,
 } from "./settings/UserSettings.js";
+export type { IncomingRingtoneId } from "./media/IncomingRingtoneId.js";
+export {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  INCOMING_RINGTONE_IDS,
+  listIncomingRingtoneIds,
+  parseIncomingRingtoneId,
+  resolveIncomingRingtoneId,
+} from "./media/IncomingRingtoneId.js";
 export type {
   ExternalServiceAutomaticEventType,
   ExternalServiceBodyMode,
