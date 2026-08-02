@@ -61,6 +61,10 @@ export const IPC_CHANNELS = {
   externalApplicationsOpenWindow: "external-applications:open-window",
   /** Renderer → main: F-032 apply call-ended window lifecycle for one callId. */
   externalApplicationsApplyCallEnded: "external-applications:apply-call-ended",
+  /** Main → guest preload: run optional close-guard callback (F-032). */
+  externalApplicationsCloseGuardQuery: "external-applications:close-guard-query",
+  /** Guest preload → main: close-guard result for one requestId (F-032). */
+  externalApplicationsCloseGuardResult: "external-applications:close-guard-result",
 } as const;
 
 export type IpcChannel =
@@ -100,3 +104,11 @@ export type {
   OpenExternalApplicationWindowPayload,
   OpenExternalApplicationWindowResponse,
 } from "./OpenExternalApplicationWindowContract.js";
+export type {
+  ExternalApplicationCloseGuardQueryPayload,
+  ExternalApplicationCloseGuardResultPayload,
+} from "./ExternalApplicationCloseGuardContract.js";
+export type {
+  ExternalApplicationCloseGuard,
+  ExternalApplicationGuestApi,
+} from "./ExternalApplicationGuestApi.js";

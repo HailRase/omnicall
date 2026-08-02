@@ -4,23 +4,36 @@
  * - Outputs: focused/new BrowserWindow or lifecycle side effects.
  */
 
+import { join } from "node:path";
 import { BrowserWindow, ipcMain, shell } from "electron";
+import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
   parseApplyExternalApplicationCallEndedPayload,
   parseOpenExternalApplicationWindowPayload,
-  type ApplyExternalApplicationCallEndedResponse,
   type OpenExternalApplicationWindowPayload,
   type OpenExternalApplicationWindowResponse,
+  type ApplyExternalApplicationCallEndedResponse,
 } from "@shared/ipc/OpenExternalApplicationWindowContract.js";
+import {
+  attachExternalApplicationCloseInterceptor,
+  type ExternalApplicationCloseInterceptor,
+} from "./attachExternalApplicationCloseInterceptor.js";
+import { queryExternalApplicationCloseGuard } from "./queryExternalApplicationCloseGuard.js";
 
 type TrackedWindow = Readonly<{
   browserWindow: BrowserWindow;
   onCallEnded: OpenExternalApplicationWindowPayload["onCallEnded"];
   callId: string;
+  closeInterceptor: ExternalApplicationCloseInterceptor;
 }>;
 
 export type ExternalApplicationWindowIpcRegistration = Readonly<{ dispose: () => void }>;
+
+const logger = createConsoleLogger({
+  boundedContext: "Integration",
+  featureId: "F-032",
+});
 
 export function registerExternalApplicationWindowIpc(): ExternalApplicationWindowIpcRegistration {
   const windows = new Map<string, TrackedWindow>();
@@ -44,6 +57,7 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
           browserWindow: existing.browserWindow,
           onCallEnded: payload.onCallEnded,
           callId: payload.callId,
+          closeInterceptor: existing.closeInterceptor,
         });
         return { ok: true, focusedExisting: true };
       }
@@ -54,6 +68,7 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
           title: payload.title,
           show: false,
           webPreferences: {
+            preload: resolveExternalApplicationGuestPreloadPath(),
             contextIsolation: true,
             sandbox: true,
             nodeIntegration: false,
@@ -66,12 +81,29 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
           return { action: "deny" };
         });
         browserWindow.setAlwaysOnTop(payload.alwaysOnTopDuringCall);
+        const closeInterceptor = attachExternalApplicationCloseInterceptor({
+          browserWindow,
+          queryGuard: (window) =>
+            queryExternalApplicationCloseGuard({ webContents: window.webContents }),
+          onDenied: () => {
+            applyRaise(browserWindow, true);
+            logger.info("external_application_close_guard_denied", {
+              operation: "close_guard",
+              featureId: "F-032",
+              applicationId: payload.applicationId,
+              callId: payload.callId,
+              result: "denied",
+            });
+          },
+        });
         windows.set(key, {
           browserWindow,
           onCallEnded: payload.onCallEnded,
           callId: payload.callId,
+          closeInterceptor,
         });
         browserWindow.once("closed", () => {
+          closeInterceptor.dispose();
           windows.delete(key);
         });
         await browserWindow.loadURL(payload.url);
@@ -79,6 +111,8 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
         applyRaise(browserWindow, payload.raiseOnOpen);
         return { ok: true, focusedExisting: false };
       } catch {
+        const tracked = windows.get(key);
+        tracked?.closeInterceptor.dispose();
         windows.delete(key);
         return { ok: false, reason: "open_failed" };
       }
@@ -106,6 +140,7 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
           affected += 1;
           continue;
         }
+        tracked.closeInterceptor.markForceClose();
         tracked.browserWindow.close();
         windows.delete(key);
         affected += 1;
@@ -119,6 +154,8 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
       ipcMain.removeHandler(IPC_CHANNELS.externalApplicationsOpenWindow);
       ipcMain.removeHandler(IPC_CHANNELS.externalApplicationsApplyCallEnded);
       for (const tracked of windows.values()) {
+        tracked.closeInterceptor.markForceClose();
+        tracked.closeInterceptor.dispose();
         if (!tracked.browserWindow.isDestroyed()) {
           tracked.browserWindow.destroy();
         }
@@ -135,4 +172,8 @@ function applyRaise(browserWindow: BrowserWindow, raiseOnOpen: boolean): void {
   if (raiseOnOpen) {
     browserWindow.focus();
   }
+}
+
+function resolveExternalApplicationGuestPreloadPath(): string {
+  return join(__dirname, "../preload/externalApplicationGuest.js");
 }

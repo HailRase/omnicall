@@ -1124,37 +1124,39 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (variable help popups 2026-08-01): Variables catalog rows show `?` (`settings.integrations.external-services.variableHelp`) opening click popup with `variables.help.*`; shared ES/EA Variables tab; tests `ExternalServicesVariableHelpButton.test.tsx`; Icon-Registry synced.
 - Implementation evidence (journal request body 2026-08-01): journal persists truncated resolved request body alongside response; History detail shows request body only when non-empty; legacy journal rows default empty request body; i18n `journal.requestBody*` ru/en/fr/de/bg; Execute/Use Case + journal UI/document tests.
 - Implementation evidence (manual Run now variables 2026-08-01): Send supplies `userLogin` + optional focused call from `readExternalServicesProductStateFromStore` / `buildExternalServicesManualRunFacts` (SIP username, else OCP `authenticatedLogin`); composition enriches call parties from tracker; `RunExternalServiceRequestNowUseCase` + reader/enricher tests; docs `03`/`04`/`01` synced.
+- Implementation evidence (trigger variable availability help 2026-08-02): Domain `resolveExternalServiceEventVariableGroups` / `listExternalServiceCatalogEntriesForEvent`; Triggers tab `?` per event (`ExternalServicesTriggerVariableHelp`) lists same groups/tokens as Variables when-hints; i18n `trigger.help*` ru/en/fr/de/bg; tests domain matrix + trigger help UI; docs `03-EVENTS-AND-VARIABLES.md` synced (no runtime template change).
 
 ## F-032: External Applications (Call Screen-Pop Windows)
 
 - Legacy IDs: `_none_ (new product feature)`
 - Context: Integration (primary); Settings (profile persistence / F-030 portability)
 - Priority: high
-- Status: **implemented** (2026-07-31; conditions/history/window lifecycle **2026-07-31**)
+- Status: **implemented** (2026-07-31; conditions/history/window lifecycle **2026-07-31**; guest close-guard **2026-08-02**)
 - Owner: TBD
 - Related: F-016 (Settings Integrations nav), F-023 / F-024 (profile settings), F-028 (consume-only campaign/ACD facts), F-030 (preferences round-trip), F-031 (shared event mapper + `{{` template catalog/autocomplete)
 - Explicit non-overlap:
   - **Not F-031:** no outbound HTTP journal/queue; F-032 opens windows/browser only (own open journal).
   - **Not F-011 / F-028:** no SDK or OCP control-plane mutation.
-- Inputs: profile `UserSettings.externalApplications` (schema **v16**); focused-call / campaign / ACD / post-call Domain events (shared F-031 codes); manual Open now
-- Outputs: sandboxed Electron `BrowserWindow` (`loadURL`) or system browser via existing F-020 HTTPS gateway; call-ended leave/minimize/close; profile open history
+- Inputs: profile `UserSettings.externalApplications` (schema **v16**); focused-call / campaign / ACD / post-call Domain events (shared F-031 codes); manual Open now; optional guest `setCloseGuard` callback
+- Outputs: sandboxed Electron `BrowserWindow` (`loadURL`) or system browser via existing F-020 HTTPS gateway; call-ended leave/minimize/close; profile open history; optional close interception via guest bridge
 - Acceptance Criteria:
   - Settings → Integrations → **External Applications** leaf beside External Services; pre-auth soft-gated like OCP/ES; OmniCall Kit stays top-level.
   - Flat application list (name, enabled, URL template, triggers + delay, window W×H, open mode, authored variables).
   - Own **Conditions** tab: direction (default any) + multi-queue list (empty = any); shared by every trigger; fail-closed when facts missing; Open now ignores conditions.
   - **Window behavior** (electron_window): raise on open, always-on-top during call, on call end leave/minimize/close; lifecycle runs before terminal-event opens.
+  - **Close guard** (electron_window): guest may register `window.omnicall.setCloseGuard`; native Close awaits explicit `true`; no guard = unrestricted close (no downgrade); deny/throw/timeout block close; call-ended `close` and dispose force-close without guard.
   - Sidebar **History** lists last 100 opens/skips/failures (journal excluded from F-030).
   - URL field reuses F-031 `{{` autocomplete with when-available labels; Variables tab shows shared system catalog (browse) + authored vars (always); missing token → literal `undefined`.
   - Multiple matching apps on one event → multiple windows; same `applicationId:callId` focuses existing window.
   - Invalid resolved URL skipped (logged + journal); focus-gated call events; operator-level `campaign_*` + `post_call_processing`; logout/profile switch cancels delayed jobs.
-  - Typed IPC only (`OpenExternalApplicationWindowContract` + `apply-call-ended`); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated.
+  - Typed IPC only (`OpenExternalApplicationWindowContract` + `apply-call-ended` + close-guard query/result); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated; guest preload is close-guard-only (not main softphone preload).
   - F-030 export/import round-trips config (not journal); empty default is inert; SIP-only bootstrap unchanged; v14/v15→v16 migrate without opening-behavior change when queues empty and direction any.
 - Test Coverage:
-  - Unit: parse/match/conditions; IPC contract; navigation availability; settings panel/sidebar/history
+  - Unit: parse/match/conditions; IPC contract; close-guard contract/interceptor/query; navigation availability; settings panel/sidebar/history
   - Integration: automation multi-app open + invalid URL skip; migrate v14/v15→v16 conditions
-  - E2E: deferred (manual smoke: create app → incoming → window → history)
+  - E2E: deferred (manual smoke: create app → incoming → window → history; optional card `setCloseGuard` deny/allow)
 - Design: `docs/softphone/P14-External-Applications-Design.md`
-- ADR: `docs/softphone/adr/ADR-0024-external-applications-screen-pop-windows.md` (**Accepted**)
+- ADR: `docs/softphone/adr/ADR-0024-external-applications-screen-pop-windows.md` (**Accepted**, amended 2026-08-02)
 - Implementation evidence: `src/domain/integration/external-applications/`; `src/application/services/integration/external-applications/`; `src/main/externalApplications/registerExternalApplicationWindowIpc.ts`; Settings panel `src/renderer/components/settings/external-applications/`; `src/renderer/hooks/useExternalApplicationsPanel.ts`; i18n `settings.integrations.externalApplications.*` ru/en/fr/de/bg
 - Implementation evidence (post-call trigger 2026-07-31): reuses F-031 `post_call_processing` via shared mapper + `ExternalServicesTriggerList`; match test covers operator-level (no focus gate); design `P14-External-Applications-Design.md` synced
 - Implementation evidence (Settings UI refresh 2026-07-31): sidebar without header chrome; fixed Add footer; per-item status dots + actions; History nav; conditions + window behavior; `ExternalApplicationsPanel.test.tsx`
@@ -1162,6 +1164,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (variable availability UX 2026-08-01): Variables tab embeds shared F-031 system catalog (browse-only + when subtitles + `?` help) above authored key/value (`variablesWhenHint`); reuses F-031 autocomplete when labels; design `P14-External-Applications-Design.md` synced
 - Implementation evidence (sidebar History button 2026-08-01): History uses UI Kit `Button` (`sm` / outline|secondary when selected) stacked with Add in sidebar footer; panel test covers history nav.
 - Implementation evidence (manual Open now variables 2026-08-01): Open now passes shared F-031 manual-run facts (`user_login` + optional focused call); design `P14-External-Applications-Design.md` synced.
+- Implementation evidence (guest close-guard 2026-08-02): `src/preload/externalApplicationGuest.ts`; `src/main/externalApplications/attachExternalApplicationCloseInterceptor.ts`; `src/main/externalApplications/queryExternalApplicationCloseGuard.ts`; `src/shared/ipc/ExternalApplicationCloseGuardContract.ts`; `src/shared/ipc/ExternalApplicationGuestApi.ts`; ADR-0024 amendment; P14 guest contract section; unit tests for contract/interceptor/query.
+- Implementation evidence (trigger variable availability help 2026-08-02): Events tab reuses shared F-031 trigger `?` help (event→group SSoT); design `P14-External-Applications-Design.md` synced.
 
 ## F-033: Selectable Incoming Ringtone Catalog
 

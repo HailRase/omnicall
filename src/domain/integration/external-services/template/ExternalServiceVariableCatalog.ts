@@ -2,6 +2,7 @@
  * - Purpose: single source of truth for External Services template variable names.
  * - Inputs: none (static catalog aligned with trigger variable builders).
  * - Outputs: grouped variable names, availability ids, and `{{name}}` token formatting.
+ * - Event→group matrix: `resolveExternalServiceEventVariableGroups.ts` (must stay aligned).
  */
 
 export type ExternalServiceVariableCatalogGroupId =

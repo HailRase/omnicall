@@ -111,24 +111,36 @@ Do not expose `mainAcallId`, `acallId`, raw OCP payloads, OCP auth material, or 
 
 ### Discoverability (product UI)
 
-- Domain SSoT: `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`, `resolveExternalServiceSystemVariableAvailability`).
+- Domain SSoT (names/groups): `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`, `resolveExternalServiceSystemVariableAvailability`).
+- Domain SSoT (event → groups): `src/domain/integration/external-services/template/resolveExternalServiceEventVariableGroups.ts` — must match `mapDomainEventToExternalServiceTrigger` + Variables-tab when-hints (no call facts on `post_call_processing` / campaign-only events).
 - Request editor Variables tab renders that catalog with localized labels, clickable `?` help popups (operator-facing `variables.help.*`), **group when-available subtitles** (`always` / `call` / `campaign` / `acd`), compact context hint (`Outside its context → undefined`), and Insert into URL/Body.
+- Triggers tab / External Applications Events: each event row has `?` (`ExternalServicesTriggerVariableHelp`) listing the same group titles, when-hints, and `{{token}}`s from `resolveExternalServiceEventVariableGroups` + catalog (authored vars always noted).
 - `{{` autocomplete shows `System|Collection · {when}` (authored collection keys → Always; dual-listed `queue_name` → Campaign / ACD).
 - Collection workspace always shows a compact custom-variables preview (hint, example, `{{token}}` column); collection vars are always available.
 - Collection variables dialog: example syntax, live inspection via `inspectExternalServiceCollectionVariableRows`, save blocked on duplicate/empty-key-with-value; soft warning for system-name collisions.
 - Normalize/save path: `normalizeExternalServiceCollectionVariables` (Domain) used by `replaceExternalServiceCollectionVariables`.
-- Keep UI catalog names in sync with `buildExternalServiceVariables` and campaign/ACD mappers; extend Domain catalog first when adding variables.
+- Keep UI catalog names in sync with `buildExternalServiceVariables` and campaign/ACD mappers; extend Domain catalog first when adding variables; update event→group matrix in the same change.
 
 ### Availability labels (UI contract)
 
 | Catalog group | When label (compact) | Filled on |
 | --- | --- | --- |
 | `always` | Always | Every trigger / manual run |
-| `call` | Call | Focused call lifecycle (+ ACD merge into call tracker) |
+| `call` | Call | Focused call lifecycle (+ ACD merge into call tracker); **not** `post_call_processing` or campaign-only events |
 | `campaign` | Campaign | `campaign_offered` / `accepted` / `rejected` |
 | `acd` | ACD | `acd_context_appeared` |
 | authored (collection / EA) | Always | Every run (user constants) |
 | `queue_name` (dual) | Campaign / ACD | Campaign or ACD additive maps |
+
+### Event → system groups (runtime + Triggers `?` help)
+
+| Event code | Groups |
+| --- | --- |
+| `incoming_ringing`, `outgoing_connecting`, `call_answered`, `call_ended`, `call_rejected`, `call_missed` | `always` + `call` |
+| `campaign_offered`, `campaign_accepted`, `campaign_rejected` | `always` + `campaign` |
+| `acd_context_appeared` | `always` + `call` + `acd` |
+| `post_call_processing` | `always` only |
+| `manual_run` | `always` + `call` (call facts only when focused call exists) |
 
 Missing / out-of-context tokens still resolve to the literal `undefined` (template algorithm unchanged).
 

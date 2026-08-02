@@ -1,21 +1,18 @@
+/**
+ * - Purpose: edit automatic event trigger selection with compact delay control.
+ * - Inputs: selected trigger bindings, disabled state, change callback.
+ * - Outputs: trigger selection intent without event processing.
+ */
+
 import type { JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 import { Switch } from "../../ui/index.js";
+import type { ExternalServicesAutomaticEventType } from "./externalServicesAutomaticEventType.js";
+import { ExternalServicesTriggerVariableHelp } from "./ExternalServicesTriggerVariableHelp.js";
 import styles from "./ExternalServices.module.css";
 
-export type ExternalServicesAutomaticEventType =
-  | "incoming_ringing"
-  | "outgoing_connecting"
-  | "call_answered"
-  | "call_ended"
-  | "call_rejected"
-  | "call_missed"
-  | "campaign_offered"
-  | "campaign_accepted"
-  | "campaign_rejected"
-  | "acd_context_appeared"
-  | "post_call_processing";
+export type { ExternalServicesAutomaticEventType } from "./externalServicesAutomaticEventType.js";
 
 const eventTypes: ReadonlyArray<ExternalServicesAutomaticEventType> = [
   "incoming_ringing",
@@ -46,18 +43,17 @@ const triggerKeys: Readonly<Record<ExternalServicesAutomaticEventType, Translati
 };
 
 export type ExternalServicesTriggerListProps = Readonly<{
-  triggers: ReadonlyArray<Readonly<{
-    eventType: ExternalServicesAutomaticEventType;
-    delaySeconds: number;
-  }>>;
+  triggers: ReadonlyArray<
+    Readonly<{
+      eventType: ExternalServicesAutomaticEventType;
+      delaySeconds: number;
+    }>
+  >;
   disabled: boolean;
   onChange: (triggers: ExternalServicesTriggerListProps["triggers"]) => void;
 }>;
 
 /**
- * - Purpose: edit automatic event trigger selection with compact delay control.
- * - Inputs: selected trigger bindings, disabled state, change callback.
- * - Outputs: trigger selection intent without event processing.
  * @uiMeta f=F-031
  */
 export function ExternalServicesTriggerList({
@@ -77,9 +73,16 @@ export function ExternalServicesTriggerList({
       {eventTypes.map((eventType) => {
         const binding = triggers.find((trigger) => trigger.eventType === eventType);
         const checked = binding !== undefined;
+        const eventLabel = t(triggerKeys[eventType]);
         return (
           <div className={styles.triggerRow} key={eventType}>
-            <span className={styles.triggerLabel}>{t(triggerKeys[eventType])}</span>
+            <span className={styles.triggerLabelWithHelp}>
+              <span className={styles.triggerLabel}>{eventLabel}</span>
+              <ExternalServicesTriggerVariableHelp
+                eventType={eventType}
+                eventLabel={eventLabel}
+              />
+            </span>
             <div className={styles.triggerControls}>
               {binding !== undefined ? (
                 <label className={styles.triggerDelay}>
@@ -117,7 +120,7 @@ export function ExternalServicesTriggerList({
                 checked={checked}
                 disabled={disabled}
                 data-testid={`external-services-trigger-${eventType}`}
-                aria-label={t(triggerKeys[eventType])}
+                aria-label={eventLabel}
                 onCheckedChange={(enabled) =>
                   onChange(
                     enabled

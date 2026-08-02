@@ -247,6 +247,13 @@ const ruMessages = {
   "settings.integrations.externalServices.trigger.campaign_rejected": "Кампания отклонена",
   "settings.integrations.externalServices.trigger.acd_context_appeared": "Контекст ACD получен",
   "settings.integrations.externalServices.trigger.post_call_processing": "Поствызывная обработка",
+  "settings.integrations.externalServices.trigger.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Какие переменные доступны для «${params.name}»`,
+  "settings.integrations.externalServices.trigger.help.intro":
+    "Системные переменные, которые заполняются на этом событии (те же группы, что на вкладке Variables):",
+  "settings.integrations.externalServices.trigger.help.authored":
+    "Авторские переменные (свои ключи) доступны всегда.",
   "settings.integrations.externalServices.run.now": "Запустить сейчас",
   "settings.integrations.externalServices.run.success": "Запрос выполнен",
   "settings.integrations.externalServices.run.error": "Запрос не выполнен",
@@ -1966,6 +1973,13 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.trigger.campaign_rejected": "Campaign rejected",
   "settings.integrations.externalServices.trigger.acd_context_appeared": "ACD context received",
   "settings.integrations.externalServices.trigger.post_call_processing": "Post-call processing",
+  "settings.integrations.externalServices.trigger.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Which variables are available for “${params.name}”`,
+  "settings.integrations.externalServices.trigger.help.intro":
+    "System variables filled for this event (same groups as the Variables tab):",
+  "settings.integrations.externalServices.trigger.help.authored":
+    "Authored custom variables are always available.",
   "settings.integrations.externalServices.disabled.loading": "Loading External Services…",
   "settings.integrations.externalServices.disabled.busy": "Saving…",
   "settings.integrations.externalServices.disabled.unavailable":
@@ -3733,6 +3747,13 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.trigger.campaign_rejected": "Campagne refusee",
   "settings.integrations.externalServices.trigger.acd_context_appeared": "Contexte ACD recu",
   "settings.integrations.externalServices.trigger.post_call_processing": "Traitement post-appel",
+  "settings.integrations.externalServices.trigger.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Quelles variables sont disponibles pour « ${params.name} »`,
+  "settings.integrations.externalServices.trigger.help.intro":
+    "Variables systeme renseignees pour cet evenement (memes groupes que l'onglet Variables) :",
+  "settings.integrations.externalServices.trigger.help.authored":
+    "Les variables personnalisees sont toujours disponibles.",
   "settings.integrations.externalServices.disabled.loading": "Chargement des services externes…",
   "settings.integrations.externalServices.disabled.busy": "Enregistrement…",
   "settings.integrations.externalServices.disabled.unavailable":
@@ -5395,6 +5416,13 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.trigger.campaign_rejected": "Kampagne abgelehnt",
   "settings.integrations.externalServices.trigger.acd_context_appeared": "ACD-Kontext empfangen",
   "settings.integrations.externalServices.trigger.post_call_processing": "Nachbearbeitungszeit",
+  "settings.integrations.externalServices.trigger.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Welche Variablen sind fuer „${params.name}“ verfuegbar`,
+  "settings.integrations.externalServices.trigger.help.intro":
+    "Systemvariablen, die fuer dieses Ereignis gefuellt werden (gleiche Gruppen wie im Tab Variables):",
+  "settings.integrations.externalServices.trigger.help.authored":
+    "Eigene Variablen sind immer verfuegbar.",
   "settings.integrations.externalServices.disabled.loading": "Externe Dienste werden geladen…",
   "settings.integrations.externalServices.disabled.busy": "Speichern…",
   "settings.integrations.externalServices.disabled.unavailable":

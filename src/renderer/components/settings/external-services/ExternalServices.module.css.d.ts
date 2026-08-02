@@ -141,7 +141,16 @@ declare const classes: {
   readonly triggerDelayInput: string;
   readonly triggerDelayLabel: string;
   readonly triggerDelayUnit: string;
+  readonly triggerHelpBody: string;
+  readonly triggerHelpFooter: string;
+  readonly triggerHelpGroup: string;
+  readonly triggerHelpGroupTitle: string;
+  readonly triggerHelpGroupWhen: string;
+  readonly triggerHelpIntro: string;
+  readonly triggerHelpPopup: string;
+  readonly triggerHelpTokens: string;
   readonly triggerLabel: string;
+  readonly triggerLabelWithHelp: string;
   readonly triggerList: string;
   readonly triggerListTitle: string;
   readonly triggerRow: string;

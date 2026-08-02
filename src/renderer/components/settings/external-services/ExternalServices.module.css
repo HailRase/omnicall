@@ -616,6 +616,58 @@
   pointer-events: auto;
 }
 
+.trigger-help-popup {
+  max-width: min(20rem, 80vw);
+}
+
+.trigger-help-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.trigger-help-intro,
+.trigger-help-group-title,
+.trigger-help-footer {
+  margin: 0;
+}
+
+.trigger-help-intro {
+  color: var(--color-text-secondary);
+}
+
+.trigger-help-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.trigger-help-group-title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.trigger-help-group-when {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.trigger-help-tokens {
+  margin: var(--space-2xs) 0 0;
+  padding: 0 0 0 var(--space-sm);
+  list-style: disc;
+  color: var(--color-text-secondary);
+}
+
+.trigger-help-tokens code {
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.trigger-help-footer {
+  color: var(--color-text-muted);
+}
+
 .template-autocomplete-host {
   position: relative;
   min-width: 0;
@@ -1281,8 +1333,15 @@
   background: var(--color-bg-surface);
 }
 
-.trigger-label {
+.trigger-label-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
   flex: 1 1 auto;
+  min-width: 0;
+}
+
+.trigger-label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

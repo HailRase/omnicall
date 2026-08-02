@@ -81,6 +81,10 @@ export {
   listExternalServiceVariableCatalogByGroup,
   resolveExternalServiceSystemVariableAvailability,
 } from "./template/ExternalServiceVariableCatalog.js";
+export {
+  listExternalServiceCatalogEntriesForEvent,
+  resolveExternalServiceEventVariableGroups,
+} from "./template/resolveExternalServiceEventVariableGroups.js";
 export type {
   ExternalServiceCollectionVariableRowInspection,
   ExternalServiceCollectionVariableRowIssue,

@@ -609,7 +609,9 @@ export {
   inspectExternalServiceCollectionVariableRows,
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
+  listExternalServiceCatalogEntriesForEvent,
   normalizeExternalServiceCollectionVariables,
+  resolveExternalServiceEventVariableGroups,
   resolveExternalServiceSystemVariableAvailability,
 } from "@domain/index.js";
 export type {

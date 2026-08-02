@@ -108,7 +108,7 @@ external-services-variables-system-warning
 - URL bar: method Select + URL Input + icon-only Send (`settings.integrations.external-services.send`); Send enabled when URL is non-empty.
 - Tabs: Params / Headers / Body / Triggers / Variables; Params/Headers/Triggers show `(N)` for enabled/selected counts when N > 0; Body uses horizontal radio body-mode selector (none/json/urlencoded/raw only).
 - Compact key/value rows for Params and Headers (narrow inputs + compact Add row).
-- Triggers list uses padded card layout under tabs and explains focused-line + Variables tab.
+- Triggers list uses padded card layout under tabs and explains focused-line + Variables tab; each event label has `?` listing available system groups/`{{token}}`s from Domain `resolveExternalServiceEventVariableGroups` (same matrix as Variables when-hints; authored vars always noted).
 - Variables tab: compact catalog (groups always/call/campaign/acd) with **when-available subtitle per group**, short label + clickable `?` help popup (operator-facing meaning; portals into nearest scroll pane with Floating UI flip/shift; local z-index, not `document.body`) + `{{token}}`, one-line context hint (`Outside its context → undefined`), insert-target line, and Insert into focused URL/Body.
 - Template fields (URL, Params/Headers values, Body): typing `{{` opens variable autocomplete (system + collection); each option shows `System|Collection · {when}`; prefix filters; Enter/click inserts `{{name}}`; single `{` does not open.
 - URL placeholder demonstrates `{{call_id}}`.

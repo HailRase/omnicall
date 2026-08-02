@@ -1,11 +1,12 @@
 /**
- * - Purpose: click-to-toggle help popup for one system template variable.
- * - Inputs: variable display name, help text, test id.
+ * - Purpose: click-to-toggle help popup for template variables or trigger availability.
+ * - Inputs: accessible label, plain description and/or children, test id, optional popup class.
  * - Outputs: icon control; popup portals into nearest scroll container with flip/shift.
  */
 
 import { autoUpdate, flip, offset, shift } from "@floating-ui/dom";
 import { useFloating } from "@floating-ui/react-dom";
+import clsx from "clsx";
 import {
   useEffect,
   useId,
@@ -14,6 +15,7 @@ import {
   type JSX,
   type KeyboardEvent,
   type MouseEvent,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "../../../i18n/index.js";
@@ -23,8 +25,15 @@ import styles from "./ExternalServices.module.css";
 
 export type ExternalServicesVariableHelpButtonProps = Readonly<{
   variableLabel: string;
-  description: string;
+  /** Plain-text help body when `children` is omitted. */
+  description?: string;
+  /** Structured help body (preferred for multi-section popups). */
+  children?: ReactNode;
   testId: string;
+  /** Optional extra class on the floating panel (e.g. wider trigger matrix). */
+  popupClassName?: string;
+  /** Overrides default variables.helpAria label when present. */
+  ariaLabel?: string;
 }>;
 
 const EDGE_PADDING_PX = 8;
@@ -36,13 +45,22 @@ const POPUP_OFFSET_PX = 6;
 export function ExternalServicesVariableHelpButton({
   variableLabel,
   description,
+  children,
   testId,
+  popupClassName,
+  ariaLabel,
 }: ExternalServicesVariableHelpButtonProps): JSX.Element {
   const { t } = useI18n();
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const [clipRoot, setClipRoot] = useState<HTMLElement | null>(null);
   const hostRef = useRef<HTMLSpanElement | null>(null);
+  const body = children ?? description ?? null;
+  const buttonLabel =
+    ariaLabel ??
+    t("settings.integrations.externalServices.variables.helpAria", {
+      name: variableLabel,
+    });
 
   const { refs, floatingStyles, placement, update } = useFloating({
     open,
@@ -130,20 +148,21 @@ export function ExternalServicesVariableHelpButton({
     }
   };
 
-  const popupNode = open ? (
-    <div
-      ref={refs.setFloating}
-      id={panelId}
-      role="dialog"
-      className={styles.variableHelpPopup}
-      style={floatingStyles}
-      data-testid={`${testId}-popup`}
-      data-placement={placement}
-      aria-label={variableLabel}
-    >
-      {description}
-    </div>
-  ) : null;
+  const popupNode =
+    open && body !== null ? (
+      <div
+        ref={refs.setFloating}
+        id={panelId}
+        role="dialog"
+        className={clsx(styles.variableHelpPopup, popupClassName)}
+        style={floatingStyles}
+        data-testid={`${testId}-popup`}
+        data-placement={placement}
+        aria-label={variableLabel}
+      >
+        {body}
+      </div>
+    ) : null;
 
   const popup =
     popupNode === null
@@ -160,9 +179,7 @@ export function ExternalServicesVariableHelpButton({
           ref={refs.setReference}
           className={styles.variableHelpButton}
           data-testid={testId}
-          aria-label={t("settings.integrations.externalServices.variables.helpAria", {
-            name: variableLabel,
-          })}
+          aria-label={buttonLabel}
           aria-expanded={open}
           aria-controls={open ? panelId : undefined}
           onClick={toggle}

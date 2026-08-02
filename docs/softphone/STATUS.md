@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-08-01
+**Updated:** 2026-08-02
 **Version:** `1.2.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
-**Tests:** F-033 incoming ringtone catalog + prior F-031/F-032 suites; SemVer MINOR for F-033 (+ pending F-032) via `/release`
+**Tests:** F-032 guest close-guard + F-033 ringtone catalog + prior F-031/F-032 suites; SemVer MINOR for F-033 (+ pending F-032) via `/release`
 **Settings nav:** Integrations = always-open cluster when expanded (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
 **Settings schema:** `UserSettings` **v18** (`incomingRingtoneId`; v17→v18 defaults to `classic`)
 **OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
@@ -38,11 +38,12 @@
 | Status | **implemented** (2026-07-31) |
 | Branch | `feature/external-applications` |
 | Design | `P14-External-Applications-Design.md` |
-| ADR | ADR-0024 (**Accepted**) |
+| ADR | ADR-0024 (**Accepted**; close-guard amendment 2026-08-02) |
 | Schema | `UserSettings` **v16** (`externalApplications` + conditions/windowBehavior) |
 | Release | MINOR `1.2.0` → `1.3.0` **pending** `/release` |
 | Non-overlap | Not F-031 HTTP; not F-011 SDK; not F-028 OCP control |
 | Extensions (2026-07-31) | App-level open conditions; sidebar History journal; raise/always-on-top/on-call-ended window lifecycle |
+| Extensions (2026-08-02) | Guest close-guard (`window.omnicall.setCloseGuard`); minimal guest preload; no-guard path unchanged |
 
 ## Closed — F-033 Selectable Incoming Ringtone Catalog
 

@@ -9,6 +9,11 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ### Added
 
+- **F-032** External Application windows: optional guest close-guard via
+  `window.omnicall.setCloseGuard`. Native Close asks the card
+  page; explicit `true` closes, otherwise the window stays. Cards without a guard
+  keep prior unrestricted close. Call-ended `close` and app dispose force-close
+  without the guard (ADR-0024 amendment).
 - **F-016** Shell always-on-top pin in window controls (Win/macOS/Linux): centered
   Pin/PinOff toggle with clear pressed state; persists `windowAlwaysOnTop` in
   UserSettings schema **v17**; compatible with ADR-0013 raise pulse and SDK

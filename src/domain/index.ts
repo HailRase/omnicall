@@ -140,6 +140,8 @@ export {
   inspectExternalServiceCollectionVariableRows,
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
+  listExternalServiceCatalogEntriesForEvent,
+  resolveExternalServiceEventVariableGroups,
   resolveExternalServiceSystemVariableAvailability,
   normalizeExternalServiceCollectionVariables,
   EXTERNAL_SERVICE_RESPONSE_BODY_MAX_BYTES,

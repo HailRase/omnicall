@@ -856,6 +856,13 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.trigger.campaign_rejected": "Кампанията е отказана",
   "settings.integrations.externalServices.trigger.acd_context_appeared": "Получен е ACD контекст",
   "settings.integrations.externalServices.trigger.post_call_processing": "Следобработка след обаждане",
+  "settings.integrations.externalServices.trigger.helpAria": (params: Readonly<{
+    name: string;
+  }>) => `Кои променливи са достъпни за „${params.name}“`,
+  "settings.integrations.externalServices.trigger.help.intro":
+    "Системни променливи, които се попълват за това събитие (същите групи като в раздела Variables):",
+  "settings.integrations.externalServices.trigger.help.authored":
+    "Авторските променливи (собствени ключове) са винаги достъпни.",
   "settings.integrations.externalServices.run.now": "Стартирай сега",
   "settings.integrations.externalServices.run.success": "Заявката е изпълнена",
   "settings.integrations.externalServices.run.error": "Заявката не е изпълнена",
