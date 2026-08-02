@@ -226,7 +226,9 @@ function SoftphoneShellLayoutRoute({
       descriptor: NotificationDescriptor,
       id: string,
       titleSnapshot: string,
-    ): Promise<Readonly<{ shouldPresentPopup: boolean }>> => {
+    ): Promise<
+      Readonly<{ shouldPresentPopup: boolean; shouldRaiseWindow?: boolean }>
+    > => {
       const result = await facade.captureUserNotification({
         id,
         level: descriptor.level,
@@ -237,27 +239,32 @@ function SoftphoneShellLayoutRoute({
           descriptor.messageParams,
         ),
         titleSnapshot,
-        popupEnabled: settingsActions.userSettings.notificationPopupEnabled,
+        interruptClass: descriptor.interruptClass ?? "informational",
         correlationId: descriptor.correlationId ?? null,
       });
+      if (!result.ok) {
+        return { shouldPresentPopup: true, shouldRaiseWindow: false };
+      }
       return {
-        shouldPresentPopup: result.ok
-          ? result.value.shouldPresentPopup
-          : settingsActions.userSettings.notificationPopupEnabled,
+        shouldPresentPopup: result.value.shouldPresentPopup,
+        shouldRaiseWindow: result.value.shouldRaiseWindow,
       };
     },
-    [
-      facade,
-      settingsActions.userSettings.notificationPopupEnabled,
-    ],
+    [facade],
+  );
+  const raiseNotificationWindow = useCallback(
+    (payload: Readonly<{ reason: "notification_actionable"; dedupeKey: string }>) =>
+      window.softphone.raiseShellWindow(payload),
+    [],
   );
   const notifications = useNotifications({
-    placement: settingsActions.userSettings.notificationPlacement,
-    stacking: settingsActions.userSettings.notificationStacking,
-    durationMs: settingsActions.userSettings.notificationDurationMs,
-    maxVisible: settingsActions.userSettings.notificationMaxVisible,
+    placement: settingsActions.userSettings.notificationPreferences.appearance.placement,
+    stacking: settingsActions.userSettings.notificationPreferences.appearance.stacking,
+    durationMs: settingsActions.userSettings.notificationPreferences.appearance.durationMs,
+    maxVisible: settingsActions.userSettings.notificationPreferences.appearance.maxVisible,
     capture: captureNotification,
     resolveTitle: resolveNotificationTitle,
+    raiseWindow: raiseNotificationWindow,
   });
   useEffect(() => {
     const notify = notifications.notify;
@@ -291,6 +298,9 @@ function SoftphoneShellLayoutRoute({
       id: `ocp-auth-feedback-${ocpAuthFeedback.nonce}`,
       level: "warning",
       messageKey,
+      module: "ocp",
+      functionId: "ocp.auth_feedback",
+      interruptClass: "actionable",
       action: {
         id: "ocp-auth-feedback-open-system-state",
         labelKey: "account.notification.openSystemStateAction",
@@ -649,17 +659,43 @@ function SoftphoneShellLayoutRoute({
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}
               notificationHistoryQuery={queryNotificationHistory}
+              notificationPreferences={
+                settingsActions.userSettings.notificationPreferences
+              }
+              onMasterInAppPopupEnabledChange={
+                settingsActions.onMasterInAppPopupEnabledChange
+              }
+              onNotificationModuleEnabledChange={
+                settingsActions.onNotificationModuleEnabledChange
+              }
+              onNotificationModuleMinLevelChange={
+                settingsActions.onNotificationModuleMinLevelChange
+              }
+              onNotificationModuleRaiseWindowChange={
+                settingsActions.onNotificationModuleRaiseWindowChange
+              }
+              onNotificationPreferencesPreset={
+                settingsActions.onNotificationPreferencesPreset
+              }
               language={settingsActions.userSettings.language}
               onLanguageChange={settingsActions.onLanguageChange}
               theme={settingsActions.userSettings.theme}
               onThemeChange={settingsActions.onThemeChange}
-              notificationPlacement={settingsActions.userSettings.notificationPlacement}
+              notificationPlacement={
+                settingsActions.userSettings.notificationPreferences.appearance.placement
+              }
               onNotificationPlacementChange={settingsActions.onNotificationPlacementChange}
-              notificationStacking={settingsActions.userSettings.notificationStacking}
+              notificationStacking={
+                settingsActions.userSettings.notificationPreferences.appearance.stacking
+              }
               onNotificationStackingChange={settingsActions.onNotificationStackingChange}
-              notificationDurationMs={settingsActions.userSettings.notificationDurationMs}
+              notificationDurationMs={
+                settingsActions.userSettings.notificationPreferences.appearance.durationMs
+              }
               onNotificationDurationMsChange={settingsActions.onNotificationDurationMsChange}
-              notificationMaxVisible={settingsActions.userSettings.notificationMaxVisible}
+              notificationMaxVisible={
+                settingsActions.userSettings.notificationPreferences.appearance.maxVisible
+              }
               onNotificationMaxVisibleChange={settingsActions.onNotificationMaxVisibleChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}

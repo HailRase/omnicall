@@ -12,6 +12,7 @@ import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefault
 import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
 import { settingsIntegrationsTestDefaults } from "./panels/settingsIntegrationsTestDefaults.js";
 import { settingsVideoTestDefaults } from "./panels/settingsVideoTestDefaults.js";
+import { settingsNotificationCenterStoryDefaults } from "./panels/settingsNotificationCenterTestDefaults.js";
 import { settingsOverlayWindowControlsTestDefaults } from "./settingsOverlayWindowControlsTestDefaults.js";
 
 const appUpdateDefaults = {
@@ -46,6 +47,12 @@ const panelProps = {
   onNotificationDurationMsChange: vi.fn(),
   notificationMaxVisible: 3,
   onNotificationMaxVisibleChange: vi.fn(),
+  ...settingsNotificationCenterStoryDefaults,
+  onMasterInAppPopupEnabledChange: vi.fn(),
+  onNotificationModuleEnabledChange: vi.fn(),
+  onNotificationModuleMinLevelChange: vi.fn(),
+  onNotificationModuleRaiseWindowChange: vi.fn(),
+  onNotificationPreferencesPreset: vi.fn(),
   multiSessionsEnabled: true,
   onMultiSessionsChange: vi.fn(),
   autoAnswerEnabled: false,

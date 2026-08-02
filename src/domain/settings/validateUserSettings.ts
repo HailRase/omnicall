@@ -5,23 +5,6 @@ import {
   type SupportedLanguage,
 } from "./SupportedLanguage.js";
 import {
-  clampNotificationDurationMs,
-  clampNotificationMaxVisible,
-  DEFAULT_NOTIFICATION_CLOSABLE,
-  DEFAULT_NOTIFICATION_DURATION_MS,
-  DEFAULT_NOTIFICATION_MAX_VISIBLE,
-  DEFAULT_NOTIFICATION_PLACEMENT,
-  DEFAULT_NOTIFICATION_STACKING,
-  MAX_NOTIFICATION_DURATION_MS,
-  MAX_NOTIFICATION_MAX_VISIBLE,
-  MIN_NOTIFICATION_DURATION_MS,
-  MIN_NOTIFICATION_MAX_VISIBLE,
-  parseNotificationPlacement,
-  parseNotificationStacking,
-  type NotificationPlacement,
-  type NotificationStacking,
-} from "./NotificationSettings.js";
-import {
   DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
   DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
@@ -29,6 +12,11 @@ import {
   MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "./SipRecoverySettings.js";
+import {
+  createDefaultUserNotificationPreferences,
+  parseUserNotificationPreferences,
+  type UserNotificationPreferences,
+} from "./UserNotificationPreferences.js";
 import {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   SETTINGS_SCHEMA_VERSION,
@@ -98,17 +86,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
 
   const language = readLanguage(record, errors);
   const theme = readTheme(record, errors);
-  const notificationPlacement = readNotificationPlacement(record, errors);
-  const notificationStacking = readNotificationStacking(record, errors);
-  const notificationDurationMs = readNotificationDurationMs(record, errors);
-  const notificationClosable = readNotificationClosable(record, errors);
-  const notificationMaxVisible = readNotificationMaxVisible(record, errors);
-  const notificationPopupEnabled = readBooleanWithDefault(
-    record,
-    "notificationPopupEnabled",
-    true,
-    errors,
-  );
+  const notificationPreferences = readNotificationPreferences(record, errors);
   const multiSessionsEnabled = readBoolean(record, "multiSessionsEnabled", errors);
   const autoUnholdOnTransferFailure = readBoolean(
     record,
@@ -217,12 +195,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       schemaVersion: SETTINGS_SCHEMA_VERSION,
       language,
       theme,
-      notificationPlacement,
-      notificationStacking,
-      notificationDurationMs,
-      notificationClosable,
-      notificationMaxVisible,
-      notificationPopupEnabled,
+      notificationPreferences,
       multiSessionsEnabled,
       autoUnholdOnTransferFailure,
       autoAnswerTimeoutSec,
@@ -289,86 +262,21 @@ function readTheme(record: Record<string, unknown>, errors: string[]): AppTheme 
   return parsed;
 }
 
-function readNotificationPlacement(
+function readNotificationPreferences(
   record: Record<string, unknown>,
   errors: string[],
-): NotificationPlacement {
-  const raw = record["notificationPlacement"];
+): UserNotificationPreferences {
+  const raw = record["notificationPreferences"];
   if (raw === undefined) {
-    return DEFAULT_NOTIFICATION_PLACEMENT;
+    errors.push("notificationPreferences_missing");
+    return createDefaultUserNotificationPreferences();
   }
-  const parsed = parseNotificationPlacement(raw);
-  if (parsed === null) {
-    errors.push("notificationPlacement_invalid");
-    return DEFAULT_NOTIFICATION_PLACEMENT;
+  const parsed = parseUserNotificationPreferences(raw);
+  if (!parsed.ok) {
+    errors.push(...parsed.errors);
+    return createDefaultUserNotificationPreferences();
   }
-  return parsed;
-}
-
-function readNotificationStacking(
-  record: Record<string, unknown>,
-  errors: string[],
-): NotificationStacking {
-  const raw = record["notificationStacking"];
-  if (raw === undefined) {
-    return DEFAULT_NOTIFICATION_STACKING;
-  }
-  const parsed = parseNotificationStacking(raw);
-  if (parsed === null) {
-    errors.push("notificationStacking_invalid");
-    return DEFAULT_NOTIFICATION_STACKING;
-  }
-  return parsed;
-}
-
-function readNotificationDurationMs(
-  record: Record<string, unknown>,
-  errors: string[],
-): number {
-  const raw = record["notificationDurationMs"];
-  if (raw === undefined) {
-    return DEFAULT_NOTIFICATION_DURATION_MS;
-  }
-  if (typeof raw !== "number" || !Number.isInteger(raw)) {
-    errors.push("notificationDurationMs_invalid");
-    return DEFAULT_NOTIFICATION_DURATION_MS;
-  }
-  if (raw < MIN_NOTIFICATION_DURATION_MS || raw > MAX_NOTIFICATION_DURATION_MS) {
-    errors.push("notificationDurationMs_out_of_range");
-    return clampNotificationDurationMs(raw);
-  }
-  return raw;
-}
-
-function readNotificationClosable(
-  record: Record<string, unknown>,
-  errors: string[],
-): boolean {
-  return readBooleanWithDefault(
-    record,
-    "notificationClosable",
-    DEFAULT_NOTIFICATION_CLOSABLE,
-    errors,
-  );
-}
-
-function readNotificationMaxVisible(
-  record: Record<string, unknown>,
-  errors: string[],
-): number {
-  const raw = record["notificationMaxVisible"];
-  if (raw === undefined) {
-    return DEFAULT_NOTIFICATION_MAX_VISIBLE;
-  }
-  if (typeof raw !== "number" || !Number.isInteger(raw)) {
-    errors.push("notificationMaxVisible_invalid");
-    return DEFAULT_NOTIFICATION_MAX_VISIBLE;
-  }
-  if (raw < MIN_NOTIFICATION_MAX_VISIBLE || raw > MAX_NOTIFICATION_MAX_VISIBLE) {
-    errors.push("notificationMaxVisible_out_of_range");
-    return clampNotificationMaxVisible(raw);
-  }
-  return raw;
+  return parsed.value;
 }
 
 function readBoolean(

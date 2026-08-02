@@ -2,10 +2,11 @@
 
 > Optional queue for agents when user does not specify a task. `scope-intake` reads this after `STATUS.md`.
 
-**Updated:** 2026-07-30
+**Updated:** 2026-08-02
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-053 | 0 | Notification Center preferences + policy + Settings hub (WU-00…WU-10) | F-034 | `/logic` → `/ui` | done | F-034 implemented 2026-08-02; WU-08 raise done; WU-09 OS deferred (port+mock); WU-10 acceptance+docs close; SemVer pending ship auth — `notification-center/`; handoff `P15-Notification-Center-Master-Handoff.md` |
 | T-052 | 0 | External Services outbound HTTP automations (WU-00…WU-12) | F-031 | `/logic` → `/ui` | done | closed 2026-07-30 — F-031 `implemented`; shipped **1.2.0** (2026-07-31); ADR-0022/0023 Accepted |
 | T-051 | 0 | Toast viewport geometry during compact/settings layout transition | F-016 | `/ui` | done | closed 2026-07-28 — LF-060; clamp Sonner viewport/toast to BrowserWindow width, retain 24px edge and titlebar-safe top inset; compact notification tests pass |
 | T-050 | 0 | OCP queue badges + campaign progressive gate + preview modal blur | F-028 | `/logic` → `/ui` | done | closed 2026-07-26 — `OCP-Call-Context.md`; LF-037…040 parity; v0.13.0 |

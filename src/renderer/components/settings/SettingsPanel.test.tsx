@@ -10,6 +10,7 @@ import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefault
 import { settingsVideoTestDefaults } from "./panels/settingsVideoTestDefaults.js";
 import { settingsIntegrationsTestDefaults } from "./panels/settingsIntegrationsTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { settingsNotificationCenterStoryDefaults } from "./panels/settingsNotificationCenterTestDefaults.js";
 import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 
@@ -77,6 +78,12 @@ const panelBaseProps = {
   account: emptyAccount,
   systemState: systemStateTestDefaults,
   ...themeDefaults,
+  ...settingsNotificationCenterStoryDefaults,
+  onMasterInAppPopupEnabledChange: vi.fn(),
+  onNotificationModuleEnabledChange: vi.fn(),
+  onNotificationModuleMinLevelChange: vi.fn(),
+  onNotificationModuleRaiseWindowChange: vi.fn(),
+  onNotificationPreferencesPreset: vi.fn(),
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
   ...codecDefaults,
@@ -145,6 +152,39 @@ describe("SettingsPanel", () => {
     render(<SettingsPanel {...panelBaseProps} activeSection="general" />);
 
     expect(screen.getByTestId("settings-section-title")).toHaveTextContent("Настройки (Общее)");
+  });
+
+  it("keeps notification appearance only under Notifications section", async () => {
+    const user = userEvent.setup();
+    const onSectionChange = vi.fn();
+
+    const { rerender } = render(
+      <SettingsPanel
+        {...panelBaseProps}
+        activeSection="general"
+        onSectionChange={onSectionChange}
+      />,
+    );
+
+    expect(screen.queryByTestId("settings-notification-placement-control")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("settings-general-notifications-relocated-hint"),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("settings-nav-notifications"));
+    expect(onSectionChange).toHaveBeenCalledWith("notifications");
+
+    rerender(
+      <SettingsPanel
+        {...panelBaseProps}
+        activeSection="notifications"
+        onSectionChange={onSectionChange}
+      />,
+    );
+
+    await user.click(screen.getByTestId("settings-notification-center-tab-appearance"));
+    expect(screen.getByTestId("settings-notification-appearance")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-notification-placement-control")).toBeInTheDocument();
   });
 
   it("closes settings from content header button", async () => {

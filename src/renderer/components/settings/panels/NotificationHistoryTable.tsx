@@ -13,23 +13,11 @@ import {
   TableRow,
 } from "../../ui/index.js";
 import type { BadgeTone } from "../../ui/types.js";
+import { MODULE_LABEL_KEY } from "./notificationPreferencesUi.js";
 import styles from "./SettingsNotificationHistoryPanel.module.css";
 
 type JournalEntry = UserNotificationJournalQueryView["entries"][number];
 type NotificationLevel = JournalEntry["level"];
-type NotificationModule = JournalEntry["module"];
-
-const MODULE_KEY: Record<NotificationModule, TranslationKey> = {
-  system: "settings.notifications.module.system",
-  account: "settings.notifications.module.account",
-  telephony: "settings.notifications.module.telephony",
-  ocp: "settings.notifications.module.ocp",
-  settings: "settings.notifications.module.settings",
-  contacts: "settings.notifications.module.contacts",
-  history: "settings.notifications.module.history",
-  headset: "settings.notifications.module.headset",
-  media: "settings.notifications.module.media",
-};
 
 const LEVEL_KEY: Record<NotificationLevel, TranslationKey> = {
   info: "settings.notifications.level.info",
@@ -84,7 +72,7 @@ export function NotificationHistoryTable({
               </TableCell>
               <TableCell>
                 <Badge tone="muted" size="sm">
-                  {t(MODULE_KEY[entry.module])}
+                  {t(MODULE_LABEL_KEY[entry.module])}
                 </Badge>
               </TableCell>
               <TableCell>

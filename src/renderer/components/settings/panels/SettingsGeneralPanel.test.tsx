@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
@@ -19,14 +19,6 @@ const baseProps = {
   onLanguageChange: vi.fn(),
   theme: "light" as const,
   onThemeChange: vi.fn(),
-  notificationPlacement: "bottom-right" as const,
-  onNotificationPlacementChange: vi.fn(),
-  notificationStacking: "stacked" as const,
-  onNotificationStackingChange: vi.fn(),
-  notificationDurationMs: 4200,
-  onNotificationDurationMsChange: vi.fn(),
-  notificationMaxVisible: 3,
-  onNotificationMaxVisibleChange: vi.fn(),
   currentVersion: "0.0.1",
   latestVersion: undefined,
   updateStatusMessage: "Нажмите «Проверить обновления», чтобы узнать о новой версии.",
@@ -96,35 +88,18 @@ describe("SettingsGeneralPanel", () => {
     expect(screen.queryByTestId("settings-sip-auto-reconnect-toggle")).not.toBeInTheDocument();
   });
 
-  it("emits notification settings changes", async () => {
-    const user = userEvent.setup();
-    const onNotificationPlacementChange = vi.fn();
-    const onNotificationStackingChange = vi.fn();
-    const onNotificationDurationMsChange = vi.fn();
-    const onNotificationMaxVisibleChange = vi.fn();
+  it("does not render notification settings or relocation CTA", () => {
+    render(<SettingsGeneralPanel {...baseProps} />);
 
-    render(
-      <SettingsGeneralPanel
-        {...baseProps}
-        onNotificationPlacementChange={onNotificationPlacementChange}
-        onNotificationStackingChange={onNotificationStackingChange}
-        onNotificationDurationMsChange={onNotificationDurationMsChange}
-        onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
-      />,
-    );
-
-    await user.click(screen.getByTestId("settings-notification-placement-top-left"));
-    await user.click(screen.getByTestId("settings-notification-stacking-single"));
-    fireEvent.change(screen.getByTestId("settings-notification-duration"), {
-      target: { value: "5000" },
-    });
-    fireEvent.change(screen.getByTestId("settings-notification-max-visible"), {
-      target: { value: "4" },
-    });
-
-    expect(onNotificationPlacementChange).toHaveBeenCalledWith("top-left");
-    expect(onNotificationStackingChange).toHaveBeenCalledWith("single");
-    expect(onNotificationDurationMsChange).toHaveBeenCalledWith(5000);
-    expect(onNotificationMaxVisibleChange).toHaveBeenCalledWith(4);
+    expect(screen.queryByTestId("settings-notification-placement-control")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-notification-stacking-control")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-notification-duration")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-notification-max-visible")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("settings-general-notifications-relocated-hint"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("settings-general-open-notification-appearance"),
+    ).not.toBeInTheDocument();
   });
 });

@@ -8,6 +8,7 @@ import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefault
 import { settingsHeadsetStoryDefaults } from "./panels/settingsHeadsetTestDefaults.js";
 import { settingsIntegrationsStoryDefaults } from "./panels/settingsIntegrationsTestDefaults.js";
 import { settingsVideoStoryDefaults } from "./panels/settingsVideoTestDefaults.js";
+import { settingsNotificationCenterStoryDefaults } from "./panels/settingsNotificationCenterTestDefaults.js";
 import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
 
 const storyWindowControls: ShellWindowControlsViewModel = {
@@ -102,6 +103,7 @@ const panelDefaults = {
   systemState: systemStateTestDefaults,
   ...settingsCodecTestDefaults,
   ...themeDefaults,
+  ...settingsNotificationCenterStoryDefaults,
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
   ...settingsHeadsetStoryDefaults,
@@ -217,6 +219,100 @@ export const VideoSection: Story = {
     defaultSessionView: "expanded",
     autoFullscreenOnConference: true,
     conferenceNumberSubstring: "conf",
+  },
+};
+
+export const NotificationCenterPreferencesLight: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "notifications",
+    theme: "light",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "light",
+    },
+  },
+};
+
+export const NotificationCenterPreferencesDark: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "notifications",
+    theme: "dark",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "dark",
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-app)" }}>
+        <SettingsFullscreenOverlay
+          open
+          onClose={() => undefined}
+          windowControls={storyWindowControls}
+        >
+          <Story />
+        </SettingsFullscreenOverlay>
+      </div>
+    ),
+  ],
+};
+
+export const NotificationCenterAppearanceLight: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "notifications",
+    theme: "light",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "light",
+    },
+  },
+  play: ({ canvasElement }) => {
+    const appearanceTab = canvasElement.querySelector(
+      '[data-testid="settings-notification-center-tab-appearance"]',
+    );
+    if (appearanceTab instanceof HTMLElement) {
+      appearanceTab.click();
+    }
+  },
+};
+
+export const NotificationCenterAppearanceDark: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "notifications",
+    theme: "dark",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "dark",
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-app)" }}>
+        <SettingsFullscreenOverlay
+          open
+          onClose={() => undefined}
+          windowControls={storyWindowControls}
+        >
+          <Story />
+        </SettingsFullscreenOverlay>
+      </div>
+    ),
+  ],
+  play: ({ canvasElement }) => {
+    const appearanceTab = canvasElement.querySelector(
+      '[data-testid="settings-notification-center-tab-appearance"]',
+    );
+    if (appearanceTab instanceof HTMLElement) {
+      appearanceTab.click();
+    }
   },
 };
 

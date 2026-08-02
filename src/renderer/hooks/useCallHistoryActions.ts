@@ -39,6 +39,9 @@ export function useCallHistoryActions({ facade, notify }: UseCallHistoryActionsI
         notify?.({
           level: "error",
           messageKey: "history.error.redialFailed",
+          module: "history",
+          functionId: "history.redial",
+          interruptClass: "actionable",
         });
       }
       return result;
@@ -58,11 +61,17 @@ export function useCallHistoryActions({ facade, notify }: UseCallHistoryActionsI
         notify?.({
           level: "error",
           messageKey: "history.error.deleteFailed",
+          module: "history",
+          functionId: "history.delete",
+          interruptClass: "actionable",
         });
       } else {
         notify?.({
           level: "success",
           messageKey: "history.success.deleted",
+          module: "history",
+          functionId: "history.delete",
+          interruptClass: "informational",
         });
       }
       return result;

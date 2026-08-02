@@ -15,15 +15,6 @@ import {
   DEFAULT_SUPPORTED_LANGUAGE,
   type SupportedLanguage,
 } from "./SupportedLanguage.js";
-import {
-  DEFAULT_NOTIFICATION_CLOSABLE,
-  DEFAULT_NOTIFICATION_DURATION_MS,
-  DEFAULT_NOTIFICATION_MAX_VISIBLE,
-  DEFAULT_NOTIFICATION_PLACEMENT,
-  DEFAULT_NOTIFICATION_STACKING,
-  type NotificationPlacement,
-  type NotificationStacking,
-} from "./NotificationSettings.js";
 import type { SessionViewMode } from "../media/SessionViewMode.js";
 import {
   DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
@@ -53,8 +44,16 @@ import {
   DEFAULT_INCOMING_RINGTONE_ID,
   type IncomingRingtoneId,
 } from "../media/IncomingRingtoneId.js";
+import {
+  createDefaultUserNotificationPreferences,
+  type UserNotificationPreferences,
+} from "./UserNotificationPreferences.js";
 
-export const SETTINGS_SCHEMA_VERSION = 18 as const;
+/**
+ * v19 = v18 (EA / ringtone / always-on-top) + nested Notification Center preferences.
+ * Never downgrade below the highest shipped parallel-branch schema (18).
+ */
+export const SETTINGS_SCHEMA_VERSION = 19 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -65,12 +64,8 @@ export type UserSettings = Readonly<{
   schemaVersion: SettingsSchemaVersion;
   language: SupportedLanguage;
   theme: AppTheme;
-  notificationPlacement: NotificationPlacement;
-  notificationStacking: NotificationStacking;
-  notificationDurationMs: number;
-  notificationClosable: boolean;
-  notificationMaxVisible: number;
-  notificationPopupEnabled: boolean;
+  /** Nested Notification Center preferences (Strategy A; schema v19). */
+  notificationPreferences: UserNotificationPreferences;
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
@@ -128,12 +123,7 @@ export function createDefaultUserSettings(): UserSettings {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
     language: DEFAULT_SUPPORTED_LANGUAGE,
     theme: DEFAULT_APP_THEME,
-    notificationPlacement: DEFAULT_NOTIFICATION_PLACEMENT,
-    notificationStacking: DEFAULT_NOTIFICATION_STACKING,
-    notificationDurationMs: DEFAULT_NOTIFICATION_DURATION_MS,
-    notificationClosable: DEFAULT_NOTIFICATION_CLOSABLE,
-    notificationMaxVisible: DEFAULT_NOTIFICATION_MAX_VISIBLE,
-    notificationPopupEnabled: true,
+    notificationPreferences: createDefaultUserNotificationPreferences(),
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,

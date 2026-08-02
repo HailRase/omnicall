@@ -179,6 +179,62 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v13 flat notification fields to nested preferences", () => {
+    const v13 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 13 as const,
+      notificationPlacement: "top-left" as const,
+      notificationStacking: "single" as const,
+      notificationDurationMs: 6500,
+      notificationClosable: false,
+      notificationMaxVisible: 1,
+      notificationPopupEnabled: false,
+    };
+    delete (v13 as { notificationPreferences?: unknown }).notificationPreferences;
+
+    const result = migrateUserSettings(v13);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.notificationPreferences.masterInAppPopupEnabled).toBe(false);
+      expect(result.value.notificationPreferences.appearance).toEqual({
+        placement: "top-left",
+        stacking: "single",
+        durationMs: 6500,
+        closable: false,
+        maxVisible: 1,
+      });
+      expect(result.value.notificationPreferences.modules.system.enabled).toBe(true);
+      expect(result.value.notificationPreferences.modules.sdk.enabled).toBe(true);
+      expect(
+        (result.value as { notificationPopupEnabled?: unknown }).notificationPopupEnabled,
+      ).toBeUndefined();
+    }
+  });
+
+  it("preserves default popup-on behavior when migrating v13 without custom notification fields", () => {
+    const defaults = createDefaultUserSettings();
+    const v13 = {
+      ...defaults,
+      schemaVersion: 13 as const,
+      notificationPlacement: "bottom-right" as const,
+      notificationStacking: "stacked" as const,
+      notificationDurationMs: 4200,
+      notificationClosable: true,
+      notificationMaxVisible: 3,
+      notificationPopupEnabled: true,
+    };
+    delete (v13 as { notificationPreferences?: unknown }).notificationPreferences;
+
+    const result = migrateUserSettings(v13);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.notificationPreferences).toEqual(defaults.notificationPreferences);
+    }
+  });
+
   it("migrates v14 External Applications with missing conditions to current defaults", () => {
     const applicationId = "11111111-1111-4111-8111-111111111111";
     const v14 = {
@@ -257,6 +313,35 @@ describe("migrateUserSettings", () => {
         callDirection: "any",
         queueNames: ["Sales"],
       });
+    }
+  });
+
+  it("migrates v18 flat notifications to nested prefs without losing EA fields", () => {
+    const v18 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 18 as const,
+      notificationPlacement: "bottom-left" as const,
+      notificationStacking: "stacked" as const,
+      notificationDurationMs: 4200,
+      notificationClosable: true,
+      notificationMaxVisible: 3,
+      notificationPopupEnabled: true,
+      windowAlwaysOnTop: true,
+    };
+    delete (v18 as { notificationPreferences?: unknown }).notificationPreferences;
+
+    const result = migrateUserSettings(v18);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.windowAlwaysOnTop).toBe(true);
+      expect(result.value.notificationPreferences.appearance.placement).toBe(
+        "bottom-left",
+      );
+      expect(result.value.externalApplications).toEqual(
+        createDefaultUserSettings().externalApplications,
+      );
     }
   });
 
@@ -467,9 +552,75 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("fails on unsupported schema version", () => {
-    const result = migrateUserSettings({ schemaVersion: 99 });
+  it("best-effort coerces newer integer schema versions keeping known fields", () => {
+    const result = migrateUserSettings({
+      schemaVersion: 99,
+      language: "en",
+      theme: "dark",
+      notificationPlacement: "top-left",
+      notificationStacking: "single",
+      notificationDurationMs: 5000,
+      notificationClosable: true,
+      notificationMaxVisible: 2,
+      notificationPopupEnabled: false,
+      multiSessionsEnabled: true,
+      autoUnholdOnTransferFailure: true,
+      autoAnswerTimeoutSec: null,
+      autoAnswerDuringActiveSessionEnabled: false,
+      ringbackToneEnabled: true,
+      sipAutoReconnectEnabled: true,
+      sipReconnectIntervalSec: 5,
+      sipReconnectMaxAttempts: 5,
+      sipAutoReregisterEnabled: true,
+      sipReregisterIntervalSec: 5,
+      sipReregisterMaxAttempts: 5,
+      sipAutoRegisterOnStartup: false,
+      dismissedUpdateBannerVersion: null,
+      codecPreferences: createDefaultUserSettings().codecPreferences,
+      headsetEnabled: false,
+      headsetAutoReconnect: true,
+      headsetPreferredDeviceId: null,
+      preferredAudioInputDeviceId: null,
+      preferredVideoInputDeviceId: null,
+      defaultSessionView: "expanded",
+      autoFullscreenOnConference: false,
+      conferenceNumberSubstring: null,
+      enableLocalVideoAfterConnect: false,
+      ocpIntegration: createDefaultUserSettings().ocpIntegration,
+      sdkIntegration: createDefaultUserSettings().sdkIntegration,
+      externalServices: createDefaultUserSettings().externalServices,
+      incomingRingtoneId: "classic",
+      windowAlwaysOnTop: true,
+      externalApplications: { applications: [] },
+      // Truly unknown future keys must not block migration.
+      futureOnlyPreference: { enabled: true },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.language).toBe("en");
+      expect(result.value.theme).toBe("dark");
+      expect(result.value.notificationPreferences.masterInAppPopupEnabled).toBe(
+        false,
+      );
+      expect(result.value.notificationPreferences.appearance.placement).toBe(
+        "top-left",
+      );
+      expect(result.value.incomingRingtoneId).toBe("classic");
+      expect(result.value.windowAlwaysOnTop).toBe(true);
+      expect(result.value.externalApplications.applications).toEqual([]);
+      expect("futureOnlyPreference" in result.value).toBe(false);
+    }
+  });
+
+  it("fails on non-integer unsupported schema version", () => {
+    const result = migrateUserSettings({ schemaVersion: "eighteen" });
     expect(result.ok).toBe(false);
+    if (!result.ok) {
+      // Application wrapper maps domain migration errors to PlatformError validation_failed.
+      expect(result.error.code).toBe("validation_failed");
+      expect(result.error.message).toContain("unsupported_schema_version");
+    }
   });
 
   it("fails on corrupt v5 payload", () => {

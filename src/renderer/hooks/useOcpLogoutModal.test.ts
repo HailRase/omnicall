@@ -285,6 +285,7 @@ describe("useOcpLogoutModal", () => {
       messageKey: "ocp.logout.modal.error",
       module: "account",
       functionId: "account.logout",
+      interruptClass: "actionable",
     });
     expect(sessionLogoutActions.handleEndSession).not.toHaveBeenCalled();
     expect(result.current.modalOpen).toBe(true);

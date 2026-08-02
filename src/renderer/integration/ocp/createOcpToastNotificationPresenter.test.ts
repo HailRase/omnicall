@@ -20,6 +20,7 @@ describe("mapOcpNotificationToToastDescriptor", () => {
       messageText: "OCP failed",
       module: "ocp",
       functionId: "ocp.notification",
+      interruptClass: "remote",
     });
   });
 
@@ -66,6 +67,9 @@ describe("mapOcpNotificationToToastDescriptor", () => {
       level: "success",
       messageText: "Sticky",
       durationMs: 0,
+      module: "ocp",
+      functionId: "ocp.notification",
+      interruptClass: "remote",
     });
   });
 });

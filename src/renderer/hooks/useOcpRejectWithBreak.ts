@@ -117,6 +117,9 @@ export function useOcpRejectWithBreak(
       notify?.({
         level: "error",
         messageKey: "ocp.incomingCall.breakModal.rejectError",
+        module: "ocp",
+        functionId: "ocp.incoming.reject_with_break",
+        interruptClass: "actionable",
       });
       return;
     }
@@ -132,6 +135,9 @@ export function useOcpRejectWithBreak(
       notify?.({
         level: "error",
         messageKey: "ocp.incomingCall.breakModal.reserveError",
+        module: "ocp",
+        functionId: "ocp.status.reserve",
+        interruptClass: "actionable",
       });
       resetModal();
       return;

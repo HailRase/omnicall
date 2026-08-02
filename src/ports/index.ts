@@ -171,6 +171,12 @@ export type {
   ApplyShellWindowLayoutCommand,
   ShellWindowGateway,
 } from "./platform/ShellWindowGateway.js";
+export type {
+  NotificationGateway,
+  OsNotificationDismissRequest,
+  OsNotificationRequest,
+  OsNotificationUrgency,
+} from "./platform/NotificationGateway.js";
 export type { UpdateMetadataGateway } from "./updates/UpdateMetadataGateway.js";
 export type { HeadsetGateway } from "./headset/HeadsetGateway.js";
 export type {

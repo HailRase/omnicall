@@ -559,7 +559,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Icon-only controls:** semantic `AppIcon` + 300ms hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done); tooltip auto-orients within viewport via Floating UI portal (2026-07-04).
   - **UI Kit IconButton visual parity (2026-07-21):** circular (`--radius-full`); `ghost` transparent idle + soft tint hover; `secondary` soft tint (not solid surface-alt squares); aligns Dialog/Toast/Settings close with shell icon language (`VISUAL-SPEC.md`). SDK trusted-site address edit/save/cancel uses UI Kit `IconButton` (`SdkModuleSettingsOriginAddressEditor`); `IconControlButton` resets native button chrome.
   - **Theme (LF-082):** light default; `theme` in UserSettings; segmented control in General settings; `applyAppTheme` sets `data-theme` on documentElement; semantic tokens in `tokens.css` for light and dark.
-  - **Unified action notifications (LF-060):** renderer uses `NotificationViewport` + `useNotifications`; action outcomes are bridged via `useActionNotifications`; repeated operation outcomes are not deduplicated (each attempt creates its own toast); persisted preferences (`notificationPlacement`, `notificationStacking`, `notificationDurationMs`, `notificationClosable`, `notificationMaxVisible`) are stored in `UserSettings` and edited in `SettingsGeneralPanel`.
+  - **Unified action notifications (LF-060):** renderer uses `NotificationViewport` + `useNotifications`; action outcomes are bridged via `useActionNotifications`; repeated operation outcomes are not deduplicated (each attempt creates its own toast); persisted preferences (`notificationPlacement`, `notificationStacking`, `notificationDurationMs`, `notificationClosable`, `notificationMaxVisible`) are stored in `UserSettings` / nested `notificationPreferences.appearance` and edited in Notification Center Appearance (`SettingsNotificationAppearancePanel`); General keeps a navigational hint only.
   - **Toast viewport geometry (LF-060 / F-016, 2026-07-28):** product Sonner toaster must stay entirely within the BrowserWindow through compact↔Settings layout transitions and resize. `resolveNotificationToasterOffset` feeds identical 24px edge insets to Sonner `offset` and `mobileOffset`; top placements use `--incoming-call-banner-top`, which already clears titlebar controls vertically, so they do not reserve horizontal titlebar-control width. `NotificationViewport.module.css` keeps corner geometry under Sonner’s mobile path and constrains both toaster and toast width to `min(--width, 100vw - 48px)` with motion that respects `prefers-reduced-motion`.
   - **Native app icon theme sync (2026-07-01):** renderer theme change triggers typed IPC `platform:set-native-theme`; main process updates `nativeTheme.themeSource` and switches theme-aware icon asset (`icon-light.png`/`icon-dark.png`) for dock/window surfaces.
   - **Shell window layout (F-016):** compact anchors bottom-right; settings is 1000px centered; close restores saved compact dimensions. All layout mode transitions are instant (`0ms`). Settings titlebar Maximize/Restore is **layout-owned work-area fill** via `setBounds(workArea)` (same geometry path as `video-fullscreen`) — never OS `maximize`/`unmaximize`. OS `maximizable` stays false in every mode. Closing from work-area fill goes directly to compact bottom-right with no centered restore frame (Win/macOS/Linux parity).
@@ -578,7 +578,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (UI-4 modules): `src/renderer/styles/tokens.css`, `globals.css`, `UserAvatar.module.css`, `RegistrationStatusDot.module.css`, `SoftphoneShellHeader.module.css` (WU5 Slice A), `SettingsOverlay.module.css`, `ShellOverlaySheet.module.css` (WU5 Slice B), `CallLineRow.module.css` (WU5 Slice C), `Dialpad.module.css` (WU5 Slice D), `ActiveCallControlsPanel.module.css`, `OutgoingCallCard.module.css`, `IncomingCallModal.module.css`, `IncomingCallActions.module.css` (WU5 Slice E), `ConnectionOverlay.module.css` (WU5 Slice F), `App.module.css`, `SoftphoneLayout.module.css`, `ShellChromeText.module.css`, `CallLinesShell.module.css`, `CallContextShell.module.css` (WU5 Slice G), `BootstrapPanel.module.css`, `AccountPanel.module.css`, `PhoneStatusBadge.module.css` (WU5 Slice H), `DialogPanel.module.css`, `TransferPanel.module.css`, `StatusSelector.module.css`, `OcpToastStack.module.css`, modals + `CallControlsShell.module.css` (WU5 Slice I), `P11-CSS-Modules-Tokens-Migration.md`, WU5 slice handoffs `P11-WU5-Slice-A` through `P11-WU5-Slice-I`
 - Implementation evidence (icon tooltips **T-001 done**): `IconTooltip`, `IconControlButton`, `iconTooltipDelay.ts`, `IconTooltip.test.tsx`; 300ms hover delay (`prefers-reduced-motion: reduce` ? instant); viewport flip/shift via `@floating-ui/react-dom` portal; wired on all icon-only controls; gate `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (2026-06-25, auto-orient 2026-07-04, delay 300ms 2026-07-04)
 - Implementation evidence (T-005 settings UX **done**): `SettingsFullscreenOverlay`, `SettingsPanel`, `SettingsSidebar`, `settingsSections.ts`, section panels (`SettingsGeneralPanel`, `SettingsSessionsPanel`, `SettingsAccountPanel`, `SettingsDiagnosticsPanel`, `SettingsCodecsPanel`, `SettingsHeadsetPanel`); header diagnostics opens settings diagnostics section; 7 new settings nav icons in `iconCatalog.ts` (2026-06-26)
-- Implementation evidence (LF-060 notifications **done**): `NotificationViewport`, `useNotificationSonnerSync`, `useNotifications`, `useActionNotifications`, `NotificationViewport.test.tsx`, `NotificationSettings`, `validateUserSettings`/`migrateUserSettings` notification fields, `SettingsGeneralPanel` notification controls, `SoftphoneReadyShell` unified action feedback integration (update/account/call/settings/session flows), success/error icon-only distinction on neutral toast surface.
+- Implementation evidence (LF-060 notifications **done**): `NotificationViewport`, `useNotificationSonnerSync`, `useNotifications`, `useActionNotifications`, `NotificationViewport.test.tsx`, `NotificationSettings`, `validateUserSettings`/`migrateUserSettings` notification fields, Notification Center Appearance controls (`SettingsNotificationAppearancePanel`; F-034 WU-05), `SoftphoneReadyShell` unified action feedback integration (update/account/call/settings/session flows), success/error icon-only distinction on neutral toast surface.
 - Implementation evidence (LF-060 toast chrome clearance **2026-07-26**): `resolveNotificationToasterOffset.ts` (+ unit tests), `NotificationViewport` `offset`/`mobileOffset` parity, mobile corner CSS override in `NotificationViewport.module.css`, UI Kit `Toast.module.css` top placements use `--shell-window-controls-safe-inline-*`; `NotificationViewport.test.tsx` asserts desktop + mobile CSS variables.
 - Implementation evidence (LF-060 viewport geometry **2026-07-28**): `resolveNotificationToasterOffset.ts` uses titlebar-safe vertical placement plus 24px horizontal edges; `NotificationViewport.module.css` clamps Sonner viewport/toast width and transitions layout changes; `resolveNotificationToasterOffset.test.ts` and `NotificationViewport.test.tsx` cover edge offsets and `mobileOffset` parity.
 - Implementation evidence (dialpad home **2026-06-26**): `CallSessionStack`, `CallSessionCard`, `CallControlsBar`, `DtmfKeypadPanel`, reference `Dialpad`; gate `handoffs/P11-Call-UI-Design-Parity-Handoff.md`
@@ -1038,26 +1038,28 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - SIP-only sign-in success is two journaled toasts (`account.success.sipTransportConnected`, `account.success.sipRegistrationSucceeded`); SIP connect/register errors attach toast action `account.notification.openSystemStateAction` («Состояние системы»).
 - Architecture: ADR-AF-007; `UserNotificationCaptureService` → `UserNotificationJournalRepository` → file/in-memory adapters.
 - Implementation evidence: `RecordUserNotificationUseCase`, `QueryUserNotificationJournalUseCase`, `FileUserNotificationJournalRepository`, `useNotifications`, `SettingsNotificationHistoryPanel`, `NotificationHistoryTable`, `toUserNotificationAccountDisplayLabel`, `deriveAccountSignInNotificationFeedback`.
+- Cross-evidence (F-034 WU-06): History module filter/table labels cover expanded catalog (`sdk`, `updates`, `externalServices`) without regressing search/pagination/suppressed marker; see F-034 WU-06 evidence.
 
 ## F-030: Operator Preferences Export And Import
 
 - Legacy IDs: `LF-076`, `LF-077` (portable prefs transfer; secrets remain machine-local per F-023)
 - Context: Settings
 - Priority: high
-- Status: **implemented** (2026-07-24; F-031 External Services nested slice extended 2026-07-29; v13 trigger delays 2026-07-30; **F-032** External Applications nested slice 2026-07-31 / schema **v16**)
+- Status: **implemented** (2026-07-24; F-031/F-032 nested slices; F-034 Notification Center prefs 2026-08-02; combined schema **v19**)
 - Owner: TBD
-- Related: **F-031** (nested `UserSettings.externalServices` round-trips inside the same v1 bundle; journal excluded; v13 delay bindings migrate from v12 string triggers); **F-032** (`UserSettings.externalApplications` portable in the same v1 bundle; open journal excluded)
+- Related: **F-031** (`externalServices`); **F-032** (`externalApplications`); **F-034** (`notificationPreferences`); journals excluded
 - Inputs: operator Export/Import in Settings → General; active profile `UserSettings`; native JSON file dialogs
 - Outputs: portable `omnicall.preferences` v1 JSON; imported prefs applied to active profile via `migrateUserSettings`
 - Acceptance Criteria:
   - Export includes portable preferences only (no SIP password, OCP API key, SDK pairing).
   - Nested `externalServices` collections/requests/variables/headers/query/body/triggers/enables round-trip; journal and Run results are never exported.
+  - Nested `notificationPreferences` (master / appearance / modules) round-trip; F-029 notification journal is never exported.
   - Authored External Services header/query values are portable by product decision; they are not a substitute for a secrets vault.
   - Machine device ids (`preferredAudio/Video`, headset preferred) and `dismissedUpdateBannerVersion` are cleared; `ocpIntegration.linked` reset to `false`.
   - Import targets the **active** profile; invalid / newer unsupported schema or formatVersion fails closed without mutation (settings + F-031 runtime unchanged).
-  - Older `UserSettings.schemaVersion` inside a bundle migrates forward; new fields on a newer app get defaults (empty External Services / External Applications when absent).
-  - Outer bundle stays `PREFERENCES_EXPORT_FORMAT_VERSION = 1`; nested schema follows `SETTINGS_SCHEMA_VERSION` (v16+; v15→v16 maps `queueNameEquals`→`queueNames`; v14→v16 adds conditions/windowBehavior defaults; v13→v14 adds empty `externalApplications`; v12 string triggers migrate to delay bindings).
-  - Successful import refreshes headset settings and F-031 runtime registry without restart; renderer applies returned `UserSettings`.
+  - Older `UserSettings.schemaVersion` inside a bundle migrates forward to **v19**; missing EA / Notification Center fields get defaults; v13/v18 flat `notification*` → nested.
+  - Outer bundle stays `PREFERENCES_EXPORT_FORMAT_VERSION = 1`; nested schema follows `SETTINGS_SCHEMA_VERSION` (v19; EA v14…v18 + F-034 nested prefs).
+  - Successful import refreshes headset / F-031 / F-032 runtime without restart; Notification Center policy applies on next toast.
   - UI copy (all locales) states SIP/OCP/SDK secrets are excluded and re-login / device reselect may be required.
 - Test Coverage:
   - Unit: `PreferencesExportDocument.test.ts`, `OperatorPreferencesUseCases.test.ts`
@@ -1065,7 +1067,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Component: `SettingsPreferencesTransferSection.test.tsx`
   - E2E: deferred (native dialogs)
 - Design: `docs/softphone/P11-Operator-Preferences-Export-Design.md`
-- Implementation evidence: `PreferencesExportDocument.ts`; `ExportOperatorPreferencesUseCase` / `ImportOperatorPreferencesUseCase`; `PreferencesFileGateway` + Mock/Preload; `registerPreferencesFileIpc`; facade `exportOperatorPreferences` / `importOperatorPreferences` (+ `replaceActiveSettings` after import); `usePreferencesTransferActions`; Settings → General transfer section; i18n `settings.general.preferences.transfer.*`
+- Implementation evidence: `PreferencesExportDocument.ts`; `ExportOperatorPreferencesUseCase` / `ImportOperatorPreferencesUseCase`; `PreferencesFileGateway` + Mock/Preload; `registerPreferencesFileIpc`; facade `exportOperatorPreferences` / `importOperatorPreferences` (+ `replaceActiveSettings` after import); `usePreferencesTransferActions` → `applyUserSettingsSnapshot`; Settings → General transfer section; i18n `settings.general.preferences.transfer.*`
+- Implementation evidence (F-034 WU-07): nested `notificationPreferences` serialize/parse round-trip; v13 flat→nested inside F-030 bundle; malformed current-schema prefs fail-closed; Use Case active-profile round-trip + non-mutation; design `P11-Operator-Preferences-Export-Design.md` synced; cross-ref F-034
 
 ## F-031: External Services (Outbound HTTP Automations)
 
@@ -1196,3 +1199,49 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Design: `docs/softphone/P11-Incoming-Ringtone-Catalog-Design.md`
 - Implementation evidence: `src/domain/media/IncomingRingtoneId.ts`; `UserSettings` v18; `WebAudioTonePlayer` + `classicRingtone.ts` + `ringtonePresets.ts`; `BrowserMediaAdapter` / `ArbiterMediaGateway` / `MockMediaGateway`; facade apply on init/save/import; Settings Sessions UI
 - Implementation evidence (2026-08-02): classic FM ring path; catalog presets restored to original F-033 values
+
+## F-034: Notification Center
+
+- Legacy IDs: extends `LF-060` (toast placement/settings); builds on F-029 journal — no new LF ID
+- Context: Settings (primary); related producers in Telephony, Operator, Media, Headset, Integration
+- Priority: high
+- Status: implemented
+- Owner: TBD
+- Related: F-016 (Settings shell / toast viewport), F-029 (journal + capture sink), F-030 (preferences portability), ADR-AF-007 (journal always-on), ADR-0013 (critical shell raise + `notification_actionable`), ADR-0025 (preferences policy — Accepted)
+- Explicit non-overlap:
+  - **Not Call DND:** telephony auto-reject remains unrelated to notification quiet prefs.
+  - **Not ADR-0013 replacement:** critical raises (`incoming_call`, `outgoing_call`, `ocp_campaign_offer`, SDK consent/pairing/trust, `second_instance`) stay on the allowlisted raise path; optional per-module `errors_only` uses allowlisted `notification_actionable` (WU-08; defaults `never`).
+  - **Not F-011 / F-028 / SIP Call Engine / headset HID:** no wire or protocol changes for Notification Center.
+- Inputs: sanitized user-facing notification descriptors via central capture; active-profile `UserSettings` notification preferences; existing shell raise contract
+- Outputs: presentation policy decisions (popup present/suppress, optional raise); persisted Notification Center preferences; Settings hub (Preferences + Appearance + History)
+- Acceptance Criteria:
+  - Default preferences preserve today’s in-app toast presentation, journal always-on capture, and ADR-0013 critical raises (compatibility law).
+  - Settings → Notifications is a Notification Center hub with Preferences (master + per-module), Appearance (relocated from General), and History (F-029).
+  - Master “Show in-app popups” control exists and persists; when off, journal still records with `suppressedAtEmission`.
+  - Per-module `enabled` + `minLevel` suppress popups only; never hide incoming-call UI, campaign modal, or SDK consent modal.
+  - Module catalog expands with at least `sdk`, `updates`, `externalServices`; producers supply `module` + `functionId`.
+  - Presentation policy is evaluated in Application/Domain capture path, not ad hoc in React components.
+  - F-030 export/import round-trips notification preferences; journal excluded.
+  - Optional raise (`errors_only`) and OS banners are done or explicitly deferred without regressing defaults.
+- Test Coverage:
+  - Unit: preferences parse/defaults/migration; presentation policy matrix; capture outcome; raise/OS seams when implemented
+  - Integration: facade capture with active preferences; F-030 round-trip; Settings save refresh
+  - Component / Storybook: Notification Center Preferences + Appearance + History; light/dark; i18n five locales
+  - E2E: deferred; product acceptance in `notification-center/11-ACCEPTANCE.md`
+- Design / plan: `notification-center/README.md` (spec `00-PRODUCT-SPEC.md`, architecture `01-ARCHITECTURE.md`, WUs `10-WORK-UNITS.md`)
+- ADR: `docs/softphone/adr/ADR-0025-notification-center-preferences-policy.md` (**Accepted** at WU-02)
+- Handoff: `docs/softphone/handoffs/P15-Notification-Center-Master-Handoff.md`
+- Progress: `notification-center/PROGRESS.md`
+- Implementation evidence (WU-00): Feature Registry F-034; TASK-QUEUE T-053 claimed; STATUS active line on `feature/notification-center`; master handoff P15; ADR-0025 Proposed; `npm run registry:check`; baseline capture/toast stack remains F-029 / LF-060 (`UserNotificationCaptureService`, `useNotifications`, `NotificationViewport`)
+- Implementation evidence (WU-01): nested `UserSettings.notificationPreferences` (Strategy A); `UserNotificationPreferences.ts` parse/defaults/migrate coerce; expanded `USER_NOTIFICATION_MODULES` (`sdk`, `updates`, `externalServices`); flat `notification*` removed from current schema; post-merge `SETTINGS_SCHEMA_VERSION` **19** (v14→v18 EA/ringtone/pin retained via upward migrate); tests `UserNotificationPreferences.test.ts`, `validateUserSettings.test.ts`, `migrateUserSettings.test.ts`; ADR-0025 Strategy A recorded; i18n module labels ru/en/fr/de/bg
+- Implementation evidence (WU-02): Domain `evaluateNotificationPresentationPolicy`; CaptureService evaluates prefs + interruptClass; facade loads active-profile preferences; caller `popupEnabled` ignored; ADR-0025 Accepted; tests `userNotificationPresentationPolicy.test.ts`, `UserNotificationCaptureService.test.ts` (product raise unlocked in WU-08)
+- Implementation evidence (WU-03): Product toast producers tagged with `module` + `functionId` + `interruptClass` (`useActionNotifications`, SoftphoneReadyShell `ocp.auth_feedback`, OCP mapper `remote`, contacts CSV, history redial/delete, video downgrade, OCP campaign/status/logout/reject-break); matrix `notification-center/04-CAPTURE-AND-PRESENTATION.md`; static checklist `notificationProducerTagging.test.ts`; focused hook/mapper tests + typecheck/lint
+- Implementation evidence (WU-04): Settings Notification Center hub `SettingsNotificationCenterPanel` (Preferences / Appearance placeholder / History); Preferences master + per-module enabled/minLevel + Default/Quiet successes presets; raise controls hidden until WU-08; save via `useSettingsActions`; i18n ru/en/fr/de/bg; Storybook light/dark; tests `SettingsNotificationCenterPanel.test.tsx`, `notificationPreferencesUi.test.ts`, `useSettingsActions` prefs case; Appearance still in General until WU-05
+- Implementation evidence (WU-05): Appearance editors relocated to `SettingsNotificationAppearancePanel` (placement/stacking/duration/maxVisible; preserved test IDs); General has no notification section (hint CTA removed 2026-08-02); controlled hub tab from `SettingsPanel`; Storybook Appearance light/dark; tests Appearance/General/Center/Panel + `NotificationViewport` offset non-regression; i18n ru/en/fr/de/bg
+- Implementation evidence (WU-06): History panel filter/labels aligned to expanded `USER_NOTIFICATION_MODULES` via shared `MODULE_LABEL_KEY`; testid `settings-notification-history-module`; regression tests filter `sdk`/`updates`/`externalServices`, legacy rows, search/pagination/suppressed marker; journal persistence round-trip for full catalog; `SettingsNotificationHistoryPanel.test.tsx`, `userNotificationJournalPolicy.test.ts`; i18n + ui catalog
+- Implementation evidence (WU-07): F-030 `PreferencesExportDocument` + Use Cases round-trip nested `notificationPreferences` (master/appearance/modules); v13 flat notification fields migrate inside bundle; malformed current-schema prefs fail-closed without mutation; journal excluded; design `P11-Operator-Preferences-Export-Design.md`; renderer import still refreshes via `applyUserSettingsSnapshot`; cross-ref F-030
+- Implementation evidence (WU-08): ADR-0013 amended with `notification_actionable`; `NOTIFICATION_ACTIONABLE_RAISE_PRODUCT_ENABLED`; Capture forwards Domain raise; `useNotifications` injects `raiseShellWindow` (dedupeKey = notification id); Preferences raise Never/On errors; defaults `never` ⇒ zero new raises; informational/remote never raise; tests contract/policy/capture/hook/UI + i18n raise keys
+- Implementation evidence (WU-09 deferred): OS banners out of v1; ADR-0025 seam note; port `NotificationGateway` + `MockNotificationGateway` only; no Electron adapter
+- Implementation evidence (WU-10): Acceptance checklist closed; WU-08 done + WU-09 deferred; STATUS/TASK-QUEUE/handoff closed; F-034 `implemented`; SemVer deferred pending explicit `/release` ship auth
+- Implementation evidence (merge 2026-08-02): `feature/external-applications` → `main` → `feature/notification-center`; schema **19** combines v18 fields + nested notification prefs; no AppData downgrade
+- Implementation evidence (UX polish 2026-08-02): Preferences `minLevel` select uses threshold copy (All / Success, warnings, and errors / Warnings and errors / Errors only) + short hint; two-column compact module controls; domain `minLevel` unchanged; i18n ru/en/fr/de/bg; tests Center panel + `notificationPreferencesUi`

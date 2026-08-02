@@ -232,6 +232,9 @@ describe("useOperatorStatusSelector", () => {
       expect.objectContaining({
         messageKey: "ocp.status.reservedToast",
         messageParams: { reason: "Toilet break" },
+        module: "ocp",
+        functionId: "ocp.status.reserved",
+        interruptClass: "informational",
       }),
     );
   });
@@ -283,6 +286,9 @@ describe("useOperatorStatusSelector", () => {
       expect.objectContaining({
         messageKey: "ocp.status.reservedToast",
         messageParams: { reason: "Toilet break" },
+        module: "ocp",
+        functionId: "ocp.status.reserved",
+        interruptClass: "informational",
       }),
     );
   });

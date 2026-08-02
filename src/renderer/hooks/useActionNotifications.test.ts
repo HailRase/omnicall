@@ -93,12 +93,18 @@ describe("useActionNotifications", () => {
       1,
       expect.objectContaining({
         messageKey: "account.success.sipTransportConnected",
+        module: "account",
+        functionId: "account.sign_in",
+        interruptClass: "informational",
       }),
     );
     expect(input.notifications.notify).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         messageKey: "account.success.sipRegistrationSucceeded",
+        module: "account",
+        functionId: "account.sign_in",
+        interruptClass: "informational",
       }),
     );
   });
@@ -152,6 +158,9 @@ describe("useActionNotifications", () => {
     expect(input.notifications.notify).toHaveBeenCalledWith(
       expect.objectContaining({
         messageKey: "account.error.authorizationFailed",
+        module: "account",
+        functionId: "account.sign_in",
+        interruptClass: "actionable",
         action: expect.objectContaining({
           labelKey: "account.notification.openSystemStateAction",
         }),
@@ -242,7 +251,9 @@ describe("useActionNotifications", () => {
     expect(input.notifications.notify).toHaveBeenCalledWith(
       expect.objectContaining({
         messageKey: "account.success.sipRegistrationSucceeded",
+        module: "telephony",
         functionId: "sip.recovery",
+        interruptClass: "informational",
       }),
     );
   });
@@ -266,7 +277,29 @@ describe("useActionNotifications", () => {
       expect.objectContaining({
         level: "error",
         messageKey: "notification.outgoing.failed.busy",
+        module: "telephony",
         functionId: "call.outgoing",
+        interruptClass: "actionable",
+      }),
+    );
+  });
+
+  it("tags headset fault as actionable headset module", () => {
+    const input = createBaseInput({
+      headsetFault: {
+        reason: "usb_disconnected",
+        occurredAt: "2026-08-02T12:00:00.000Z",
+      },
+    });
+    renderHook(() => useActionNotifications(input));
+
+    expect(input.notifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        level: "warning",
+        messageKey: "notification.headset.fault.usb_disconnected",
+        module: "headset",
+        functionId: "headset.fault",
+        interruptClass: "actionable",
       }),
     );
   });

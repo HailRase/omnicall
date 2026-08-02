@@ -27,6 +27,7 @@ import {
   parseExternalApplicationsSettings,
 } from "../integration/external-applications/index.js";
 import { resolveIncomingRingtoneId } from "../media/IncomingRingtoneId.js";
+import { coerceUserNotificationPreferencesFromRecord } from "./coerceUserNotificationPreferences.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -43,9 +44,12 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to current UserSettings schema.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v19.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
+ *
+ * Upgrades 3…18 (incl. flat notifications / EA schema 18) and NC-only nested v14.
+ * Newer integer schemas are best-effort coerced (known fields kept).
  */
 export function migrateUserSettings(
   raw: unknown,
@@ -77,6 +81,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 18 ||
     version === 17 ||
     version === 16 ||
     version === 15 ||
@@ -117,6 +122,14 @@ export function migrateUserSettings(
       };
     }
     return { ok: true, value: migrateFromLegacy(v0) };
+  }
+
+  if (
+    typeof version === "number" &&
+    Number.isInteger(version) &&
+    version > SETTINGS_SCHEMA_VERSION
+  ) {
+    return coerceToCurrentUserSettings(record);
   }
 
   return {
@@ -194,10 +207,7 @@ function coerceToCurrentUserSettings(
       typeof preferredRaw === "string" && preferredRaw.trim().length > 0
         ? preferredRaw.trim()
         : null,
-    notificationPopupEnabled:
-      typeof record["notificationPopupEnabled"] === "boolean"
-        ? record["notificationPopupEnabled"]
-        : true,
+    notificationPreferences: coerceUserNotificationPreferencesFromRecord(record),
     preferredAudioInputDeviceId:
       typeof record["preferredAudioInputDeviceId"] === "string" ||
       record["preferredAudioInputDeviceId"] === null
@@ -310,12 +320,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     schemaVersion: defaults.schemaVersion,
     language: parsedLanguage ?? defaults.language,
     theme: v1Validated.theme ?? defaults.theme,
-    notificationPlacement: defaults.notificationPlacement,
-    notificationStacking: defaults.notificationStacking,
-    notificationDurationMs: defaults.notificationDurationMs,
-    notificationClosable: defaults.notificationClosable,
-    notificationMaxVisible: defaults.notificationMaxVisible,
-    notificationPopupEnabled: defaults.notificationPopupEnabled,
+    notificationPreferences: defaults.notificationPreferences,
     multiSessionsEnabled: v1Validated.multiSessionsEnabled ?? defaults.multiSessionsEnabled,
     autoUnholdOnTransferFailure:
       v1Validated.autoUnholdOnTransferFailure ?? defaults.autoUnholdOnTransferFailure,

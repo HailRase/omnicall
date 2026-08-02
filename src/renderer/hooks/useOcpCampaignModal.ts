@@ -71,6 +71,9 @@ export function useOcpCampaignModal(
         notify?.({
           level: "error",
           messageKey: "ocp.campaign.modal.error",
+          module: "ocp",
+          functionId: "ocp.campaign.decision",
+          interruptClass: "actionable",
         });
         return;
       }
@@ -95,6 +98,9 @@ export function useOcpCampaignModal(
         notify?.({
           level: "error",
           messageKey: "ocp.campaign.modal.error",
+          module: "ocp",
+          functionId: "ocp.campaign.decision",
+          interruptClass: "actionable",
         });
         return;
       }

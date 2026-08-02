@@ -23,11 +23,18 @@ import {
   type CodecPreferenceMutationMessageKey,
   type SessionViewMode,
   type SupportedLanguage,
+  type NotificationRaiseWindowMode,
+  type UserNotificationLevel,
+  type UserNotificationModule,
   type UserSettings,
   type VideoCodecId,
 } from "@application/index.js";
 import { applyAppTheme } from "../theme/applyAppTheme.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
+import {
+  applyNotificationPreferencesPreset,
+  type NotificationPreferencesPresetId,
+} from "../components/settings/panels/notificationPreferencesUi.js";
 import { setRendererLanguage, translateCurrent } from "../i18n/index.js";
 import { useAccountActions } from "./useAccountActions.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -45,11 +52,31 @@ type UseSettingsActionsResult = Readonly<{
   userSettings: UserSettings;
   onLanguageChange: (language: SupportedLanguage) => void;
   onThemeChange: (theme: AppTheme) => void;
-  onNotificationPlacementChange: (placement: UserSettings["notificationPlacement"]) => void;
-  onNotificationStackingChange: (stacking: UserSettings["notificationStacking"]) => void;
+  onNotificationPlacementChange: (
+    placement: UserSettings["notificationPreferences"]["appearance"]["placement"],
+  ) => void;
+  onNotificationStackingChange: (
+    stacking: UserSettings["notificationPreferences"]["appearance"]["stacking"],
+  ) => void;
   onNotificationDurationMsChange: (durationMs: number) => void;
   onNotificationClosableChange: (closable: boolean) => void;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
+  onMasterInAppPopupEnabledChange: (enabled: boolean) => void;
+  onNotificationModuleEnabledChange: (
+    module: UserNotificationModule,
+    enabled: boolean,
+  ) => void;
+  onNotificationModuleMinLevelChange: (
+    module: UserNotificationModule,
+    minLevel: UserNotificationLevel,
+  ) => void;
+  onNotificationModuleRaiseWindowChange: (
+    module: UserNotificationModule,
+    raiseWindow: NotificationRaiseWindowMode,
+  ) => void;
+  onNotificationPreferencesPreset: (
+    preset: NotificationPreferencesPresetId,
+  ) => void;
   onMultiSessionsToggle: (enabled: boolean) => void;
   onAutoAnswerEnabledToggle: (enabled: boolean) => void;
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
@@ -221,20 +248,36 @@ export function useSettingsActions(
   );
 
   const onNotificationPlacementChange = useCallback(
-    (notificationPlacement: UserSettings["notificationPlacement"]): void => {
+    (
+      placement: UserSettings["notificationPreferences"]["appearance"]["placement"],
+    ): void => {
       persistUserSettings({
         ...userSettings,
-        notificationPlacement,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          appearance: {
+            ...userSettings.notificationPreferences.appearance,
+            placement,
+          },
+        },
       });
     },
     [persistUserSettings, userSettings],
   );
 
   const onNotificationStackingChange = useCallback(
-    (notificationStacking: UserSettings["notificationStacking"]): void => {
+    (
+      stacking: UserSettings["notificationPreferences"]["appearance"]["stacking"],
+    ): void => {
       persistUserSettings({
         ...userSettings,
-        notificationStacking,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          appearance: {
+            ...userSettings.notificationPreferences.appearance,
+            stacking,
+          },
+        },
       });
     },
     [persistUserSettings, userSettings],
@@ -248,17 +291,29 @@ export function useSettingsActions(
       );
       persistUserSettings({
         ...userSettings,
-        notificationDurationMs: normalized,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          appearance: {
+            ...userSettings.notificationPreferences.appearance,
+            durationMs: normalized,
+          },
+        },
       });
     },
     [persistUserSettings, userSettings],
   );
 
   const onNotificationClosableChange = useCallback(
-    (notificationClosable: boolean): void => {
+    (closable: boolean): void => {
       persistUserSettings({
         ...userSettings,
-        notificationClosable,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          appearance: {
+            ...userSettings.notificationPreferences.appearance,
+            closable,
+          },
+        },
       });
     },
     [persistUserSettings, userSettings],
@@ -272,7 +327,99 @@ export function useSettingsActions(
       );
       persistUserSettings({
         ...userSettings,
-        notificationMaxVisible: normalized,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          appearance: {
+            ...userSettings.notificationPreferences.appearance,
+            maxVisible: normalized,
+          },
+        },
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onMasterInAppPopupEnabledChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          masterInAppPopupEnabled: enabled,
+        },
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationModuleEnabledChange = useCallback(
+    (module: UserNotificationModule, enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          modules: {
+            ...userSettings.notificationPreferences.modules,
+            [module]: {
+              ...userSettings.notificationPreferences.modules[module],
+              enabled,
+            },
+          },
+        },
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationModuleMinLevelChange = useCallback(
+    (module: UserNotificationModule, minLevel: UserNotificationLevel): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          modules: {
+            ...userSettings.notificationPreferences.modules,
+            [module]: {
+              ...userSettings.notificationPreferences.modules[module],
+              minLevel,
+            },
+          },
+        },
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationModuleRaiseWindowChange = useCallback(
+    (
+      module: UserNotificationModule,
+      raiseWindow: NotificationRaiseWindowMode,
+    ): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationPreferences: {
+          ...userSettings.notificationPreferences,
+          modules: {
+            ...userSettings.notificationPreferences.modules,
+            [module]: {
+              ...userSettings.notificationPreferences.modules[module],
+              raiseWindow,
+            },
+          },
+        },
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationPreferencesPreset = useCallback(
+    (preset: NotificationPreferencesPresetId): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationPreferences: applyNotificationPreferencesPreset(
+          userSettings.notificationPreferences,
+          preset,
+        ),
       });
     },
     [persistUserSettings, userSettings],
@@ -683,6 +830,11 @@ export function useSettingsActions(
     onNotificationDurationMsChange,
     onNotificationClosableChange,
     onNotificationMaxVisibleChange,
+    onMasterInAppPopupEnabledChange,
+    onNotificationModuleEnabledChange,
+    onNotificationModuleMinLevelChange,
+    onNotificationModuleRaiseWindowChange,
+    onNotificationPreferencesPreset,
     onMultiSessionsToggle,
     onAutoAnswerEnabledToggle,
     onAutoAnswerTimeoutChange,

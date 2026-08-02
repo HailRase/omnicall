@@ -12,6 +12,12 @@ export type NotificationAction = Readonly<{
   onClick: () => void;
 }>;
 
+export type NotificationInterruptClass =
+  | "critical"
+  | "actionable"
+  | "informational"
+  | "remote";
+
 export type NotificationDescriptor = Readonly<{
   id?: string;
   level: NotificationLevel;
@@ -24,6 +30,7 @@ export type NotificationDescriptor = Readonly<{
   module?: UserNotificationModule;
   functionId?: string;
   correlationId?: string | null;
+  interruptClass?: NotificationInterruptClass;
 }>;
 
 export type NotificationItem = Readonly<{
@@ -47,8 +54,20 @@ export type UseNotificationsInput = Readonly<{
     descriptor: NotificationDescriptor,
     id: string,
     titleSnapshot: string,
-  ) => Promise<Readonly<{ shouldPresentPopup: boolean }>>;
+  ) => Promise<
+    Readonly<{
+      shouldPresentPopup: boolean;
+      shouldRaiseWindow?: boolean;
+    }>
+  >;
   resolveTitle?: (descriptor: NotificationDescriptor) => string;
+  /**
+   * ADR-0013 optional raise for actionable errors/warnings (WU-08).
+   * Injected by shell; never called for informational/remote policy outcomes.
+   */
+  raiseWindow?: (
+    payload: Readonly<{ reason: "notification_actionable"; dedupeKey: string }>,
+  ) => Promise<unknown>;
 }>;
 
 export type UseNotificationsResult = Readonly<{
@@ -136,13 +155,19 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     maxVisible,
     capture,
     resolveTitle,
+    raiseWindow,
   } = input;
   const [queue, setQueue] = useState<ReadonlyArray<NotificationItem>>([]);
   const durationRef = useRef(durationMs);
+  const raiseWindowRef = useRef(raiseWindow);
 
   useEffect(() => {
     durationRef.current = durationMs;
   }, [durationMs]);
+
+  useEffect(() => {
+    raiseWindowRef.current = raiseWindow;
+  }, [raiseWindow]);
 
   const notify = useCallback(
     (descriptor: NotificationDescriptor): string => {
@@ -184,6 +209,12 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
           .then((outcome) => {
             if (outcome.shouldPresentPopup) {
               enqueue();
+            }
+            if (outcome.shouldRaiseWindow === true) {
+              void raiseWindowRef.current?.({
+                reason: "notification_actionable",
+                dedupeKey: id,
+              });
             }
           })
           .catch(() => {

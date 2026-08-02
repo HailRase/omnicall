@@ -156,6 +156,7 @@ import {
   type AccountSignInOutcome,
   ANONYMOUS_SETTINGS_ACCOUNT,
   toUserNotificationAccountDisplayLabel,
+  type NotificationInterruptClass,
   type UserNotificationLevel,
   type UserNotificationModule,
   type UserNotificationTitleParam,
@@ -256,7 +257,12 @@ export type CaptureUserNotificationCommand = Readonly<{
   titleKey?: string | null;
   titleParams?: Readonly<Record<string, UserNotificationTitleParam>>;
   titleSnapshot: string;
-  popupEnabled: boolean;
+  interruptClass?: NotificationInterruptClass;
+  /**
+   * Ignored. Presentation policy reads active-profile preferences centrally.
+   * Optional for transitional callers/tests only.
+   */
+  popupEnabled?: boolean;
   correlationId?: string | null;
 }>;
 
@@ -1871,8 +1877,13 @@ export class AccountBootstrapFacade {
     command: CaptureUserNotificationCommand,
   ): Promise<Result<UserNotificationCaptureOutcome, PlatformError>> {
     const accountKey = await this.resolveSettingsAccountKey();
+    const settings = await this.loadUserSettingsForAccountKey(accountKey);
     return this.userNotificationCapture.capture({
-      popupEnabled: command.popupEnabled,
+      preferences: settings.notificationPreferences,
+      interruptClass: command.interruptClass ?? "informational",
+      ...(command.popupEnabled !== undefined
+        ? { popupEnabled: command.popupEnabled }
+        : {}),
       notification: {
         ...(command.id !== undefined ? { id: command.id } : {}),
         accountKey,
@@ -1886,7 +1897,6 @@ export class AccountBootstrapFacade {
         titleKey: command.titleKey ?? null,
         titleParams: command.titleParams ?? {},
         titleSnapshot: command.titleSnapshot,
-        suppressedAtEmission: !command.popupEnabled,
         correlationId: command.correlationId ?? null,
       },
     });

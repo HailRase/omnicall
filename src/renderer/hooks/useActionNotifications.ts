@@ -156,6 +156,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
         messageKey: messageKey as TranslationKey,
         module: "account",
         functionId: "account.sign_in",
+        interruptClass: "informational",
       });
     }
   }, [accountSuccessSignature, notify]);
@@ -169,6 +170,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageKey: accountFeedback.warningKey,
       module: "account",
       functionId: "account.sign_in_metadata",
+      interruptClass: "informational",
     });
   }, [accountFeedback.warningKey, notify]);
 
@@ -180,6 +182,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       ...buildAccountErrorDescriptor(accountError),
       module: "account",
       functionId: "account.sign_in",
+      interruptClass: attachOpenSystemState ? "actionable" : "informational",
       ...(attachOpenSystemState
         ? {
             action: {
@@ -203,6 +206,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: lastOperationError.message,
       module: "telephony",
       functionId: `call.${lastOperationError.operation}`,
+      interruptClass: "actionable",
       action: {
         id: `retry-call-${lastOperationError.operation}`,
         labelKey: "common.retry",
@@ -220,6 +224,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageKey: mapOutgoingFailureMessageKey(outgoingFailure.reason),
       module: "telephony",
       functionId: "call.outgoing",
+      interruptClass: "actionable",
     });
   }, [notify, outgoingFailure]);
 
@@ -232,6 +237,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: dtmfError,
       module: "telephony",
       functionId: "call.dtmf",
+      interruptClass: "actionable",
     });
   }, [dtmfError, notify]);
 
@@ -244,6 +250,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: transferFailure,
       module: "telephony",
       functionId: "call.transfer",
+      interruptClass: "actionable",
     });
   }, [notify, transferFailure]);
 
@@ -256,6 +263,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: logoutErrorMessage,
       module: "account",
       functionId: "account.logout",
+      interruptClass: "actionable",
     });
   }, [logoutErrorMessage, notify]);
 
@@ -268,6 +276,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: settingsUpdateError,
       module: "settings",
       functionId: "settings.update",
+      interruptClass: "actionable",
     });
   }, [notify, settingsUpdateError]);
 
@@ -280,6 +289,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageKey: sipActionSuccessKey,
       module: "telephony",
       functionId: "sip.recovery",
+      interruptClass: "informational",
     });
   }, [notify, sipActionSuccessKey]);
 
@@ -292,6 +302,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: sipActionErrorText,
       module: "telephony",
       functionId: "sip.recovery",
+      interruptClass: "actionable",
       ...(openSystemStateRef.current !== undefined
         ? {
             action: {
@@ -315,6 +326,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageKey: mapHeadsetFaultMessageKey(headsetFault.reason),
       module: "headset",
       functionId: "headset.fault",
+      interruptClass: "actionable",
     });
   }, [headsetFault.occurredAt, headsetFault.reason, notify]);
 }

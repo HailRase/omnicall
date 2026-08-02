@@ -13,6 +13,9 @@ ADR-0018** (2026-07-21). Raw credential ban unchanged.
 recovery + active-call policy in §A.2–A.3 (replaces the prior “unavailable until tray ADR”
 product deny).
 
+**Amended (2026-08-02):** allowlisted raise reason `notification_actionable` for optional
+F-034 / ADR-0025 per-module `errors_only` (WU-08). Defaults remain no new raises.
+
 ## Context
 
 - **Features:** F-011, F-001, F-024, F-028, F-029
@@ -48,6 +51,7 @@ Two product risks:
    | Pairing pending | main gateway `onPairingPending` | raise + attention → snapshot refresh → root `SdkConnectCeremonyModal` (pairing step; no Settings redirect) |
    | Activate consent pending | renderer → IPC raise | once per consent episode (`attentionId`, like pairingRequestId); not once per origin+profile forever |
    | Second app instance | main `second-instance` | same bring-to-front helper |
+   | Actionable notification (F-034 optional) | capture policy → renderer `useNotifications` → IPC `shell:window-raise` (`notification_actionable`) | only when module `raiseWindow === "errors_only"` **and** interruptClass `actionable` **and** level ≥ warning; dedupe by notification id; defaults `never` ⇒ **zero** new raises; informational/remote **never**; does not gate critical rows above |
 
    Raise helpers must **not** leave a *new* permanent always-on-top as a side
    effect of focus stealing — the temporary pulse must restore
@@ -56,6 +60,12 @@ Two product risks:
    `window:show` / `window:hide` (visibility); hide must not clear pin.
    Must not raise on every WebSocket connect/reconnect without operator
    interaction. Domain / Call Engine never import Electron.
+
+   **SDK-hide interaction (F-034):** `notification_actionable` uses the same
+   `bringBrowserWindowToFront` path as telephony/campaign raises (tray Show recovery
+   still applies). It must not bypass telephony-busy / Origin-matrix rules that already
+   constrain SDK `window:show`. Prefer no raise over violating intentional host hide for
+   informational toasts (informational/remote are already policy-denied).
 
 2. **`window:hide` (privileged, capability `window.hide`):** **Available** on the protocol v1
    product surface under this amendment. Rules:

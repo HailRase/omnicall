@@ -41,12 +41,14 @@ export function mapOcpNotificationToToastDescriptor(
     return null;
   }
 
-  return {
+  const descriptor: NotificationDescriptor = {
     id: `ocp-notification-${payload.id}`,
     level: mapOcpNotificationLevel(payload.type),
     messageText: body,
     module: "ocp",
     functionId: "ocp.notification",
+    interruptClass: "remote",
     ...(payload.sticky === true ? { durationMs: 0 } : {}),
   };
+  return descriptor;
 }

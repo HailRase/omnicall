@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPreferencesExportDocument,
+  createDefaultUserNotificationPreferences,
   createDefaultUserSettings,
   createPortableDefaultUserSettings,
   parseExternalServicesSettings,
@@ -11,7 +12,32 @@ import {
   serializePreferencesExportDocument,
   SETTINGS_SCHEMA_VERSION,
   toPortableUserSettings,
+  type UserNotificationPreferences,
 } from "@domain/index.js";
+
+function createCustomNotificationPreferences(): UserNotificationPreferences {
+  const defaults = createDefaultUserNotificationPreferences();
+  return {
+    masterInAppPopupEnabled: false,
+    appearance: {
+      placement: "top-left",
+      stacking: "single",
+      durationMs: 6500,
+      closable: false,
+      maxVisible: 1,
+    },
+    modules: {
+      ...defaults.modules,
+      sdk: { enabled: false, minLevel: "warning", raiseWindow: "never" },
+      updates: { enabled: true, minLevel: "error", raiseWindow: "never" },
+      externalServices: {
+        enabled: true,
+        minLevel: "info",
+        raiseWindow: "errors_only",
+      },
+    },
+  };
+}
 
 const EXTERNAL_SERVICES_FIXTURE = (() => {
   const parsed = parseExternalServicesSettings({
@@ -113,6 +139,117 @@ describe("PreferencesExportDocument", () => {
     expect(parsed.value.profileKey).toBe("alice@example.com");
     expect(parsed.value.settings.language).toBe(document.settings.language);
     expect(parsed.value.settings.theme).toBe(document.settings.theme);
+  });
+
+  it("round-trips nested Notification Center preferences under formatVersion 1", () => {
+    const notificationPreferences = createCustomNotificationPreferences();
+    const document = buildPreferencesExportDocument({
+      settings: {
+        ...createDefaultUserSettings(),
+        notificationPreferences,
+      },
+      profileKey: "alice@example.com",
+      appVersion: "1.2.0",
+      exportedAt: "2026-08-02T15:00:00.000Z",
+    });
+    const json = serializePreferencesExportDocument(document);
+
+    expect(json).toContain("notificationPreferences");
+    expect(json).toContain("masterInAppPopupEnabled");
+    expect(json).toContain("\"sdk\"");
+    expect(json).toContain("externalServices");
+    expect(json).not.toContain("external-services-journal");
+    expect(json).not.toContain("user-notification-journal");
+    expect(json).not.toContain("suppressedAtEmission");
+
+    const parsed = parsePreferencesExportJson(json);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.formatVersion).toBe(PREFERENCES_EXPORT_FORMAT_VERSION);
+    expect(parsed.value.settings.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+    expect(parsed.value.settings.notificationPreferences).toEqual(notificationPreferences);
+  });
+
+  it("migrates v13 flat notification fields inside an F-030 bundle", () => {
+    const defaults = createDefaultUserSettings();
+    const v13Settings: Record<string, unknown> = {
+      ...defaults,
+      schemaVersion: 13,
+      notificationPlacement: "top-left",
+      notificationStacking: "single",
+      notificationDurationMs: 6500,
+      notificationClosable: false,
+      notificationMaxVisible: 1,
+      notificationPopupEnabled: false,
+    };
+    delete v13Settings["notificationPreferences"];
+
+    const parsed = parsePreferencesExportDocument({
+      format: PREFERENCES_EXPORT_FORMAT_ID,
+      formatVersion: PREFERENCES_EXPORT_FORMAT_VERSION,
+      exportedAt: "2026-08-02T15:00:00.000Z",
+      appVersion: "1.1.0",
+      profileKey: null,
+      settings: v13Settings,
+      transfer: {
+        authMaterialOmitted: true,
+        machineDeviceIdsCleared: true,
+        ocpLinkedReset: true,
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.settings.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+    expect(parsed.value.settings.notificationPreferences).toEqual({
+      masterInAppPopupEnabled: false,
+      appearance: {
+        placement: "top-left",
+        stacking: "single",
+        durationMs: 6500,
+        closable: false,
+        maxVisible: 1,
+      },
+      modules: defaults.notificationPreferences.modules,
+    });
+    expect(
+      (parsed.value.settings as { notificationPopupEnabled?: unknown }).notificationPopupEnabled,
+    ).toBeUndefined();
+  });
+
+  it("fails closed on malformed current-schema notification preferences", () => {
+    const defaults = createDefaultUserSettings();
+    const parsed = parsePreferencesExportDocument({
+      format: PREFERENCES_EXPORT_FORMAT_ID,
+      formatVersion: PREFERENCES_EXPORT_FORMAT_VERSION,
+      exportedAt: "2026-08-02T15:00:00.000Z",
+      settings: {
+        ...defaults,
+        notificationPreferences: {
+          ...defaults.notificationPreferences,
+          masterInAppPopupEnabled: "yes",
+          appearance: {
+            ...defaults.notificationPreferences.appearance,
+            durationMs: 15000,
+          },
+        },
+      },
+    });
+    expect(parsed.ok).toBe(false);
+    if (parsed.ok) {
+      return;
+    }
+    expect(parsed.error.code).toBe("settings_validation_failed");
+    expect(parsed.error.message).toContain(
+      "notificationPreferences.masterInAppPopupEnabled_invalid",
+    );
+    expect(parsed.error.message).toContain(
+      "notificationPreferences.appearance.durationMs_out_of_range",
+    );
   });
 
   it("round-trips External Services definitions exactly under formatVersion 1", () => {
@@ -246,22 +383,21 @@ describe("PreferencesExportDocument", () => {
     expect(parsed.error.code).toBe("unsupported_format_version");
   });
 
-  it("fails closed when settings schemaVersion is newer than this app", () => {
+  it("coerces newer settings schemaVersion from a portable bundle", () => {
     const parsed = parsePreferencesExportDocument({
       format: PREFERENCES_EXPORT_FORMAT_ID,
       formatVersion: PREFERENCES_EXPORT_FORMAT_VERSION,
       exportedAt: "2026-07-24T12:00:00.000Z",
       settings: {
         ...createDefaultUserSettings(),
-        schemaVersion: SETTINGS_SCHEMA_VERSION + 1,
+        schemaVersion: SETTINGS_SCHEMA_VERSION + 4,
       },
     });
-    expect(parsed.ok).toBe(false);
-    if (parsed.ok) {
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
       return;
     }
-    expect(parsed.error.code).toBe("settings_migration_failed");
-    expect(parsed.error.message).toContain("unsupported_schema_version");
+    expect(parsed.value.settings.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
   });
 
   it("rejects secret-like field names in the payload", () => {

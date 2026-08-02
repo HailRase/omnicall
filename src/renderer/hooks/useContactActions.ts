@@ -75,6 +75,9 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
       notify?.({
         level: "error",
         messageKey: "contacts.csv.error.importFailed",
+        module: "contacts",
+        functionId: "contacts.csv.import",
+        interruptClass: "actionable",
       });
       return { kind: "failed" };
     }
@@ -95,6 +98,9 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
         level: "success",
         messageKey: "contacts.csv.success.imported",
         messageParams: { count: result.value.summary.createdCount },
+        module: "contacts",
+        functionId: "contacts.csv.import",
+        interruptClass: "informational",
       });
     }
 
@@ -111,6 +117,9 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
         notify?.({
           level: "error",
           messageKey: "contacts.csv.error.exportFailed",
+          module: "contacts",
+          functionId: "contacts.csv.export",
+          interruptClass: "actionable",
         });
         return { kind: "failed" };
       }
@@ -119,6 +128,9 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
         notify?.({
           level: "info",
           messageKey: "contacts.csv.info.exportCancelled",
+          module: "contacts",
+          functionId: "contacts.csv.export",
+          interruptClass: "informational",
         });
         return { kind: "cancelled" };
       }
@@ -130,6 +142,9 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
           count: result.value.contactCount,
           fileName: result.value.savedFileName,
         },
+        module: "contacts",
+        functionId: "contacts.csv.export",
+        interruptClass: "informational",
       });
       return {
         kind: "exported",
@@ -140,6 +155,9 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
       notify?.({
         level: "error",
         messageKey: "contacts.csv.error.exportFailed",
+        module: "contacts",
+        functionId: "contacts.csv.export",
+        interruptClass: "actionable",
       });
       return { kind: "failed" };
     }

@@ -19,6 +19,9 @@ export const USER_NOTIFICATION_MODULES = [
   "history",
   "headset",
   "media",
+  "sdk",
+  "updates",
+  "externalServices",
 ] as const;
 
 export type UserNotificationModule = (typeof USER_NOTIFICATION_MODULES)[number];

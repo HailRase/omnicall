@@ -195,6 +195,9 @@ describe("useOcpRejectWithBreak", () => {
     expect(notify).toHaveBeenCalledWith({
       level: "error",
       messageKey: "ocp.incomingCall.breakModal.rejectError",
+      module: "ocp",
+      functionId: "ocp.incoming.reject_with_break",
+      interruptClass: "actionable",
     });
     expect(result.current.modalOpen).toBe(true);
     expect(result.current.submitting).toBe(false);
@@ -250,6 +253,9 @@ describe("useOcpRejectWithBreak", () => {
     expect(notify).toHaveBeenCalledWith({
       level: "error",
       messageKey: "ocp.incomingCall.breakModal.reserveError",
+      module: "ocp",
+      functionId: "ocp.status.reserve",
+      interruptClass: "actionable",
     });
   });
 });

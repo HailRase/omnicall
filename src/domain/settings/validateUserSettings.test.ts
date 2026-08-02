@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultUserSettings } from "./UserSettings.js";
+import {
+  createDefaultUserSettings,
+  SETTINGS_SCHEMA_VERSION,
+} from "./UserSettings.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 describe("validateUserSettings", () => {
@@ -24,14 +27,15 @@ describe("validateUserSettings", () => {
     }
   });
 
-  it("accepts empty External Services and Applications defaults at schema v16", () => {
+  it("accepts empty External Services and Applications defaults at current schema", () => {
     const result = validateUserSettings(createDefaultUserSettings());
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(16);
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
       expect(result.value.externalServices.collections).toEqual([]);
       expect(result.value.externalApplications.applications).toEqual([]);
+      expect(result.value.notificationPreferences.masterInAppPopupEnabled).toBe(true);
     }
   });
 
@@ -214,35 +218,93 @@ describe("validateUserSettings", () => {
     }
   });
 
-  it("accepts notification preference fields", () => {
+  it("accepts nested notification preference fields", () => {
+    const defaults = createDefaultUserSettings();
     const result = validateUserSettings({
-      ...createDefaultUserSettings(),
-      notificationPlacement: "top-left",
-      notificationStacking: "single",
-      notificationDurationMs: 6500,
-      notificationClosable: false,
-      notificationMaxVisible: 1,
+      ...defaults,
+      notificationPreferences: {
+        ...defaults.notificationPreferences,
+        masterInAppPopupEnabled: false,
+        appearance: {
+          placement: "top-left",
+          stacking: "single",
+          durationMs: 6500,
+          closable: false,
+          maxVisible: 1,
+        },
+      },
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.notificationPlacement).toBe("top-left");
-      expect(result.value.notificationStacking).toBe("single");
-      expect(result.value.notificationDurationMs).toBe(6500);
-      expect(result.value.notificationClosable).toBe(false);
-      expect(result.value.notificationMaxVisible).toBe(1);
+      expect(result.value.notificationPreferences.masterInAppPopupEnabled).toBe(false);
+      expect(result.value.notificationPreferences.appearance.placement).toBe("top-left");
+      expect(result.value.notificationPreferences.appearance.stacking).toBe("single");
+      expect(result.value.notificationPreferences.appearance.durationMs).toBe(6500);
+      expect(result.value.notificationPreferences.appearance.closable).toBe(false);
+      expect(result.value.notificationPreferences.appearance.maxVisible).toBe(1);
     }
   });
 
-  it("clamps out-of-range notification numbers", () => {
+  it("fails closed on out-of-range nested notification numbers", () => {
+    const defaults = createDefaultUserSettings();
     const result = validateUserSettings({
-      ...createDefaultUserSettings(),
-      notificationDurationMs: 15000,
-      notificationMaxVisible: 20,
+      ...defaults,
+      notificationPreferences: {
+        ...defaults.notificationPreferences,
+        appearance: {
+          ...defaults.notificationPreferences.appearance,
+          durationMs: 15000,
+          maxVisible: 20,
+        },
+      },
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.errors).toContain("notificationDurationMs_out_of_range");
-      expect(result.errors).toContain("notificationMaxVisible_out_of_range");
+      expect(result.errors).toContain(
+        "notificationPreferences.appearance.durationMs_out_of_range",
+      );
+      expect(result.errors).toContain(
+        "notificationPreferences.appearance.maxVisible_out_of_range",
+      );
+    }
+  });
+
+  it("fails closed on unknown notification module keys", () => {
+    const defaults = createDefaultUserSettings();
+    const result = validateUserSettings({
+      ...defaults,
+      notificationPreferences: {
+        ...defaults.notificationPreferences,
+        modules: {
+          ...defaults.notificationPreferences.modules,
+          phantom: {
+            enabled: true,
+            minLevel: "info",
+            raiseWindow: "never",
+          },
+        } as typeof defaults.notificationPreferences.modules & {
+          phantom: {
+            enabled: boolean;
+            minLevel: "info";
+            raiseWindow: "never";
+          };
+        },
+      },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("notificationPreferences.modules.phantom_unknown");
+    }
+  });
+
+  it("fails closed when nested notification preferences are missing", () => {
+    const defaults = createDefaultUserSettings();
+    const withoutPrefs: Record<string, unknown> = { ...defaults };
+    delete withoutPrefs["notificationPreferences"];
+    const result = validateUserSettings(withoutPrefs);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("notificationPreferences_missing");
     }
   });
 

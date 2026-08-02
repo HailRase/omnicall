@@ -39,6 +39,9 @@ describe("useCallHistoryActions", () => {
     expect(notify).toHaveBeenCalledWith({
       level: "error",
       messageKey: "history.error.redialFailed",
+      module: "history",
+      functionId: "history.redial",
+      interruptClass: "actionable",
     });
   });
 

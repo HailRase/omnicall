@@ -321,6 +321,32 @@ export {
   USER_NOTIFICATION_LEVELS,
   USER_NOTIFICATION_MODULES,
 } from "./settings/UserNotificationJournalEntry.js";
+export type {
+  NotificationRaiseWindowMode,
+  ParseUserNotificationPreferencesResult,
+  UserNotificationAppearancePreferences,
+  UserNotificationModulePreferences,
+  UserNotificationPreferences,
+} from "./settings/UserNotificationPreferences.js";
+export {
+  createDefaultUserNotificationPreferences,
+  DEFAULT_MODULE_PREFERENCES,
+  NOTIFICATION_RAISE_WINDOW_MODES,
+  parseUserNotificationPreferences,
+  USER_NOTIFICATION_LEVEL_RANK,
+} from "./settings/UserNotificationPreferences.js";
+export type {
+  NotificationInterruptClass,
+  NotificationSuppressReason,
+  PresentationPolicyDecision,
+  PresentationPolicyInput,
+} from "./settings/userNotificationPresentationPolicy.js";
+export {
+  evaluateNotificationPresentationPolicy,
+  NOTIFICATION_INTERRUPT_CLASSES,
+  NOTIFICATION_SUPPRESS_REASONS,
+} from "./settings/userNotificationPresentationPolicy.js";
+export { coerceUserNotificationPreferencesFromRecord } from "./settings/coerceUserNotificationPreferences.js";
 export {
   MAX_USER_NOTIFICATION_TITLE_LENGTH,
   retainUserNotificationJournalEntries,

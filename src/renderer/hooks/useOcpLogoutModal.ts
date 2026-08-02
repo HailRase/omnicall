@@ -118,6 +118,7 @@ export function useOcpLogoutModal(input: UseOcpLogoutModalInput): UseOcpLogoutMo
           messageKey: "ocp.logout.modal.error",
           module: "account",
           functionId: "account.logout",
+          interruptClass: "actionable",
         });
       }
     });
@@ -153,6 +154,7 @@ export function useOcpLogoutModal(input: UseOcpLogoutModalInput): UseOcpLogoutMo
         messageKey: "ocp.logout.modal.error",
         module: "account",
         functionId: "account.logout",
+        interruptClass: "actionable",
       });
       return;
     }

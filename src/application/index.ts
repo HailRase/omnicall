@@ -264,6 +264,20 @@ export {
   type NotificationStacking,
 } from "@domain/settings/NotificationSettings.js";
 export {
+  USER_NOTIFICATION_LEVELS,
+  USER_NOTIFICATION_MODULES,
+  type UserNotificationLevel,
+  type UserNotificationModule,
+} from "@domain/index.js";
+export {
+  createDefaultUserNotificationPreferences,
+  DEFAULT_MODULE_PREFERENCES,
+  NOTIFICATION_RAISE_WINDOW_MODES,
+  type NotificationRaiseWindowMode,
+  type UserNotificationModulePreferences,
+  type UserNotificationPreferences,
+} from "@domain/index.js";
+export {
   DEFAULT_SUPPORTED_LANGUAGE,
   SUPPORTED_LANGUAGES,
   parseSupportedLanguage,

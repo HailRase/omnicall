@@ -230,4 +230,53 @@ describe("useSettingsActions", () => {
     });
     expect(setNativeTheme).toHaveBeenCalledWith({ theme: "dark" });
   });
+
+  it("persists Notification Center master and quiet-successes preset", async () => {
+    const applyMultiCallSettings = vi.fn();
+    const facade = createFacade(new InMemorySettingsRepository());
+
+    const { result } = renderHook(() =>
+      useSettingsActions({
+        facade,
+        currentSettings: {
+          multiSessionsEnabled: true,
+          autoUnholdOnTransferFailure: true,
+        },
+        applyMultiCallSettings,
+      }),
+    );
+
+    await act(async () => {
+      result.current.onMasterInAppPopupEnabledChange(false);
+      await Promise.resolve();
+    });
+
+    expect(
+      result.current.userSettings.notificationPreferences.masterInAppPopupEnabled,
+    ).toBe(false);
+
+    await act(async () => {
+      result.current.onNotificationPreferencesPreset("quietSuccesses");
+      await Promise.resolve();
+    });
+
+    expect(
+      result.current.userSettings.notificationPreferences.modules.telephony.minLevel,
+    ).toBe("warning");
+    expect(
+      result.current.userSettings.notificationPreferences.modules.contacts.minLevel,
+    ).toBe("warning");
+
+    await act(async () => {
+      result.current.onNotificationModuleRaiseWindowChange("headset", "errors_only");
+      await Promise.resolve();
+    });
+
+    expect(
+      result.current.userSettings.notificationPreferences.modules.headset.raiseWindow,
+    ).toBe("errors_only");
+    expect(
+      result.current.userSettings.notificationPreferences.modules.telephony.raiseWindow,
+    ).toBe("never");
+  });
 });
