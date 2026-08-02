@@ -48,7 +48,7 @@ function createMockWindow(): {
 describe("attachExternalApplicationCloseInterceptor", () => {
   it("closes after an allowing guest guard", async () => {
     const { window, emitClose, close } = createMockWindow();
-    const queryGuard = vi.fn(async () => true);
+    const queryGuard = vi.fn(() => Promise.resolve(true));
     attachExternalApplicationCloseInterceptor({
       browserWindow: window,
       queryGuard,
@@ -68,7 +68,7 @@ describe("attachExternalApplicationCloseInterceptor", () => {
     const onDenied = vi.fn();
     attachExternalApplicationCloseInterceptor({
       browserWindow: window,
-      queryGuard: async () => false,
+      queryGuard: () => Promise.resolve(false),
       onDenied,
     });
 
@@ -81,7 +81,7 @@ describe("attachExternalApplicationCloseInterceptor", () => {
 
   it("skips the guest guard after markForceClose", () => {
     const { window, emitClose, close } = createMockWindow();
-    const queryGuard = vi.fn(async () => false);
+    const queryGuard = vi.fn(() => Promise.resolve(false));
     const interceptor = attachExternalApplicationCloseInterceptor({
       browserWindow: window,
       queryGuard,

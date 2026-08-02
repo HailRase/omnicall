@@ -74,18 +74,17 @@ describe("ExternalServicesVariableHelpButton", () => {
       element: Element,
       rect: Readonly<{ top: number; left: number; width: number; height: number }>,
     ): void => {
-      element.getBoundingClientRect = () =>
-        ({
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-          bottom: rect.top + rect.height,
-          right: rect.left + rect.width,
-          x: rect.left,
-          y: rect.top,
-          toJSON: () => rect,
-        }) as DOMRect;
+      element.getBoundingClientRect = (): DOMRect => ({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        bottom: rect.top + rect.height,
+        right: rect.left + rect.width,
+        x: rect.left,
+        y: rect.top,
+        toJSON: () => rect,
+      });
     };
 
     mockRect(pane, { top: 0, left: 0, width: 240, height: 120 });

@@ -18,7 +18,7 @@ function createToneTestContext(): Readonly<{
     disconnect: vi.fn(),
   }));
   const createOscillator = vi.fn(() => ({
-    type: "sine" as OscillatorType,
+    type: "sine",
     frequency: { value: 0 },
     connect: vi.fn(),
     disconnect: vi.fn(),

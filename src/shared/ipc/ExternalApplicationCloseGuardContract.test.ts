@@ -35,7 +35,7 @@ describe("ExternalApplicationCloseGuardContract", () => {
       true,
     );
     await expect(
-      evaluateExternalApplicationCloseGuard(async () => false),
+      evaluateExternalApplicationCloseGuard(() => Promise.resolve(false)),
     ).resolves.toBe(false);
     await expect(
       evaluateExternalApplicationCloseGuard(() => 1 as unknown as boolean),

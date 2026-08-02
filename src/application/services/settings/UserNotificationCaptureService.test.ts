@@ -119,11 +119,9 @@ describe("UserNotificationCaptureService", () => {
   it("keeps policy decisions when journal persist fails (no prefs bypass)", async () => {
     const logger = createTestLogger();
     const repository: UserNotificationJournalRepository = {
-      listEntries: vi.fn(async () => []),
-      appendEntry: vi.fn(async () => {
-        throw new Error("disk_full");
-      }),
-      clearEntries: vi.fn(async () => undefined),
+      listEntries: vi.fn(() => Promise.resolve([])),
+      appendEntry: vi.fn(() => Promise.reject(new Error("disk_full"))),
+      clearEntries: vi.fn(() => Promise.resolve()),
     };
     const service = createService(repository, logger);
     const preferences = {
