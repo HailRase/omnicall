@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { useNotifications } from "./useNotifications.js";
 
 describe("useNotifications", () => {
@@ -111,6 +111,155 @@ describe("useNotifications", () => {
 
     expect(result.current.items).toHaveLength(2);
     expect(result.current.items.map((item) => item.id)).toEqual(["third", "second"]);
+  });
+
+  it("raises shell once per notification id when capture requests raise", async () => {
+    const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        raiseWindow,
+        capture: () =>
+          Promise.resolve({
+            shouldPresentPopup: true,
+            shouldRaiseWindow: true,
+          }),
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "n-raise-1",
+        level: "error",
+        messageText: "fault",
+        interruptClass: "actionable",
+      });
+    });
+
+    await waitFor(() => {
+      expect(raiseWindow).toHaveBeenCalledWith({
+        reason: "notification_actionable",
+        dedupeKey: "n-raise-1",
+      });
+    });
+    expect(raiseWindow).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not raise when capture omits shouldRaiseWindow", async () => {
+    const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        raiseWindow,
+        capture: () =>
+          Promise.resolve({
+            shouldPresentPopup: true,
+            shouldRaiseWindow: false,
+          }),
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "n-info-1",
+        level: "info",
+        messageText: "ok",
+        interruptClass: "informational",
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toHaveLength(1);
+    });
+    expect(raiseWindow).not.toHaveBeenCalled();
+  });
+
+  it("honors closable preference on newly enqueued items", () => {
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        closable: false,
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "one",
+        level: "info",
+        messageText: "ok",
+      });
+    });
+
+    expect(result.current.items[0]).toEqual(
+      expect.objectContaining({
+        id: "one",
+        closable: false,
+      }),
+    );
+  });
+
+  it("fail-opens and reports unexpected capture throws", async () => {
+    const onCaptureFailure = vi.fn();
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        onCaptureFailure,
+        capture: () => Promise.reject(new Error("boom")),
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "fail-open",
+        level: "info",
+        messageText: "still shown",
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toHaveLength(1);
+    });
+    expect(onCaptureFailure).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not enqueue when capture suppresses popup", async () => {
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        capture: () =>
+          Promise.resolve({
+            shouldPresentPopup: false,
+            shouldRaiseWindow: false,
+          }),
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "suppressed",
+        level: "info",
+        messageText: "hidden",
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toHaveLength(0);
+    });
   });
 
   it("applies updated default duration only to new notifications", () => {

@@ -5,6 +5,27 @@ Public release history for **OmniCall** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [Unreleased]
+
+## [1.3.0] - 2026-08-02
+
+### Added
+
+- Notification Center in Settings → Notifications: control which modules show in-app
+  popups, appearance (position, stacking, duration, close button), and review history.
+  Optional “raise window on errors” per module (off by default). Preferences export/import
+  includes these settings; notification history is not exported.
+- Selectable incoming ringtone in Settings → Sessions, with preview.
+- External Applications in Settings → Integrations: open URLs or apps on call events,
+  with optional page-controlled close confirmation.
+- Pin softphone always on top from the window controls (remembered in settings).
+- Automatic **Post-call processing** trigger for External Services / Applications when
+  the OCP operator enters post-call processing.
+
+### Fixed
+
+- Disabling in-app popups still hides them if notification history cannot be saved to disk.
+
 ## [1.2.0] - 2026-07-31
 
 ### Added

@@ -43,6 +43,9 @@ describe("useContactActions CSV export", () => {
         count: 2,
         fileName: "contacts-export-2026-07-08.csv",
       },
+      module: "contacts",
+      functionId: "contacts.csv.export",
+      interruptClass: "informational",
     });
   });
 
@@ -69,6 +72,9 @@ describe("useContactActions CSV export", () => {
     expect(notify).toHaveBeenCalledWith({
       level: "info",
       messageKey: "contacts.csv.info.exportCancelled",
+      module: "contacts",
+      functionId: "contacts.csv.export",
+      interruptClass: "informational",
     });
   });
 });

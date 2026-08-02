@@ -2,6 +2,7 @@ import { TonePlaybackCoordinator } from "@application/services/telephony/TonePla
 import type {
   AttachRemoteAudioCommand,
   BindCallVideoSurfacesCommand,
+  ConfigureIncomingRingtoneCommand,
   MediaGateway,
   MuteCallCommand,
   PlayBusyToneCommand,
@@ -9,8 +10,10 @@ import type {
   PlayIncomingRingtoneCommand,
   PlayRingbackToneCommand,
   PlayRingtoneCommand,
+  PreviewIncomingRingtoneCommand,
   ReleaseAllMediaCommand,
   RemoteAudioAttachOutcome,
+  StopIncomingRingtonePreviewCommand,
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
@@ -46,6 +49,24 @@ export class ArbiterMediaGateway implements MediaGateway {
     command: BindCallVideoSurfacesCommand,
   ): Promise<Result<void, PlatformError>> {
     return this.delegate.bindCallVideoSurfaces(command);
+  }
+
+  configureIncomingRingtone(
+    command: ConfigureIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.delegate.configureIncomingRingtone(command);
+  }
+
+  previewIncomingRingtone(
+    command: PreviewIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.delegate.previewIncomingRingtone(command);
+  }
+
+  stopIncomingRingtonePreview(
+    command: StopIncomingRingtonePreviewCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.delegate.stopIncomingRingtonePreview(command);
   }
 
   playRingbackTone(

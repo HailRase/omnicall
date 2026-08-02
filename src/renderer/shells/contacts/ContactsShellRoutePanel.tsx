@@ -77,6 +77,7 @@ export function ContactsShellRoutePanel({
           setRestoreFocusContactId(contactId);
           navigateTo({ name: "contacts" });
         }}
+        {...(notify !== undefined ? { notify } : {})}
       />
     );
   }
@@ -88,6 +89,7 @@ export function ContactsShellRoutePanel({
       routeNotFound={route.notFound}
       onClose={goToDialpad}
       onBack={goBackSafe}
+      {...(notify !== undefined ? { notify } : {})}
     />
   );
 }
@@ -185,6 +187,7 @@ type ContactsDetailsRouteProps = Readonly<{
   facade: AccountBootstrapFacade;
   contactId: string;
   routeNotFound: boolean;
+  notify?: (descriptor: NotificationDescriptor) => void;
   onClose: () => void;
   onBack: () => void;
   onReturnToList: (contactId: string) => void;
@@ -194,6 +197,7 @@ function ContactsDetailsRoute({
   facade,
   contactId,
   routeNotFound,
+  notify,
   onClose,
   onBack,
   onReturnToList,
@@ -201,7 +205,10 @@ function ContactsDetailsRoute({
   const { t } = useI18n();
   const { navigateTo, goToDialpad } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
-  const actions = useContactActions({ facade });
+  const actions = useContactActions({
+    facade,
+    ...(notify !== undefined ? { notify } : {}),
+  });
   const { triggerRef: deleteTriggerRef, onCloseAutoFocus } =
     useDialogReturnFocus<HTMLButtonElement>();
   const detailsShell = useContactDetailsShell({
@@ -239,7 +246,6 @@ function ContactsDetailsRoute({
         open={detailsShell.deleteConfirmationOpen}
         contactName={detailsShell.contact?.displayName ?? null}
         isDeleting={detailsShell.isDeleting}
-        errorMessage={detailsShell.deleteErrorMessage}
         onCloseAutoFocus={onCloseAutoFocus}
         onCancel={detailsShell.closeDeleteConfirmation}
         onConfirm={() => {
@@ -259,6 +265,7 @@ type ContactsEditRouteProps = Readonly<{
   facade: AccountBootstrapFacade;
   contactId: string;
   routeNotFound: boolean;
+  notify?: (descriptor: NotificationDescriptor) => void;
   onClose: () => void;
   onBack: () => void;
 }>;
@@ -267,12 +274,16 @@ function ContactsEditRoute({
   facade,
   contactId,
   routeNotFound,
+  notify,
   onClose,
   onBack,
 }: ContactsEditRouteProps): JSX.Element {
   const { t } = useI18n();
   const { navigateTo } = useShellNavigation();
-  const actions = useContactActions({ facade });
+  const actions = useContactActions({
+    facade,
+    ...(notify !== undefined ? { notify } : {}),
+  });
   const editShell = useContactEditShell({
     contactId,
     routeNotFound,
@@ -289,8 +300,6 @@ function ContactsEditRoute({
         isSaving={editShell.isSaving}
         values={editShell.values}
         fieldErrors={editShell.fieldErrors}
-        formErrorMessage={editShell.formErrorMessage}
-        successMessage={editShell.successMessage}
         onFieldChange={editShell.onFieldChange}
         onSubmit={() => {
           void (async () => {

@@ -35,6 +35,14 @@ export {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   SETTINGS_SCHEMA_VERSION,
 } from "./settings/UserSettings.js";
+export type { IncomingRingtoneId } from "./media/IncomingRingtoneId.js";
+export {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  INCOMING_RINGTONE_IDS,
+  listIncomingRingtoneIds,
+  parseIncomingRingtoneId,
+  resolveIncomingRingtoneId,
+} from "./media/IncomingRingtoneId.js";
 export type {
   ExternalServiceAutomaticEventType,
   ExternalServiceBodyMode,
@@ -58,6 +66,7 @@ export type {
   ExternalServiceCollectionVariableRowInspection,
   ExternalServiceCollectionVariableRowIssue,
   ExternalServiceCollectionVariablesNormalizeError,
+  ExternalServiceVariableAvailabilityId,
   ExternalServiceVariableCatalogEntry,
   ExternalServiceVariableCatalogGroupId,
   ExternalServiceVariables,
@@ -72,6 +81,44 @@ export type {
   ExternalServiceCollectionParseResult,
   ExternalServiceUuidSource,
 } from "./integration/external-services/index.js";
+export type {
+  ExternalApplicationCallDirectionFilter,
+  ExternalApplicationConditionSkipReason,
+  ExternalApplicationConditions,
+  ExternalApplicationConditionsResult,
+  ExternalApplicationDefinition,
+  ExternalApplicationId,
+  ExternalApplicationJournalEntry,
+  ExternalApplicationJournalOutcome,
+  ExternalApplicationOnCallEndedAction,
+  ExternalApplicationOpenMode,
+  ExternalApplicationsSettings,
+  ExternalApplicationTriggerBinding,
+  ExternalApplicationWindowBehavior,
+  ExternalApplicationWindowSize,
+  ExternalApplicationsSettingsValidationError,
+  MatchedExternalApplication,
+  ParseExternalApplicationsSettingsResult,
+} from "./integration/external-applications/index.js";
+export {
+  DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH,
+  EXTERNAL_APPLICATION_CALL_DIRECTION_FILTERS,
+  EXTERNAL_APPLICATION_CONDITION_SKIP_REASONS,
+  EXTERNAL_APPLICATION_JOURNAL_OUTCOMES,
+  EXTERNAL_APPLICATION_ON_CALL_ENDED_ACTIONS,
+  EXTERNAL_APPLICATION_OPEN_MODES,
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  evaluateExternalApplicationConditions,
+  isExternalApplicationCallDirectionFilter,
+  isExternalApplicationOnCallEndedAction,
+  isExternalApplicationOpenMode,
+  isExternalApplicationUuid,
+  matchExternalApplications,
+  parseExternalApplicationsSettings,
+} from "./integration/external-applications/index.js";
 export {
   EXTERNAL_SERVICE_AUTOMATIC_EVENT_TYPES,
   EXTERNAL_SERVICE_BODY_MODES,
@@ -93,6 +140,9 @@ export {
   inspectExternalServiceCollectionVariableRows,
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
+  listExternalServiceCatalogEntriesForEvent,
+  resolveExternalServiceEventVariableGroups,
+  resolveExternalServiceSystemVariableAvailability,
   normalizeExternalServiceCollectionVariables,
   EXTERNAL_SERVICE_RESPONSE_BODY_MAX_BYTES,
   EXTERNAL_SERVICE_COLLECTION_DOCUMENT_MAX_BYTES,
@@ -271,6 +321,32 @@ export {
   USER_NOTIFICATION_LEVELS,
   USER_NOTIFICATION_MODULES,
 } from "./settings/UserNotificationJournalEntry.js";
+export type {
+  NotificationRaiseWindowMode,
+  ParseUserNotificationPreferencesResult,
+  UserNotificationAppearancePreferences,
+  UserNotificationModulePreferences,
+  UserNotificationPreferences,
+} from "./settings/UserNotificationPreferences.js";
+export {
+  createDefaultUserNotificationPreferences,
+  DEFAULT_MODULE_PREFERENCES,
+  NOTIFICATION_RAISE_WINDOW_MODES,
+  parseUserNotificationPreferences,
+  USER_NOTIFICATION_LEVEL_RANK,
+} from "./settings/UserNotificationPreferences.js";
+export type {
+  NotificationInterruptClass,
+  NotificationSuppressReason,
+  PresentationPolicyDecision,
+  PresentationPolicyInput,
+} from "./settings/userNotificationPresentationPolicy.js";
+export {
+  evaluateNotificationPresentationPolicy,
+  NOTIFICATION_INTERRUPT_CLASSES,
+  NOTIFICATION_SUPPRESS_REASONS,
+} from "./settings/userNotificationPresentationPolicy.js";
+export { coerceUserNotificationPreferencesFromRecord } from "./settings/coerceUserNotificationPreferences.js";
 export {
   MAX_USER_NOTIFICATION_TITLE_LENGTH,
   retainUserNotificationJournalEntries,

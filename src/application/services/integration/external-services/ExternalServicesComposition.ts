@@ -41,6 +41,7 @@ import {
 import { ExternalServicesAutomationService } from "./ExternalServicesAutomationService.js";
 import { ExternalServicesDispatchQueue } from "./ExternalServicesDispatchQueue.js";
 import { ExternalServicesDelayScheduler } from "./ExternalServicesDelayScheduler.js";
+import { enrichExternalServicesManualRunInput } from "./enrichExternalServicesManualRunInput.js";
 import type { ExternalServiceExecutionResult } from "./ExternalServiceExecutionResult.js";
 import type { ExternalServicesWaitingJob } from "./ExternalServicesDelayScheduler.js";
 import type { ExternalServicesProductSnapshot } from "./ExternalServicesProductSnapshot.js";
@@ -177,7 +178,12 @@ export class ExternalServicesComposition {
   runExternalServiceRequestNow(
     input: RunExternalServiceRequestNowInput,
   ): Promise<ExternalServiceExecutionResult> {
-    return this.runNow.execute(input);
+    const callId = input.focusedCallContext?.callId;
+    const trackedCall =
+      callId === undefined ? null : this.automation.getTrackedCall(callId);
+    return this.runNow.execute(
+      enrichExternalServicesManualRunInput(input, trackedCall),
+    );
   }
 
   async saveExternalServicesSettings(input: SaveExternalServicesSettingsInput) {

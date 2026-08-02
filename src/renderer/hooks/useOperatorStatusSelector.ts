@@ -241,6 +241,9 @@ export function useOperatorStatusSelector(
         level: "success",
         messageKey: "ocp.status.reservedToast",
         messageParams: { reason: reasonLabel },
+        module: "ocp",
+        functionId: "ocp.status.reserved",
+        interruptClass: "informational",
       });
     },
     [notify],

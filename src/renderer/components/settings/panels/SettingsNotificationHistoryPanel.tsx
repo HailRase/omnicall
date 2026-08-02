@@ -7,27 +7,15 @@ import {
   type UserNotificationModuleFilter,
 } from "@application/projections/settings/userNotificationJournalViewModel.js";
 import { useI18n } from "../../../i18n/index.js";
-import type { TranslationKey } from "../../../i18n/messages.js";
 import { AppIcon } from "../../icons/index.js";
 import { Button, Input, Select } from "../../ui/index.js";
 import { NotificationHistoryTable } from "./NotificationHistoryTable.js";
+import { MODULE_LABEL_KEY } from "./notificationPreferencesUi.js";
 import styles from "./SettingsNotificationHistoryPanel.module.css";
 
 const ALL = "__all__";
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 const DEFAULT_PAGE_SIZE = 20;
-
-const MODULE_KEY: Record<UserNotificationModuleFilter, TranslationKey> = {
-  system: "settings.notifications.module.system",
-  account: "settings.notifications.module.account",
-  telephony: "settings.notifications.module.telephony",
-  ocp: "settings.notifications.module.ocp",
-  settings: "settings.notifications.module.settings",
-  contacts: "settings.notifications.module.contacts",
-  history: "settings.notifications.module.history",
-  headset: "settings.notifications.module.headset",
-  media: "settings.notifications.module.media",
-};
 
 export type NotificationHistoryQuery = (
   input: UserNotificationJournalQueryViewInput,
@@ -99,7 +87,7 @@ export function SettingsNotificationHistoryPanel({
     { value: ALL, label: t("settings.notifications.filter.allModules") },
     ...USER_NOTIFICATION_MODULE_FILTERS.map((item) => ({
       value: item,
-      label: t(MODULE_KEY[item]),
+      label: t(MODULE_LABEL_KEY[item]),
     })),
   ];
   const pageCount = Math.max(1, outcome?.pageCount ?? 1);
@@ -155,6 +143,7 @@ export function SettingsNotificationHistoryPanel({
             items={moduleItems}
             value={module}
             aria-labelledby="settings-notifications-module-label"
+            data-testid="settings-notification-history-module"
             onValueChange={(value) => {
               setModule(value);
               setPage(1);

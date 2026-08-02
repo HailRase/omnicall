@@ -50,10 +50,12 @@ const baseHeaderArgs = {
     isShuttingDown: false,
     maximizeEnabled: false,
     isMaximized: false,
+    isPinned: false,
     onMinimize: noop,
     onClose: noop,
     onRestart: noop,
     onToggleMaximize: noop,
+    onTogglePin: noop,
   },
 };
 

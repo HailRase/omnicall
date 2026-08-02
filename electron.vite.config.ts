@@ -20,9 +20,20 @@ export default defineConfig({
   preload: {
     build: {
       rollupOptions: {
+        input: {
+          index: resolve(srcRoot, "preload/index.ts"),
+          externalApplicationGuest: resolve(
+            srcRoot,
+            "preload/externalApplicationGuest.ts",
+          ),
+        },
         output: {
           format: "cjs",
           entryFileNames: "[name].js",
+          // Sandboxed Electron preloads cannot reliably load shared Rollup chunks.
+          // Keep each preload entry self-contained (no `require("./chunks/…")`).
+          manualChunks: undefined,
+          chunkFileNames: "[name].js",
         },
       },
     },

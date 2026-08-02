@@ -8,6 +8,10 @@ import {
   type UserNotificationModule,
   type UserNotificationTitleParam,
 } from "./UserNotificationJournalEntry.js";
+import {
+  NOTIFICATION_SUPPRESS_REASONS,
+  type NotificationSuppressReason,
+} from "./userNotificationPresentationPolicy.js";
 import { hasForbiddenSecretField } from "./persistedCallHistoryReaders.js";
 import { retainUserNotificationJournalEntries } from "./userNotificationJournalPolicy.js";
 
@@ -98,6 +102,7 @@ function parseEntry(raw: unknown): UserNotificationJournalEntry | null {
       ? correlationIdValue
       : undefined;
   const titleParams = readTitleParams(record["titleParams"]);
+  const suppressReasons = readSuppressReasons(record["suppressReasons"]);
   if (
     id === null ||
     emittedAt === null ||
@@ -111,7 +116,8 @@ function parseEntry(raw: unknown): UserNotificationJournalEntry | null {
     titleSnapshot === null ||
     typeof suppressedAtEmission !== "boolean" ||
     correlationId === undefined ||
-    titleParams === null
+    titleParams === null ||
+    suppressReasons === null
   ) {
     return null;
   }
@@ -127,6 +133,7 @@ function parseEntry(raw: unknown): UserNotificationJournalEntry | null {
     titleParams,
     titleSnapshot,
     suppressedAtEmission,
+    suppressReasons,
     correlationId,
   };
 }
@@ -164,4 +171,24 @@ function readTitleParams(
     result[key] = entry;
   }
   return result;
+}
+
+function readSuppressReasons(
+  value: unknown,
+): ReadonlyArray<NotificationSuppressReason> | null {
+  if (value === undefined) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const allowed = NOTIFICATION_SUPPRESS_REASONS as ReadonlyArray<string>;
+  const reasons: NotificationSuppressReason[] = [];
+  for (const entry of value) {
+    if (typeof entry !== "string" || !allowed.includes(entry)) {
+      return null;
+    }
+    reasons.push(entry as NotificationSuppressReason);
+  }
+  return reasons;
 }

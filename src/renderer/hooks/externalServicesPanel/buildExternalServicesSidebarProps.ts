@@ -12,7 +12,9 @@ import type { ExternalServicesSidebarProps } from "../../components/settings/ext
 import type { UseExternalServicesActionsResult } from "../useExternalServicesActions.js";
 import type { UseExternalServicesRequestActionsResult } from "../useExternalServicesRequestActions.js";
 import type { UseExternalServicesShellResult } from "../useExternalServicesShell.js";
+import type { NotificationDescriptor } from "../useNotifications.js";
 import type { UseExternalServicesPanelDialogsResult } from "./useExternalServicesPanelDialogs.js";
+import { presentExternalServicesOutcomeError } from "./presentExternalServicesOutcomeError.js";
 import type { UseExternalServicesPanelSelectionResult } from "./useExternalServicesPanelSelection.js";
 
 export function buildExternalServicesSidebarProps(input: Readonly<{
@@ -42,6 +44,7 @@ export function buildExternalServicesSidebarProps(input: Readonly<{
   setDraft: UseExternalServicesPanelSelectionResult["setDraft"];
   setSavedDraft: UseExternalServicesPanelSelectionResult["setSavedDraft"];
   setRequestErrorKey: UseExternalServicesPanelSelectionResult["setRequestErrorKey"];
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>): ExternalServicesSidebarProps {
   const {
     collections,
@@ -58,6 +61,7 @@ export function buildExternalServicesSidebarProps(input: Readonly<{
     setDraft,
     setSavedDraft,
     setRequestErrorKey,
+    notify,
   } = input;
   return {
     collections: collections.map((collection) => ({
@@ -110,7 +114,12 @@ export function buildExternalServicesSidebarProps(input: Readonly<{
     onToggleRequest: (collectionId, requestId, enabled) => {
       void requestActions.toggle(collectionId, requestId, enabled).then((result) => {
         if (result.kind === "error") {
-          setRequestErrorKey(result.messageKey);
+          presentExternalServicesOutcomeError({
+            messageKey: result.messageKey,
+            ...(notify !== undefined ? { notify } : {}),
+            setInlineErrorKey: setRequestErrorKey,
+            functionId: "external_services.request.toggle",
+          });
           return;
         }
         setDraft((previous) => {

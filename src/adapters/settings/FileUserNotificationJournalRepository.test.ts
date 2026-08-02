@@ -31,6 +31,7 @@ function createEntry(idValue: string, emittedAtMs: number): UserNotificationJour
     titleParams: {},
     titleSnapshot: "Authorization failed",
     suppressedAtEmission: true,
+    suppressReasons: ["master_popup_disabled"],
     correlationId: "corr-1",
   };
 }

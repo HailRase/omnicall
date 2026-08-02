@@ -7,6 +7,9 @@ export type {
   BindCallVideoSurfacesCommand,
   MediaGateway,
   AttachRemoteAudioCommand,
+  ConfigureIncomingRingtoneCommand,
+  PreviewIncomingRingtoneCommand,
+  StopIncomingRingtonePreviewCommand,
   PlayIncomingRingtoneCommand,
   PlayRingtoneCommand,
   PlayBusyToneCommand,
@@ -109,6 +112,11 @@ export type {
   ExternalGatewayValidationSuccess,
 } from "./integration/ExternalClientGateway.js";
 export type {
+  ExternalApplicationWindowGateway,
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResult,
+} from "./integration/ExternalApplicationWindowGateway.js";
+export type {
   BrokerProductRequest,
   BrokerRequestFailure,
   BrokerRequestResult,
@@ -163,6 +171,12 @@ export type {
   ApplyShellWindowLayoutCommand,
   ShellWindowGateway,
 } from "./platform/ShellWindowGateway.js";
+export type {
+  NotificationGateway,
+  OsNotificationDismissRequest,
+  OsNotificationRequest,
+  OsNotificationUrgency,
+} from "./platform/NotificationGateway.js";
 export type { UpdateMetadataGateway } from "./updates/UpdateMetadataGateway.js";
 export type { HeadsetGateway } from "./headset/HeadsetGateway.js";
 export type {

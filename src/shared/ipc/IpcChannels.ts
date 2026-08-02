@@ -12,6 +12,14 @@ export const IPC_CHANNELS = {
   shellWindowGetMaximized: "shell:window-get-maximized",
   /** Main → renderer: BrowserWindow maximize/restore changed (settings-only). */
   shellWindowMaximizedChanged: "shell:window-maximized-changed",
+  /** Renderer → main: set shell always-on-top pin (F-016). */
+  shellWindowSetAlwaysOnTop: "shell:window-set-always-on-top",
+  /** Renderer → main: toggle shell always-on-top pin (F-016). */
+  shellWindowToggleAlwaysOnTop: "shell:window-toggle-always-on-top",
+  /** Renderer → main: read shell always-on-top pin (F-016). */
+  shellWindowGetAlwaysOnTop: "shell:window-get-always-on-top",
+  /** Main → renderer: always-on-top pin changed (F-016). */
+  shellWindowAlwaysOnTopChanged: "shell:window-always-on-top-changed",
   shellApplyWindowLayout: "shell:apply-window-layout",
   /** Renderer → main: raise softphone above other apps (ADR-0013). */
   shellWindowRaise: "shell:window-raise",
@@ -49,6 +57,14 @@ export const IPC_CHANNELS = {
   /** Renderer → main: External Services single-collection export dialog (F-031). */
   externalServicesCollectionSaveExportDialog:
     "external-services:collection-save-export-dialog",
+  /** Renderer → main: F-032 External Application screen-pop window. */
+  externalApplicationsOpenWindow: "external-applications:open-window",
+  /** Renderer → main: F-032 apply call-ended window lifecycle for one callId. */
+  externalApplicationsApplyCallEnded: "external-applications:apply-call-ended",
+  /** Main → guest preload: run optional close-guard callback (F-032). */
+  externalApplicationsCloseGuardQuery: "external-applications:close-guard-query",
+  /** Guest preload → main: close-guard result for one requestId (F-032). */
+  externalApplicationsCloseGuardResult: "external-applications:close-guard-result",
 } as const;
 
 export type IpcChannel =
@@ -82,3 +98,17 @@ export type {
   ExternalServicesCollectionSaveExportDialogPayload,
   ExternalServicesCollectionSaveExportDialogResponse,
 } from "./ExternalServicesCollectionFileContract.js";
+export type {
+  ApplyExternalApplicationCallEndedPayload,
+  ApplyExternalApplicationCallEndedResponse,
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResponse,
+} from "./OpenExternalApplicationWindowContract.js";
+export type {
+  ExternalApplicationCloseGuardQueryPayload,
+  ExternalApplicationCloseGuardResultPayload,
+} from "./ExternalApplicationCloseGuardContract.js";
+export type {
+  ExternalApplicationCloseGuard,
+  ExternalApplicationGuestApi,
+} from "./ExternalApplicationGuestApi.js";

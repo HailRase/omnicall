@@ -58,7 +58,14 @@ export class ExecuteExternalServiceRequestUseCase {
       transport,
       toJsonValidity(built.jsonValidity),
     );
-    await this.appendJournal(job, startedAt, built.request.url, built.request.headers, result);
+    await this.appendJournal(
+      job,
+      startedAt,
+      built.request.url,
+      built.request.headers,
+      built.request.body,
+      result,
+    );
     this.logCompletion(job, result);
     return result;
   }
@@ -78,7 +85,7 @@ export class ExecuteExternalServiceRequestUseCase {
       code,
       jsonValidity: "not_applicable",
     };
-    await this.appendJournal(job, startedAt, job.request.url, [], result);
+    await this.appendJournal(job, startedAt, job.request.url, [], null, result);
     this.logCompletion(job, result);
     return result;
   }
@@ -88,16 +95,19 @@ export class ExecuteExternalServiceRequestUseCase {
     startedAt: Date,
     requestUrl: string,
     requestHeaders: ExternalServiceJournalEntry["requestHeaders"],
+    requestBody: string | null,
     result: ExternalServiceExecutionResult,
   ): Promise<void> {
-    const truncated = truncateExternalServiceBody(result.body);
+    const truncatedResponse = truncateExternalServiceBody(result.body);
+    const truncatedRequest = truncateExternalServiceBody(requestBody ?? "");
     const entry = buildJournalEntry(
       job,
       startedAt,
       requestUrl,
       redactExternalServiceHeaders(requestHeaders),
+      truncatedRequest,
       result,
-      truncated,
+      truncatedResponse,
       this.deps.uuidGenerator.generate(),
     );
     try {
@@ -208,8 +218,9 @@ function buildJournalEntry(
   startedAt: Date,
   requestUrl: string,
   requestHeaders: ExternalServiceJournalEntry["requestHeaders"],
+  truncatedRequest: Readonly<{ body: string; truncated: boolean }>,
   result: ExternalServiceExecutionResult,
-  truncated: Readonly<{ body: string; truncated: boolean }>,
+  truncatedResponse: Readonly<{ body: string; truncated: boolean }>,
   id: string,
 ): ExternalServiceJournalEntry {
   return {
@@ -227,8 +238,10 @@ function buildJournalEntry(
     status: result.kind === "success" ? result.status : result.status,
     requestUrl,
     requestHeaders,
-    responseBody: truncated.body,
-    responseBodyTruncated: truncated.truncated,
+    requestBody: truncatedRequest.body,
+    requestBodyTruncated: truncatedRequest.truncated,
+    responseBody: truncatedResponse.body,
+    responseBodyTruncated: truncatedResponse.truncated,
     errorCode: result.kind === "error" ? result.code : null,
     errorMessage: result.kind === "error" ? result.code : null,
     correlationId: job.correlationId,

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createSettingsAccountKey } from "./SettingsAccountKey.js";
 import {
+  USER_NOTIFICATION_MODULES,
   createUserNotificationJournalEntryId,
   type UserNotificationJournalEntry,
+  type UserNotificationModule,
 } from "./UserNotificationJournalEntry.js";
 import {
   retainUserNotificationJournalEntries,
@@ -18,7 +20,11 @@ import {
 
 const NOW_MS = Date.parse("2026-07-17T09:00:00.000Z");
 
-function entry(idValue: string, emittedAtMs: number): UserNotificationJournalEntry {
+function entry(
+  idValue: string,
+  emittedAtMs: number,
+  module: UserNotificationModule = "account",
+): UserNotificationJournalEntry {
   const id = createUserNotificationJournalEntryId(idValue);
   if (id === null) {
     throw new Error("test notification id is invalid");
@@ -29,12 +35,13 @@ function entry(idValue: string, emittedAtMs: number): UserNotificationJournalEnt
     accountKey: createSettingsAccountKey("agent@pbx.example"),
     accountDisplayLabel: "agent@pbx.example",
     level: "error",
-    module: "account",
-    functionId: "account.authorize",
+    module,
+    functionId: `${module}.event`,
     titleKey: "account.error.authorizationFailed",
     titleParams: {},
     titleSnapshot: "Authorization failed",
     suppressedAtEmission: false,
+    suppressReasons: [],
     correlationId: "corr-1",
   };
 }
@@ -84,6 +91,24 @@ describe("user notification journal policy", () => {
     if (parsed.ok) {
       expect(parsed.value.entries).toHaveLength(1);
     }
+  });
+
+  it("round-trips expanded module catalog beside legacy modules", () => {
+    const entries = USER_NOTIFICATION_MODULES.map((module, index) =>
+      entry(`n-${module}`, NOW_MS - index, module),
+    );
+    const json = serializeUserNotificationJournalDocument(entries, NOW_MS);
+    const parsed = parsePersistedUserNotificationJournalDocument(
+      JSON.parse(json) as unknown,
+      NOW_MS,
+    );
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.entries.map((value) => value.module).sort()).toEqual(
+      [...USER_NOTIFICATION_MODULES].sort(),
+    );
   });
 
   it("rejects documents with secret field names", () => {

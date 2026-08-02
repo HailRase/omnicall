@@ -30,6 +30,7 @@ import type {
   SdkSettingsPanelErrorKey,
   UseSdkSettingsPanelResult,
 } from "./sdkSettingsPanelTypes.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 import { subscribeSdkIntegrationSettingsChanged } from "../bootstrap/sdkIntegrationSettingsSync.js";
 import { sdkActivateConsentBridge } from "../bootstrap/sdkActivateConsentBridge.js";
 import { normalizeSdkOperatorModalTimeouts } from "@shared/integration/sdkOperatorModalTimeouts.js";
@@ -43,7 +44,21 @@ type UseSdkSettingsPanelInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   onActiveUserSettingsRefresh: (settings: UserSettings) => void;
   invokeSdkGatewaySettings?: SdkGatewayInvoker;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
+
+function resolveSdkErrorFunctionId(key: SdkSettingsPanelErrorKey): string {
+  switch (key) {
+    case "settings.integrations.sdk.error.saveFailed":
+      return "sdk.settings.save";
+    case "settings.integrations.sdk.error.revokeFailed":
+      return "sdk.client.revoke";
+    case "settings.integrations.sdk.error.gatewayFailed":
+      return "sdk.gateway.op";
+    case "settings.integrations.sdk.error.originsInvalid":
+      return "sdk.origin.validate";
+  }
+}
 
 /** SDK Server settings + live gateway ops (DI-09 / DI-11). */
 export function useSdkSettingsPanel(
@@ -53,6 +68,7 @@ export function useSdkSettingsPanel(
     facade,
     onActiveUserSettingsRefresh,
     invokeSdkGatewaySettings = defaultSdkGatewayInvoker,
+    notify,
   } = input;
 
   const [settings, setSettings] = useState(SDK_INTEGRATION_DEFAULTS);
@@ -72,8 +88,27 @@ export function useSdkSettingsPanel(
   const [errorKey, setErrorKey] = useState<SdkSettingsPanelErrorKey | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const presentEphemeralError = useCallback(
+    (key: SdkSettingsPanelErrorKey): void => {
+      if (key === "settings.integrations.sdk.error.originsInvalid") {
+        setErrorKey(key);
+        return;
+      }
+      notify?.({
+        level: "error",
+        messageKey: key,
+        module: "sdk",
+        functionId: resolveSdkErrorFunctionId(key),
+        interruptClass: "actionable",
+      });
+      setErrorKey(null);
+    },
+    [notify],
+  );
+
   const applySnapshot = useCallback((response: SdkGatewaySettingsResponse): void => {
     if (!response.ok) {
+      // Polling refresh must not toast; keep non-spammy strip for live gateway loss.
       setErrorKey("settings.integrations.sdk.error.gatewayFailed");
       return;
     }
@@ -109,7 +144,7 @@ export function useSdkSettingsPanel(
       }
       const settingsResult = await facade.getUserSettingsForAccount();
       if (!settingsResult.ok) {
-        setErrorKey("settings.integrations.sdk.error.saveFailed");
+        presentEphemeralError("settings.integrations.sdk.error.saveFailed");
         return;
       }
       setErrorKey(null);
@@ -164,6 +199,7 @@ export function useSdkSettingsPanel(
     facade,
     invokeSdkGatewaySettings,
     onActiveUserSettingsRefresh,
+    presentEphemeralError,
   ]);
 
   useEffect(() => {
@@ -200,19 +236,32 @@ export function useSdkSettingsPanel(
       });
       if (result.settings !== undefined) setSettings(result.settings);
       if (result.response !== undefined) applySnapshot(result.response);
-      setErrorKey(result.errorKey ?? null);
+      if (result.errorKey !== undefined) {
+        presentEphemeralError(result.errorKey);
+        return;
+      }
+      setErrorKey(null);
     } finally {
       setBusy(false);
     }
-  }, [applySnapshot, facade, invokeSdkGatewaySettings, onActiveUserSettingsRefresh]);
+  }, [
+    applySnapshot,
+    facade,
+    invokeSdkGatewaySettings,
+    onActiveUserSettingsRefresh,
+    presentEphemeralError,
+  ]);
 
   const runOp = useCallback(async (operation: SdkGatewaySettingsOperation) => {
     setBusy(true);
     try {
       const response = await invokeSdkGatewaySettings(operation);
+      if (!response.ok) {
+        presentEphemeralError(mapSdkGatewayOpError(operation));
+        return;
+      }
       applySnapshot(response);
       if (
-        response.ok &&
         response.snapshot.origins !== undefined &&
         JSON.stringify(response.snapshot.origins) !== JSON.stringify(settings.origins)
       ) {
@@ -222,7 +271,7 @@ export function useSdkSettingsPanel(
           operatorModalTimeouts: settings.operatorModalTimeouts,
         });
       }
-      setErrorKey(response.ok ? null : mapSdkGatewayOpError(operation));
+      setErrorKey(null);
     } finally {
       setBusy(false);
     }
@@ -230,6 +279,7 @@ export function useSdkSettingsPanel(
     applySnapshot,
     invokeSdkGatewaySettings,
     persistAndApply,
+    presentEphemeralError,
     settings.origins,
     settings.operatorModalTimeouts,
   ]);

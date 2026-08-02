@@ -9,6 +9,11 @@ import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.j
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import { parseShellWindowMaximizedChangedPayload } from "@shared/ipc/ShellWindowMaximizedContract.js";
 import {
+  parseShellWindowAlwaysOnTopChangedPayload,
+  parseShellWindowAlwaysOnTopPayload,
+  parseShellWindowAlwaysOnTopStateResponse,
+} from "@shared/ipc/ShellWindowAlwaysOnTopContract.js";
+import {
   parseShellOperatorAttentionPayload,
   parseShellWindowRaisePayload,
   parseShellWindowRaiseResponse,
@@ -64,6 +69,10 @@ import {
   parseExternalServicesCollectionSaveExportDialogPayload,
   parseExternalServicesCollectionSaveExportDialogResponse,
 } from "@shared/ipc/ExternalServicesCollectionFileContract.js";
+import {
+  parseApplyExternalApplicationCallEndedPayload,
+  parseOpenExternalApplicationWindowPayload,
+} from "@shared/ipc/OpenExternalApplicationWindowContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -124,6 +133,49 @@ const softphoneApi: SoftphonePreloadApi = {
     return candidate.ok
       ? { ok: true }
       : { ok: false, reason: candidate.reason ?? "open_failed" };
+  },
+  openExternalApplicationWindow: async (payload) => {
+    const parsed = parseOpenExternalApplicationWindowPayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalApplicationsOpenWindow,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false, reason: "open_failed" };
+    }
+    const candidate = response as Record<string, unknown>;
+    return candidate["ok"] === true && typeof candidate["focusedExisting"] === "boolean"
+      ? { ok: true, focusedExisting: candidate["focusedExisting"] }
+      : { ok: false, reason: "open_failed" };
+  },
+  applyExternalApplicationCallEnded: async (payload) => {
+    const parsed = parseApplyExternalApplicationCallEndedPayload(payload);
+    if (parsed === null) {
+      return { ok: true, affected: 0 };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalApplicationsApplyCallEnded,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      (response as Record<string, unknown>)["ok"] !== true ||
+      typeof (response as Record<string, unknown>)["affected"] !== "number"
+    ) {
+      return { ok: true, affected: 0 };
+    }
+    return {
+      ok: true,
+      affected: (response as Record<string, unknown>)["affected"] as number,
+    };
   },
   setNativeTheme: async (payload) => {
     const parsed = parseSetNativeThemePayload(payload);
@@ -218,6 +270,56 @@ const softphoneApi: SoftphonePreloadApi = {
     ipcRenderer.on(IPC_CHANNELS.shellWindowMaximizedChanged, listener);
     return () => {
       ipcRenderer.removeListener(IPC_CHANNELS.shellWindowMaximizedChanged, listener);
+    };
+  },
+  setWindowAlwaysOnTop: async (payload) => {
+    const parsed = parseShellWindowAlwaysOnTopPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowSetAlwaysOnTop,
+      parsed,
+    );
+    return (
+      parseShellWindowAlwaysOnTopStateResponse(response) ?? {
+        ok: false as const,
+        reason: "invalid_response",
+      }
+    );
+  },
+  toggleWindowAlwaysOnTop: async () => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowToggleAlwaysOnTop,
+    );
+    return (
+      parseShellWindowAlwaysOnTopStateResponse(response) ?? {
+        ok: false as const,
+        reason: "invalid_response",
+      }
+    );
+  },
+  getWindowAlwaysOnTop: async () => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowGetAlwaysOnTop,
+    );
+    return (
+      parseShellWindowAlwaysOnTopStateResponse(response) ?? {
+        ok: false as const,
+        reason: "invalid_response",
+      }
+    );
+  },
+  onWindowAlwaysOnTopChanged: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseShellWindowAlwaysOnTopChangedPayload(payload);
+      if (parsed !== null) {
+        handler(parsed.alwaysOnTop);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.shellWindowAlwaysOnTopChanged, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.shellWindowAlwaysOnTopChanged, listener);
     };
   },
   applyShellWindowLayout: async (payload) => {

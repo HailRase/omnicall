@@ -60,7 +60,7 @@ x-api-key
 
 ## Body and error handling
 
-- Truncate response body to 16 KiB before journal/UI storage.
+- Truncate request and response bodies to 16 KiB before journal/UI storage.
 - Main transport cap prevents unbounded memory before journal truncation.
 - Normalize decode failures without dumping raw bytes.
 - Error messages shown to users must not include request headers/query values or full OS socket diagnostics that may echo URLs.

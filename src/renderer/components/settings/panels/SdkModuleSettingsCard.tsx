@@ -106,7 +106,8 @@ export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.El
         </TabsContent>
       </Tabs>
 
-      {props.errorKey !== null ? (
+      {props.errorKey === "settings.integrations.sdk.error.originsInvalid" ||
+      props.errorKey === "settings.integrations.sdk.error.gatewayFailed" ? (
         <p className={formStyles.error} data-testid="sdk-module-error" role="alert">
           {t(props.errorKey)}
         </p>

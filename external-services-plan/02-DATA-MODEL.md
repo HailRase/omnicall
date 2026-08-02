@@ -124,7 +124,8 @@ type ExternalServiceAutomaticEventType =
   | "campaign_offered"
   | "campaign_accepted"
   | "campaign_rejected"
-  | "acd_context_appeared";
+  | "acd_context_appeared"
+  | "post_call_processing";
 
 type ExternalServiceEventType =
   | ExternalServiceAutomaticEventType
@@ -191,6 +192,8 @@ type ExternalServiceJournalEntry = Readonly<{
   status: number | null;
   requestUrl: string;
   requestHeaders: ReadonlyArray<ExternalServiceKeyValue>;
+  requestBody: string;
+  requestBodyTruncated: boolean;
   responseBody: string;
   responseBodyTruncated: boolean;
   errorCode: string | null;
@@ -200,7 +203,8 @@ type ExternalServiceJournalEntry = Readonly<{
 ```
 
 - Persist only redacted request headers; protected values are `***`.
-- Response body is UTF-8-normalized and capped at 16 KiB before persistence.
+- Request and response bodies are UTF-8-normalized and capped at 16 KiB before persistence.
+- Empty request body (mode `none` / no payload) persists as `""` and is hidden in History UI.
 - Repository retains at most 100 records per profile.
 - Journal names are snapshots so completed in-flight work remains understandable after rename/delete.
 

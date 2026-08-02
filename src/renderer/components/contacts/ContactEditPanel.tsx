@@ -13,16 +13,14 @@ export type ContactEditPanelProps = Readonly<{
   isSaving: boolean;
   values: ContactFormValues;
   fieldErrors: ContactFormFieldErrors;
-  formErrorMessage: string | null;
-  successMessage: string | null;
   onFieldChange: (field: keyof ContactFormValues, value: string) => void;
   onSubmit: () => void;
 }>;
 
 /**
  * - Purpose: render contact create/edit form inside contacts sidebar body.
- * - Inputs: form values, validation errors, and submit callback.
- * - Outputs: localized form with field-level error wiring.
+ * - Inputs: form values, field validation errors, and submit callback.
+ * - Outputs: localized form; save outcomes use notifications (not panel strips).
  */
 export function ContactEditPanel({
   isLoading,
@@ -30,8 +28,6 @@ export function ContactEditPanel({
   isSaving,
   values,
   fieldErrors,
-  formErrorMessage,
-  successMessage,
   onFieldChange,
   onSubmit,
 }: ContactEditPanelProps): JSX.Element {
@@ -62,17 +58,6 @@ export function ContactEditPanel({
         onSubmit();
       }}
     >
-      {successMessage !== null ? (
-        <p className={styles.stateMessageSuccess} data-testid="contacts-edit-success" role="status">
-          {successMessage}
-        </p>
-      ) : null}
-      {formErrorMessage !== null ? (
-        <p className={styles.stateMessageError} data-testid="contacts-edit-error" role="alert">
-          {formErrorMessage}
-        </p>
-      ) : null}
-
       <div className={styles.formCard}>
         <FormField
           label={t("contacts.field.displayName")}

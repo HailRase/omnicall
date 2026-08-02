@@ -3,11 +3,13 @@ import type { JSX } from "react";
 import {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
+  type IncomingRingtoneId,
 } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
 import { SettingsNumberInput } from "../SettingsNumberInput.js";
 import { Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
+import { SettingsRingtoneSection } from "./SettingsRingtoneSection.js";
 
 export const DEFAULT_AUTO_ANSWER_TIMEOUT_SEC = 5;
 
@@ -20,12 +22,16 @@ export type SettingsSessionsPanelProps = Readonly<{
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   autoAnswerDuringActiveSessionEnabled: boolean;
   onAutoAnswerDuringActiveSessionChange: (enabled: boolean) => void;
+  incomingRingtoneId: IncomingRingtoneId;
+  onIncomingRingtoneIdChange: (ringtoneId: IncomingRingtoneId) => void;
+  onPreviewIncomingRingtone: (ringtoneId: IncomingRingtoneId) => void;
+  onStopIncomingRingtonePreview: () => void;
 }>;
 
 /**
- * - Purpose: present multi-call and auto-answer session settings.
- * - Inputs: session flags, auto-answer delay, and change callbacks.
- * - Outputs: accessible toggles and numeric field without facade access.
+ * - Purpose: present multi-call, ringtone, and auto-answer session settings.
+ * - Inputs: session flags, ringtone id, auto-answer delay, and change callbacks.
+ * - Outputs: accessible toggles and composed ringtone section without facade access.
  */
 export function SettingsSessionsPanel({
   multiSessionsEnabled,
@@ -36,6 +42,10 @@ export function SettingsSessionsPanel({
   onAutoAnswerTimeoutChange,
   autoAnswerDuringActiveSessionEnabled,
   onAutoAnswerDuringActiveSessionChange,
+  incomingRingtoneId,
+  onIncomingRingtoneIdChange,
+  onPreviewIncomingRingtone,
+  onStopIncomingRingtonePreview,
 }: SettingsSessionsPanelProps): JSX.Element {
   const { t } = useI18n();
 
@@ -69,6 +79,13 @@ export function SettingsSessionsPanel({
           </div>
         </div>
       </fieldset>
+
+      <SettingsRingtoneSection
+        incomingRingtoneId={incomingRingtoneId}
+        onIncomingRingtoneIdChange={onIncomingRingtoneIdChange}
+        onPreviewIncomingRingtone={onPreviewIncomingRingtone}
+        onStopIncomingRingtonePreview={onStopIncomingRingtonePreview}
+      />
 
       <fieldset className={formStyles.sectionCard}>
         <legend className={formStyles.sectionTitle}>{t("settings.sessions.autoAnswer.legend")}</legend>

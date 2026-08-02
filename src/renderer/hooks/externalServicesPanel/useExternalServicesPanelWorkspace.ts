@@ -19,6 +19,7 @@ import type { UseExternalServicesRequestActionsResult } from "../useExternalServ
 import type { UseExternalServicesShellResult } from "../useExternalServicesShell.js";
 import { buildExternalServicesRequestEditorProps } from "./buildExternalServicesRequestEditorProps.js";
 import { buildExternalServicesSidebarProps } from "./buildExternalServicesSidebarProps.js";
+import type { NotificationDescriptor } from "../useNotifications.js";
 import type { UseExternalServicesPanelDialogsResult } from "./useExternalServicesPanelDialogs.js";
 import type { UseExternalServicesPanelSelectionResult } from "./useExternalServicesPanelSelection.js";
 
@@ -53,6 +54,7 @@ export function useExternalServicesPanelWorkspace(input: Readonly<{
   >;
   waitingQueueItems: ExternalServicesQueueProps["items"];
   bumpQueueRefresh: () => void;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>): UseExternalServicesPanelWorkspaceResult {
   const {
     facade,
@@ -64,6 +66,7 @@ export function useExternalServicesPanelWorkspace(input: Readonly<{
     dialogsApi,
     waitingQueueItems,
     bumpQueueRefresh,
+    notify,
   } = input;
   const { t } = useI18n();
   const {
@@ -120,6 +123,7 @@ export function useExternalServicesPanelWorkspace(input: Readonly<{
         setDraft,
         setSavedDraft,
         setRequestErrorKey,
+        ...(notify !== undefined ? { notify } : {}),
       }),
     [
       actions,
@@ -127,6 +131,7 @@ export function useExternalServicesPanelWorkspace(input: Readonly<{
       createRequestInCollection,
       dialogsApi,
       findCollectionSummary,
+      notify,
       requestActions,
       requestSelectionChange,
       selection,
@@ -206,6 +211,7 @@ export function useExternalServicesPanelWorkspace(input: Readonly<{
       refreshJournal: () => {
         void journal.refresh();
       },
+      ...(notify !== undefined ? { notify } : {}),
     });
   }, [
     applySelection,
@@ -214,6 +220,7 @@ export function useExternalServicesPanelWorkspace(input: Readonly<{
     facade,
     journal,
     journalProps,
+    notify,
     requestActions,
     requestErrorKey,
     runResult,

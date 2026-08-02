@@ -186,6 +186,9 @@ describe("useOcpCampaignModal", () => {
     expect(notify).toHaveBeenCalledWith({
       level: "error",
       messageKey: "ocp.campaign.modal.error",
+      module: "ocp",
+      functionId: "ocp.campaign.decision",
+      interruptClass: "actionable",
     });
     expect(clearOcpActiveCampaign).not.toHaveBeenCalled();
     expect(result.current.open).toBe(true);

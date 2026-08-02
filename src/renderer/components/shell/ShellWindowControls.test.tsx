@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("ShellWindowControls", () => {
-  it("renders macOS traffic lights with close, minimize, and restart", () => {
+  it("renders macOS traffic lights with pin centered before restart", () => {
     render(
       <ShellWindowControls
         platform="darwin"
@@ -19,6 +19,7 @@ describe("ShellWindowControls", () => {
         onMinimize={vi.fn()}
         onClose={vi.fn()}
         onRestart={vi.fn()}
+        onTogglePin={vi.fn()}
       />,
     );
 
@@ -31,15 +32,17 @@ describe("ShellWindowControls", () => {
     expect(testIds).toEqual([
       "control-window-close",
       "control-window-minimize",
+      "control-window-pin",
       "control-window-restart",
     ]);
     expect(screen.getByLabelText("Закрыть приложение")).toBeInTheDocument();
     expect(screen.getByLabelText("Свернуть окно")).toBeInTheDocument();
+    expect(screen.getByLabelText("Закрепить поверх других окон")).toBeInTheDocument();
     expect(screen.getByLabelText("Перезапустить приложение")).toBeInTheDocument();
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
-  it("renders macOS maximize traffic light in settings mode with restart beside it", () => {
+  it("renders macOS pin between minimize and maximize in settings mode", () => {
     render(
       <ShellWindowControls
         platform="darwin"
@@ -51,6 +54,7 @@ describe("ShellWindowControls", () => {
         onClose={vi.fn()}
         onRestart={vi.fn()}
         onToggleMaximize={vi.fn()}
+        onTogglePin={vi.fn()}
       />,
     );
 
@@ -63,13 +67,14 @@ describe("ShellWindowControls", () => {
     expect(testIds).toEqual([
       "control-window-close",
       "control-window-minimize",
+      "control-window-pin",
       "control-window-maximize",
       "control-window-restart",
     ]);
     expect(screen.getByLabelText("Развернуть на весь экран")).toBeInTheDocument();
   });
 
-  it("renders minimize, maximize, restart, and close on frameless platforms in settings", () => {
+  it("renders minimize, maximize, pin, restart, and close on frameless platforms in settings", () => {
     render(
       <ShellWindowControls
         platform="linux"
@@ -81,6 +86,7 @@ describe("ShellWindowControls", () => {
         onClose={vi.fn()}
         onRestart={vi.fn()}
         onToggleMaximize={vi.fn()}
+        onTogglePin={vi.fn()}
       />,
     );
 
@@ -93,12 +99,13 @@ describe("ShellWindowControls", () => {
     expect(testIds).toEqual([
       "control-window-minimize",
       "control-window-maximize",
+      "control-window-pin",
       "control-window-restart",
       "control-window-close",
     ]);
   });
 
-  it("renders minimize, restart, and close on frameless platforms", () => {
+  it("renders minimize, pin, restart, and close on frameless platforms", () => {
     render(
       <ShellWindowControls
         platform="linux"
@@ -107,6 +114,7 @@ describe("ShellWindowControls", () => {
         onMinimize={vi.fn()}
         onClose={vi.fn()}
         onRestart={vi.fn()}
+        onTogglePin={vi.fn()}
       />,
     );
 
@@ -118,12 +126,33 @@ describe("ShellWindowControls", () => {
 
     expect(testIds).toEqual([
       "control-window-minimize",
+      "control-window-pin",
       "control-window-restart",
       "control-window-close",
     ]);
     expect(screen.getByLabelText("Свернуть окно")).toBeInTheDocument();
+    expect(screen.getByLabelText("Закрепить поверх других окон")).toBeInTheDocument();
     expect(screen.getByLabelText("Перезапустить приложение")).toBeInTheDocument();
     expect(screen.getByLabelText("Закрыть приложение")).toBeInTheDocument();
+  });
+
+  it("shows unpin affordance and pressed state when pinned", () => {
+    render(
+      <ShellWindowControls
+        platform="win32"
+        showNativeWindowControls={true}
+        isShuttingDown={false}
+        isPinned={true}
+        onMinimize={vi.fn()}
+        onClose={vi.fn()}
+        onRestart={vi.fn()}
+        onTogglePin={vi.fn()}
+      />,
+    );
+
+    const pin = screen.getByTestId("control-window-pin");
+    expect(pin).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Открепить — не держать поверх других окон")).toBeInTheDocument();
   });
 
   it("disables controls while shutdown is in progress", () => {
@@ -137,11 +166,13 @@ describe("ShellWindowControls", () => {
         onClose={vi.fn()}
         onRestart={vi.fn()}
         onToggleMaximize={vi.fn()}
+        onTogglePin={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("control-window-minimize")).toBeDisabled();
     expect(screen.getByTestId("control-window-maximize")).toBeDisabled();
+    expect(screen.getByTestId("control-window-pin")).toBeDisabled();
     expect(screen.getByTestId("control-window-restart")).toBeDisabled();
     expect(screen.getByTestId("control-window-close")).toBeDisabled();
   });
@@ -155,11 +186,13 @@ describe("ShellWindowControls", () => {
         onMinimize={vi.fn()}
         onClose={vi.fn()}
         onRestart={vi.fn()}
+        onTogglePin={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("control-window-close")).toBeDisabled();
     expect(screen.getByTestId("control-window-minimize")).toBeDisabled();
+    expect(screen.getByTestId("control-window-pin")).toBeDisabled();
     expect(screen.getByTestId("control-window-restart")).toBeDisabled();
   });
 
@@ -175,11 +208,32 @@ describe("ShellWindowControls", () => {
         onMinimize={vi.fn()}
         onClose={vi.fn()}
         onRestart={onRestart}
+        onTogglePin={vi.fn()}
       />,
     );
 
     await user.click(screen.getByTestId("control-window-restart"));
     expect(onRestart).toHaveBeenCalledTimes(1);
+  });
+
+  it("invokes pin toggle on click", async () => {
+    const user = userEvent.setup();
+    const onTogglePin = vi.fn();
+
+    render(
+      <ShellWindowControls
+        platform="linux"
+        showNativeWindowControls={true}
+        isShuttingDown={false}
+        onMinimize={vi.fn()}
+        onClose={vi.fn()}
+        onRestart={vi.fn()}
+        onTogglePin={onTogglePin}
+      />,
+    );
+
+    await user.click(screen.getByTestId("control-window-pin"));
+    expect(onTogglePin).toHaveBeenCalledTimes(1);
   });
 
   it("invokes maximize toggle and shows restore label when maximized", async () => {
@@ -197,6 +251,7 @@ describe("ShellWindowControls", () => {
         onClose={vi.fn()}
         onRestart={vi.fn()}
         onToggleMaximize={onToggleMaximize}
+        onTogglePin={vi.fn()}
       />,
     );
 
@@ -214,6 +269,7 @@ describe("ShellWindowControls", () => {
         onClose={vi.fn()}
         onRestart={vi.fn()}
         onToggleMaximize={onToggleMaximize}
+        onTogglePin={vi.fn()}
       />,
     );
 

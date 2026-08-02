@@ -67,13 +67,15 @@ Required window behavior:
 
 - predictable startup size
 - minimum usable size
-- optional always-on-top setting
+- always-on-top pin control in shell window controls (centered; Pin / PinOff;
+  persists `UserSettings.windowAlwaysOnTop`; survives ADR-0013 raise pulse and
+  SDK `window:hide` → `window:show`)
 - tray presence
 - minimize to tray
 - restore from tray
 - close behavior with active-call warning
 - incoming / outgoing call window focus policy (raise above other apps via shared
-  main `bringBrowserWindowToFront`; ADR-0013)
+  main `bringBrowserWindowToFront`; ADR-0013; restores prior pin)
 - SDK Origin-trust / pairing / activate-consent operator attention raise (same helper)
 - reconnect overlay visible after restore
 
@@ -379,6 +381,19 @@ Highest visual priority:
 7. diagnostics
 
 Never let cosmetic UI obscure call state.
+
+## Feedback Channels (ADR-0026)
+
+Do not show the same outcome as both a toast and an inline error/success block.
+
+- Ephemeral operation outcomes → Notification Center (`notify` / Capture / toast + journal).
+- Form-persistent auth errors → owning form Alert (Account); journal without toast.
+- Field validation → FormField under the control.
+- Persistent connection/update state → shell banners with actions.
+- Blocking conflicts / multi-stage sign-in → modals / overlays.
+- Confirm dialogs → no embedded outcome strips; toast on fail/success.
+
+Details: `docs/softphone/adr/ADR-0026-feedback-channel-law.md`, `UI-Architecture.md` § Feedback Channel Law.
 
 ## Component Design Protocol
 

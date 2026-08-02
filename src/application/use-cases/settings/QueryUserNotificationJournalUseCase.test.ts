@@ -28,6 +28,7 @@ describe("QueryUserNotificationJournalUseCase", () => {
         titleParams: {},
         titleSnapshot: "Boot complete",
         suppressedAtEmission: false,
+        suppressReasons: [],
         correlationId: null,
       },
       NOW_MS,

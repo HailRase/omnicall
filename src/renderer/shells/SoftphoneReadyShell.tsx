@@ -33,6 +33,7 @@ import { usePreferencesTransferActions } from "../hooks/usePreferencesTransferAc
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
 import { useSdkSettingsPanel } from "../hooks/useSdkSettingsPanel.js";
 import { useExternalServicesPanel } from "../hooks/useExternalServicesPanel.js";
+import { useExternalApplicationsPanel } from "../hooks/useExternalApplicationsPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
 import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -187,7 +188,78 @@ function SoftphoneShellLayoutRoute({
     sipAutoReregisterEnabled: settingsActions.userSettings.sipAutoReregisterEnabled,
   });
   const userAvatarMenu = useUserAvatarMenu();
-  const callBindings = useCallFeatureShell({ facade });
+  const appUpdate = useAppUpdate({
+    backgroundCheckOnMount: true,
+    dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
+    onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
+  });
+  const resolveNotificationTitle = useCallback(
+    (descriptor: NotificationDescriptor): string =>
+      resolveNotificationDescriptorTitle(descriptor, language),
+    [language],
+  );
+  const captureNotification = useCallback(
+    async (
+      descriptor: NotificationDescriptor,
+      id: string,
+      titleSnapshot: string,
+    ): Promise<
+      Readonly<{ shouldPresentPopup: boolean; shouldRaiseWindow?: boolean }>
+    > => {
+      const result = await facade.captureUserNotification({
+        id,
+        level: descriptor.level,
+        module: descriptor.module ?? "system",
+        functionId: descriptor.functionId ?? "renderer.notification",
+        titleKey: descriptor.messageKey ?? null,
+        titleParams: sanitizeNotificationParamsForCapture(
+          descriptor.messageParams,
+        ),
+        titleSnapshot,
+        interruptClass: descriptor.interruptClass ?? "informational",
+        correlationId: descriptor.correlationId ?? null,
+      });
+      if (!result.ok) {
+        // Validation-only failure: CaptureService returns ok when journal IO fails
+        // and still carries policy. Unexpected validation → last-resort fail-open.
+        return { shouldPresentPopup: true, shouldRaiseWindow: false };
+      }
+      return {
+        shouldPresentPopup: result.value.shouldPresentPopup,
+        shouldRaiseWindow: result.value.shouldRaiseWindow,
+      };
+    },
+    [facade],
+  );
+  const raiseNotificationWindow = useCallback(
+    (payload: Readonly<{ reason: "notification_actionable"; dedupeKey: string }>) =>
+      window.softphone.raiseShellWindow(payload),
+    [],
+  );
+  const handleNotificationCaptureFailure = useCallback((error: unknown): void => {
+    console.error("notification_capture_unexpected_failure", error);
+  }, []);
+  const notifications = useNotifications({
+    placement: settingsActions.userSettings.notificationPreferences.appearance.placement,
+    stacking: settingsActions.userSettings.notificationPreferences.appearance.stacking,
+    durationMs: settingsActions.userSettings.notificationPreferences.appearance.durationMs,
+    maxVisible: settingsActions.userSettings.notificationPreferences.appearance.maxVisible,
+    closable: settingsActions.userSettings.notificationPreferences.appearance.closable,
+    capture: captureNotification,
+    resolveTitle: resolveNotificationTitle,
+    raiseWindow: raiseNotificationWindow,
+    onCaptureFailure: handleNotificationCaptureFailure,
+  });
+  const preferencesTransfer = usePreferencesTransferActions({
+    facade,
+    currentVersion: appUpdate.snapshot.currentVersion,
+    onSettingsImported: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
+  });
+  const callBindings = useCallFeatureShell({
+    facade,
+    notify: notifications.notify,
+  });
   const fullscreenSession = resolveFullscreenVideoSession(
     callVideoMediaUiProjection.byCallId,
   );
@@ -204,59 +276,6 @@ function SoftphoneShellLayoutRoute({
   useShellWindowLayout({
     settingsOpen: overlayShell.settingsOpen,
     videoFullscreen: isVideoFullscreen,
-  });
-  const appUpdate = useAppUpdate({
-    backgroundCheckOnMount: true,
-    dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
-    onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
-  });
-  const preferencesTransfer = usePreferencesTransferActions({
-    facade,
-    currentVersion: appUpdate.snapshot.currentVersion,
-    onSettingsImported: settingsActions.applyUserSettingsSnapshot,
-  });
-  const resolveNotificationTitle = useCallback(
-    (descriptor: NotificationDescriptor): string =>
-      resolveNotificationDescriptorTitle(descriptor, language),
-    [language],
-  );
-  const captureNotification = useCallback(
-    async (
-      descriptor: NotificationDescriptor,
-      id: string,
-      titleSnapshot: string,
-    ): Promise<Readonly<{ shouldPresentPopup: boolean }>> => {
-      const result = await facade.captureUserNotification({
-        id,
-        level: descriptor.level,
-        module: descriptor.module ?? "system",
-        functionId: descriptor.functionId ?? "renderer.notification",
-        titleKey: descriptor.messageKey ?? null,
-        titleParams: sanitizeNotificationParamsForCapture(
-          descriptor.messageParams,
-        ),
-        titleSnapshot,
-        popupEnabled: settingsActions.userSettings.notificationPopupEnabled,
-        correlationId: descriptor.correlationId ?? null,
-      });
-      return {
-        shouldPresentPopup: result.ok
-          ? result.value.shouldPresentPopup
-          : settingsActions.userSettings.notificationPopupEnabled,
-      };
-    },
-    [
-      facade,
-      settingsActions.userSettings.notificationPopupEnabled,
-    ],
-  );
-  const notifications = useNotifications({
-    placement: settingsActions.userSettings.notificationPlacement,
-    stacking: settingsActions.userSettings.notificationStacking,
-    durationMs: settingsActions.userSettings.notificationDurationMs,
-    maxVisible: settingsActions.userSettings.notificationMaxVisible,
-    capture: captureNotification,
-    resolveTitle: resolveNotificationTitle,
   });
   useEffect(() => {
     const notify = notifications.notify;
@@ -290,6 +309,9 @@ function SoftphoneShellLayoutRoute({
       id: `ocp-auth-feedback-${ocpAuthFeedback.nonce}`,
       level: "warning",
       messageKey,
+      module: "ocp",
+      functionId: "ocp.auth_feedback",
+      interruptClass: "actionable",
       action: {
         id: "ocp-auth-feedback-open-system-state",
         labelKey: "account.notification.openSystemStateAction",
@@ -312,10 +334,12 @@ function SoftphoneShellLayoutRoute({
     onOpenAccountSettings: () => {
       overlayShell.openSettings("account");
     },
+    notify: notifications.notify,
   });
   const sdkSettingsPanel = useSdkSettingsPanel({
     facade,
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
   });
   const externalServicesPanel = useExternalServicesPanel({
     facade,
@@ -323,6 +347,15 @@ function SoftphoneShellLayoutRoute({
       overlayShell.settingsOpen &&
       overlayShell.settingsSection === "integrations-external-services",
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
+  });
+  const externalApplicationsPanel = useExternalApplicationsPanel({
+    facade,
+    sectionActive:
+      overlayShell.settingsOpen &&
+      overlayShell.settingsSection === "integrations-external-applications",
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
   });
   useShellWindowAttentionFromCalls({
     incomingCallProjection: callBindings.incomingCallProjection,
@@ -436,6 +469,7 @@ function SoftphoneShellLayoutRoute({
   const windowControls = useShellWindowControls({
     isShuttingDown,
     settingsOpen: settingsChromeActive,
+    onPinnedPersist: settingsActions.onWindowAlwaysOnTopChange,
   });
 
   return (
@@ -640,18 +674,48 @@ function SoftphoneShellLayoutRoute({
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}
               notificationHistoryQuery={queryNotificationHistory}
+              notificationPreferences={
+                settingsActions.userSettings.notificationPreferences
+              }
+              onMasterInAppPopupEnabledChange={
+                settingsActions.onMasterInAppPopupEnabledChange
+              }
+              onNotificationModuleEnabledChange={
+                settingsActions.onNotificationModuleEnabledChange
+              }
+              onNotificationModuleMinLevelChange={
+                settingsActions.onNotificationModuleMinLevelChange
+              }
+              onNotificationModuleRaiseWindowChange={
+                settingsActions.onNotificationModuleRaiseWindowChange
+              }
+              onNotificationPreferencesPreset={
+                settingsActions.onNotificationPreferencesPreset
+              }
               language={settingsActions.userSettings.language}
               onLanguageChange={settingsActions.onLanguageChange}
               theme={settingsActions.userSettings.theme}
               onThemeChange={settingsActions.onThemeChange}
-              notificationPlacement={settingsActions.userSettings.notificationPlacement}
+              notificationPlacement={
+                settingsActions.userSettings.notificationPreferences.appearance.placement
+              }
               onNotificationPlacementChange={settingsActions.onNotificationPlacementChange}
-              notificationStacking={settingsActions.userSettings.notificationStacking}
+              notificationStacking={
+                settingsActions.userSettings.notificationPreferences.appearance.stacking
+              }
               onNotificationStackingChange={settingsActions.onNotificationStackingChange}
-              notificationDurationMs={settingsActions.userSettings.notificationDurationMs}
+              notificationDurationMs={
+                settingsActions.userSettings.notificationPreferences.appearance.durationMs
+              }
               onNotificationDurationMsChange={settingsActions.onNotificationDurationMsChange}
-              notificationMaxVisible={settingsActions.userSettings.notificationMaxVisible}
+              notificationMaxVisible={
+                settingsActions.userSettings.notificationPreferences.appearance.maxVisible
+              }
               onNotificationMaxVisibleChange={settingsActions.onNotificationMaxVisibleChange}
+              notificationClosable={
+                settingsActions.userSettings.notificationPreferences.appearance.closable
+              }
+              onNotificationClosableChange={settingsActions.onNotificationClosableChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
               autoAnswerEnabled={settingsActions.userSettings.autoAnswerTimeoutSec !== null}
@@ -667,6 +731,10 @@ function SoftphoneShellLayoutRoute({
               onAutoAnswerDuringActiveSessionChange={
                 settingsActions.onAutoAnswerDuringActiveSessionToggle
               }
+              incomingRingtoneId={settingsActions.userSettings.incomingRingtoneId}
+              onIncomingRingtoneIdChange={settingsActions.onIncomingRingtoneIdChange}
+              onPreviewIncomingRingtone={settingsActions.onPreviewIncomingRingtone}
+              onStopIncomingRingtonePreview={settingsActions.onStopIncomingRingtonePreview}
               currentVersion={appUpdate.snapshot.currentVersion}
               latestVersion={appUpdate.snapshot.latestVersion}
               updateStatusMessage={appUpdate.statusMessage}
@@ -676,7 +744,6 @@ function SoftphoneShellLayoutRoute({
               onCheckForUpdates={appUpdate.onCheckForUpdates}
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
               preferencesTransferBusy={preferencesTransfer.isTransferBusy}
-              preferencesTransferStatusMessage={preferencesTransfer.transferStatusMessage}
               onExportPreferences={() => {
                 void preferencesTransfer.exportPreferences();
               }}
@@ -791,6 +858,7 @@ function SoftphoneShellLayoutRoute({
                   dialogs: externalServicesPanel.dialogs,
                   variablesDialog: externalServicesPanel.variablesDialog,
                 },
+                externalApplications: externalApplicationsPanel,
               }}
               account={{
                 form: accountActions.form,
@@ -800,6 +868,8 @@ function SoftphoneShellLayoutRoute({
                 error: accountActions.error,
                 successKey: accountActions.successKey,
                 warningKey: accountActions.warningKey,
+                openSystemStateAction: accountActions.openSystemStateAction,
+                onOpenSystemState: openSystemState,
                 panelMode: accountActions.panelMode,
                 disabled: blockingAuthState,
                 authorizeDisabledReason: accountAuthorizeDisabledReason,

@@ -115,6 +115,24 @@ describe("AccountPanel", () => {
     expect(screen.getByTestId("account-error")).toHaveTextContent(
       "Неверный логин или пароль",
     );
+    expect(screen.queryByTestId("account-error-open-system-state")).not.toBeInTheDocument();
+  });
+
+  it("renders System State action on persistent account error when requested", async () => {
+    const user = userEvent.setup();
+    const onOpenSystemState = vi.fn();
+    render(
+      <AccountPanel
+        {...baseProps}
+        error={{ key: "account.error.authorizationFailed" }}
+        openSystemStateAction
+        onOpenSystemState={onOpenSystemState}
+        authorizeDisabledReason={null}
+      />,
+    );
+
+    await user.click(screen.getByTestId("account-error-open-system-state"));
+    expect(onOpenSystemState).toHaveBeenCalledTimes(1);
   });
 
   it("renders parameterized serverRegistration error without crashing", () => {

@@ -15,15 +15,6 @@ import {
   DEFAULT_SUPPORTED_LANGUAGE,
   type SupportedLanguage,
 } from "./SupportedLanguage.js";
-import {
-  DEFAULT_NOTIFICATION_CLOSABLE,
-  DEFAULT_NOTIFICATION_DURATION_MS,
-  DEFAULT_NOTIFICATION_MAX_VISIBLE,
-  DEFAULT_NOTIFICATION_PLACEMENT,
-  DEFAULT_NOTIFICATION_STACKING,
-  type NotificationPlacement,
-  type NotificationStacking,
-} from "./NotificationSettings.js";
 import type { SessionViewMode } from "../media/SessionViewMode.js";
 import {
   DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
@@ -45,8 +36,24 @@ import {
   EXTERNAL_SERVICES_DEFAULTS,
   type ExternalServicesSettings,
 } from "../integration/external-services/ExternalServicesSettings.js";
+import {
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  type ExternalApplicationsSettings,
+} from "../integration/external-applications/ExternalApplicationsSettings.js";
+import {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  type IncomingRingtoneId,
+} from "../media/IncomingRingtoneId.js";
+import {
+  createDefaultUserNotificationPreferences,
+  type UserNotificationPreferences,
+} from "./UserNotificationPreferences.js";
 
-export const SETTINGS_SCHEMA_VERSION = 13 as const;
+/**
+ * v19 = v18 (EA / ringtone / always-on-top) + nested Notification Center preferences.
+ * Never downgrade below the highest shipped parallel-branch schema (18).
+ */
+export const SETTINGS_SCHEMA_VERSION = 19 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -57,17 +64,15 @@ export type UserSettings = Readonly<{
   schemaVersion: SettingsSchemaVersion;
   language: SupportedLanguage;
   theme: AppTheme;
-  notificationPlacement: NotificationPlacement;
-  notificationStacking: NotificationStacking;
-  notificationDurationMs: number;
-  notificationClosable: boolean;
-  notificationMaxVisible: number;
-  notificationPopupEnabled: boolean;
+  /** Nested Notification Center preferences (Strategy A; schema v19). */
+  notificationPreferences: UserNotificationPreferences;
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
   autoAnswerDuringActiveSessionEnabled: boolean;
   ringbackToneEnabled: boolean;
+  /** Selected incoming ringtone preset; classic preserves pre-v18 WebAudio dual-tone. */
+  incomingRingtoneId: IncomingRingtoneId;
   sipAutoReconnectEnabled: boolean;
   sipReconnectIntervalSec: number;
   sipReconnectMaxAttempts: number;
@@ -80,6 +85,8 @@ export type UserSettings = Readonly<{
   codecPreferences: CodecPreferences;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  /** Softphone BrowserWindow always-on-top pin (titlebar control; F-016). */
+  windowAlwaysOnTop: boolean;
   /** Last successfully connected headset id (`vendorId:productId:productName`). */
   headsetPreferredDeviceId: string | null;
   /** Preferred mic deviceId; null = browser/system default. */
@@ -100,6 +107,8 @@ export type UserSettings = Readonly<{
   sdkIntegration: SdkIntegrationSettings;
   /** Profile-scoped outbound HTTP automation definitions. */
   externalServices: ExternalServicesSettings;
+  /** Profile-scoped call screen-pop / external application window definitions. */
+  externalApplications: ExternalApplicationsSettings;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -114,17 +123,13 @@ export function createDefaultUserSettings(): UserSettings {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
     language: DEFAULT_SUPPORTED_LANGUAGE,
     theme: DEFAULT_APP_THEME,
-    notificationPlacement: DEFAULT_NOTIFICATION_PLACEMENT,
-    notificationStacking: DEFAULT_NOTIFICATION_STACKING,
-    notificationDurationMs: DEFAULT_NOTIFICATION_DURATION_MS,
-    notificationClosable: DEFAULT_NOTIFICATION_CLOSABLE,
-    notificationMaxVisible: DEFAULT_NOTIFICATION_MAX_VISIBLE,
-    notificationPopupEnabled: true,
+    notificationPreferences: createDefaultUserNotificationPreferences(),
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,
     autoAnswerDuringActiveSessionEnabled: false,
     ringbackToneEnabled: true,
+    incomingRingtoneId: DEFAULT_INCOMING_RINGTONE_ID,
     sipAutoReconnectEnabled: true,
     sipReconnectIntervalSec: DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
     sipReconnectMaxAttempts: DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
@@ -136,6 +141,7 @@ export function createDefaultUserSettings(): UserSettings {
     codecPreferences: createDefaultCodecPreferences(),
     headsetEnabled: false,
     headsetAutoReconnect: true,
+    windowAlwaysOnTop: false,
     headsetPreferredDeviceId: null,
     preferredAudioInputDeviceId: DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
     preferredVideoInputDeviceId: DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
@@ -146,5 +152,6 @@ export function createDefaultUserSettings(): UserSettings {
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
     externalServices: EXTERNAL_SERVICES_DEFAULTS,
+    externalApplications: EXTERNAL_APPLICATIONS_DEFAULTS,
   };
 }

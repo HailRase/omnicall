@@ -11,15 +11,23 @@ import { WebAudioTonePlayer } from "./WebAudioTonePlayer.js";
 function createMockAudioContext(): AudioContext {
   return {
     state: "running",
+    currentTime: 0,
     resume: vi.fn().mockResolvedValue(undefined),
     close: vi.fn().mockResolvedValue(undefined),
     destination: {},
     createGain: () => ({
-      gain: { value: 0 },
+      gain: {
+        value: 0,
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+        cancelScheduledValues: vi.fn(),
+      },
       connect: vi.fn(),
       disconnect: vi.fn(),
     }),
     createOscillator: () => ({
+      type: "sine",
       frequency: { value: 0 },
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -73,6 +81,35 @@ describe("BrowserMediaAdapter", () => {
     const stopResult = await adapter.stopRingtone({ callId, correlationId });
     expect(stopResult.ok).toBe(true);
     expect(adapter.isTonePlaying(callId)).toBe(false);
+
+    adapter.dispose();
+  });
+
+  it("configures and previews selectable incoming ringtone presets", async () => {
+    const tonePlayer = new WebAudioTonePlayer({
+      createAudioContext: createMockAudioContext,
+    });
+    const adapter = createAdapter(() => null, tonePlayer);
+    const correlationId = createCorrelationId();
+
+    const configureResult = await adapter.configureIncomingRingtone({
+      ringtoneId: "soft-chime",
+      correlationId,
+    });
+    expect(configureResult.ok).toBe(true);
+    expect(tonePlayer.getActiveRingtoneId()).toBe("soft-chime");
+
+    const previewResult = await adapter.previewIncomingRingtone({
+      ringtoneId: "digital-pulse",
+      correlationId,
+    });
+    expect(previewResult.ok).toBe(true);
+    expect(adapter.isTonePlaying(createCallId("__incoming_ringtone_preview__"))).toBe(true);
+
+    const stopPreviewResult = await adapter.stopIncomingRingtonePreview({ correlationId });
+    expect(stopPreviewResult.ok).toBe(true);
+    expect(adapter.isTonePlaying(createCallId("__incoming_ringtone_preview__"))).toBe(false);
+    expect(tonePlayer.getActiveRingtoneId()).toBe("soft-chime");
 
     adapter.dispose();
   });

@@ -32,6 +32,7 @@ export type ShellWindowControllerState = Readonly<{
 }>;
 
 export type ShellWindowMaximizedChangeHandler = (maximized: boolean) => void;
+export type ShellWindowAlwaysOnTopChangeHandler = (alwaysOnTop: boolean) => void;
 
 export class ShellWindowController {
   private compactDimensions: ShellWindowCompactDimensions = {
@@ -45,6 +46,7 @@ export class ShellWindowController {
   private animationGeneration = 0;
   private cancelActiveAnimation: (() => void) | null = null;
   private maximizedChangeHandler: ShellWindowMaximizedChangeHandler | null = null;
+  private alwaysOnTopChangeHandler: ShellWindowAlwaysOnTopChangeHandler | null = null;
 
   constructor(
     private readonly window: BrowserWindow,
@@ -57,6 +59,10 @@ export class ShellWindowController {
 
   onMaximizedChange(handler: ShellWindowMaximizedChangeHandler): void {
     this.maximizedChangeHandler = handler;
+  }
+
+  onAlwaysOnTopChange(handler: ShellWindowAlwaysOnTopChangeHandler): void {
+    this.alwaysOnTopChangeHandler = handler;
   }
 
   getState(): ShellWindowControllerState {
@@ -187,6 +193,30 @@ export class ShellWindowController {
     this.window.setBounds(computeWorkAreaBounds(this.getWorkArea()));
     this.setSettingsWorkAreaFill(true);
     return { ok: true };
+  }
+
+  /** User-owned always-on-top pin. Survives ADR-0013 raise pulse restore. */
+  isAlwaysOnTop(): boolean {
+    return this.window.isAlwaysOnTop();
+  }
+
+  setAlwaysOnTop(
+    alwaysOnTop: boolean,
+  ): Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false; reason: string }> {
+    if (this.window.isDestroyed()) {
+      return { ok: false, reason: "window_unavailable" };
+    }
+    const next = alwaysOnTop === true;
+    this.window.setAlwaysOnTop(next);
+    const applied = this.window.isAlwaysOnTop();
+    this.alwaysOnTopChangeHandler?.(applied);
+    return { ok: true, alwaysOnTop: applied };
+  }
+
+  toggleAlwaysOnTop(): Readonly<
+    { ok: true; alwaysOnTop: boolean } | { ok: false; reason: string }
+  > {
+    return this.setAlwaysOnTop(!this.isAlwaysOnTop());
   }
 
   private setSettingsWorkAreaFill(next: boolean): void {

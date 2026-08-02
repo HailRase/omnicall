@@ -52,6 +52,8 @@ function createEntry(
         enabled: true,
       },
     ],
+    requestBody: "{\"event\":\"manual_run\"}",
+    requestBodyTruncated: false,
     responseBody: "{\"ok\":true}",
     responseBodyTruncated: false,
     errorCode: null,

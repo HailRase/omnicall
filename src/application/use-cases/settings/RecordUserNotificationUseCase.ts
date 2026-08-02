@@ -2,6 +2,7 @@ import {
   createUserNotificationJournalEntryId,
   sanitizeUserNotificationText,
   sanitizeUserNotificationTitleParams,
+  type NotificationSuppressReason,
   type SettingsAccountKey,
   type UserNotificationJournalEntry,
   type UserNotificationLevel,
@@ -28,9 +29,20 @@ export type RecordUserNotificationInput = Readonly<{
   titleParams?: Readonly<Record<string, UserNotificationTitleParam>>;
   titleSnapshot: string;
   suppressedAtEmission: boolean;
+  suppressReasons?: ReadonlyArray<NotificationSuppressReason>;
   correlationId?: string | null;
 }>;
 
+export type RecordUserNotificationResult = Readonly<{
+  entry: UserNotificationJournalEntry;
+  persisted: boolean;
+}>;
+
+/**
+ * - Purpose: sanitize and append a user notification journal entry.
+ * - Inputs: capture payload including suppress metadata.
+ * - Outputs: entry always when valid; `persisted` false if disk/append fails.
+ */
 export class RecordUserNotificationUseCase {
   constructor(
     private readonly repository: UserNotificationJournalRepository,
@@ -39,7 +51,7 @@ export class RecordUserNotificationUseCase {
 
   async execute(
     input: RecordUserNotificationInput,
-  ): Promise<Result<UserNotificationJournalEntry, PlatformError>> {
+  ): Promise<Result<RecordUserNotificationResult, PlatformError>> {
     const emittedAt = input.emittedAt ?? new Date().toISOString();
     const id = createUserNotificationJournalEntryId(
       input.id ?? createNotificationId(emittedAt),
@@ -63,11 +75,12 @@ export class RecordUserNotificationUseCase {
       titleParams: sanitizeUserNotificationTitleParams(input.titleParams ?? {}),
       titleSnapshot: sanitizeUserNotificationText(input.titleSnapshot),
       suppressedAtEmission: input.suppressedAtEmission,
+      suppressReasons: input.suppressReasons ?? [],
       correlationId: input.correlationId ?? null,
     };
     try {
       await this.repository.appendEntry(entry, Date.now());
-      return ok(entry);
+      return ok({ entry, persisted: true });
     } catch (error: unknown) {
       const normalized = normalizeUnknownError(error);
       this.logger.error(
@@ -80,13 +93,7 @@ export class RecordUserNotificationUseCase {
         },
         normalized,
       );
-      return err(
-        createPlatformError(
-          "operation_failed",
-          "notification_journal_write_failed",
-          normalized,
-        ),
-      );
+      return ok({ entry, persisted: false });
     }
   }
 }

@@ -1,10 +1,12 @@
-import type { JSX, ReactNode, RefObject } from "react";
+import { useState, type JSX, type ReactNode, type RefObject } from "react";
 import type {
   AppTheme,
   AudioCodecId,
   CodecPreferenceMutationMessageKey,
   CodecPreferences,
+  IncomingRingtoneId,
   NotificationPlacement,
+  NotificationRaiseWindowMode,
   NotificationStacking,
   SessionViewMode,
   SettingsNavigationAvailability,
@@ -12,6 +14,9 @@ import type {
   OcpSystemStateShellView,
   SipSystemStateShellView,
   SupportedLanguage,
+  UserNotificationLevel,
+  UserNotificationModule,
+  UserNotificationPreferences,
   VideoCodecId,
 } from "@application/index.js";
 import type { SavedAccountProfileId } from "@application/index.js";
@@ -37,14 +42,17 @@ import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
 import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
 import { SettingsVideoPanel } from "./panels/SettingsVideoPanel.js";
 import { SettingsIntegrationsPanel } from "./panels/SettingsIntegrationsPanel.js";
-import {
-  SettingsNotificationHistoryPanel,
-  type NotificationHistoryQuery,
-} from "./panels/SettingsNotificationHistoryPanel.js";
+import type { NotificationHistoryQuery } from "./panels/SettingsNotificationHistoryPanel.js";
+import { SettingsNotificationCenterPanel } from "./panels/SettingsNotificationCenterPanel.js";
+import type {
+  NotificationCenterTabId,
+  NotificationPreferencesPresetId,
+} from "./panels/notificationPreferencesUi.js";
 import styles from "./SettingsPanel.module.css";
 import type { OcpModuleSettingsCardProps } from "./panels/OcpModuleSettingsCard.js";
 import type { SdkModuleSettingsCardProps } from "./panels/SdkModuleSettingsCard.js";
 import type { ExternalServicesPanelProps } from "./external-services/ExternalServicesPanel.js";
+import type { ExternalApplicationsPanelProps } from "./external-applications/ExternalApplicationsPanel.js";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
@@ -54,6 +62,23 @@ export type SettingsPanelProps = Readonly<{
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onSidebarExpandedChange: (expanded: boolean) => void;
   notificationHistoryQuery?: NotificationHistoryQuery;
+  notificationPreferences: UserNotificationPreferences;
+  onMasterInAppPopupEnabledChange: (enabled: boolean) => void;
+  onNotificationModuleEnabledChange: (
+    module: UserNotificationModule,
+    enabled: boolean,
+  ) => void;
+  onNotificationModuleMinLevelChange: (
+    module: UserNotificationModule,
+    minLevel: UserNotificationLevel,
+  ) => void;
+  onNotificationModuleRaiseWindowChange: (
+    module: UserNotificationModule,
+    raiseWindow: NotificationRaiseWindowMode,
+  ) => void;
+  onNotificationPreferencesPreset: (
+    preset: NotificationPreferencesPresetId,
+  ) => void;
   language: SupportedLanguage;
   onLanguageChange: (language: SupportedLanguage) => void;
   theme: AppTheme;
@@ -66,6 +91,8 @@ export type SettingsPanelProps = Readonly<{
   onNotificationDurationMsChange: (durationMs: number) => void;
   notificationMaxVisible: number;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
+  notificationClosable: boolean;
+  onNotificationClosableChange: (closable: boolean) => void;
   multiSessionsEnabled: boolean;
   onMultiSessionsChange: (enabled: boolean) => void;
   autoAnswerEnabled: boolean;
@@ -74,6 +101,10 @@ export type SettingsPanelProps = Readonly<{
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   autoAnswerDuringActiveSessionEnabled: boolean;
   onAutoAnswerDuringActiveSessionChange: (enabled: boolean) => void;
+  incomingRingtoneId: IncomingRingtoneId;
+  onIncomingRingtoneIdChange: (ringtoneId: IncomingRingtoneId) => void;
+  onPreviewIncomingRingtone: (ringtoneId: IncomingRingtoneId) => void;
+  onStopIncomingRingtonePreview: () => void;
   currentVersion: string;
   latestVersion: string | undefined;
   updateStatusMessage: string;
@@ -83,7 +114,6 @@ export type SettingsPanelProps = Readonly<{
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
   preferencesTransferBusy?: boolean;
-  preferencesTransferStatusMessage?: string | null;
   onExportPreferences?: () => void;
   onImportPreferences?: () => void;
   systemState: Readonly<{
@@ -148,6 +178,7 @@ export type SettingsPanelProps = Readonly<{
     ocp: OcpModuleSettingsCardProps;
     sdk: SdkModuleSettingsCardProps;
     externalServices: ExternalServicesPanelProps;
+    externalApplications: ExternalApplicationsPanelProps;
   }>;
   account: Readonly<{
     form: SipAccountInput;
@@ -157,6 +188,8 @@ export type SettingsPanelProps = Readonly<{
     error: AccountAuthorizationErrorProjection | null;
     successKey: TranslationKey | null;
     warningKey: TranslationKey | null;
+    openSystemStateAction?: boolean;
+    onOpenSystemState?: () => void;
     panelMode: SavedProfilePanelMode;
     disabled: boolean;
     authorizeDisabledReason: string | null;
@@ -214,6 +247,12 @@ export function SettingsPanel({
   onSectionChange,
   onSidebarExpandedChange,
   notificationHistoryQuery,
+  notificationPreferences,
+  onMasterInAppPopupEnabledChange,
+  onNotificationModuleEnabledChange,
+  onNotificationModuleMinLevelChange,
+  onNotificationModuleRaiseWindowChange,
+  onNotificationPreferencesPreset,
   language,
   onLanguageChange,
   theme,
@@ -226,6 +265,8 @@ export function SettingsPanel({
   onNotificationDurationMsChange,
   notificationMaxVisible,
   onNotificationMaxVisibleChange,
+  notificationClosable,
+  onNotificationClosableChange,
   multiSessionsEnabled,
   onMultiSessionsChange,
   autoAnswerEnabled,
@@ -234,6 +275,10 @@ export function SettingsPanel({
   onAutoAnswerTimeoutChange,
   autoAnswerDuringActiveSessionEnabled,
   onAutoAnswerDuringActiveSessionChange,
+  incomingRingtoneId,
+  onIncomingRingtoneIdChange,
+  onPreviewIncomingRingtone,
+  onStopIncomingRingtonePreview,
   currentVersion,
   latestVersion,
   updateStatusMessage,
@@ -243,7 +288,6 @@ export function SettingsPanel({
   onCheckForUpdates,
   onOpenDownloadPage,
   preferencesTransferBusy,
-  preferencesTransferStatusMessage,
   onExportPreferences,
   onImportPreferences,
   systemState,
@@ -285,6 +329,9 @@ export function SettingsPanel({
   account,
 }: SettingsPanelProps): JSX.Element {
   const { t } = useI18n();
+  const [notificationCenterTab, setNotificationCenterTab] =
+    useState<NotificationCenterTabId>("preferences");
+
   const handleToggleSidebar = (): void => {
     onSidebarExpandedChange(!sidebarExpanded);
   };
@@ -301,6 +348,10 @@ export function SettingsPanel({
           error={account.error}
           successKey={account.successKey}
           warningKey={account.warningKey}
+          openSystemStateAction={account.openSystemStateAction === true}
+          {...(account.onOpenSystemState !== undefined
+            ? { onOpenSystemState: account.onOpenSystemState }
+            : {})}
           panelMode={account.panelMode}
           disabled={account.disabled}
           authorizeDisabledReason={account.authorizeDisabledReason}
@@ -365,14 +416,6 @@ export function SettingsPanel({
           language={language}
           onLanguageChange={onLanguageChange}
           onThemeChange={onThemeChange}
-          notificationPlacement={notificationPlacement}
-          onNotificationPlacementChange={onNotificationPlacementChange}
-          notificationStacking={notificationStacking}
-          onNotificationStackingChange={onNotificationStackingChange}
-          notificationDurationMs={notificationDurationMs}
-          onNotificationDurationMsChange={onNotificationDurationMsChange}
-          notificationMaxVisible={notificationMaxVisible}
-          onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
           currentVersion={currentVersion}
           latestVersion={latestVersion}
           updateStatusMessage={updateStatusMessage}
@@ -382,7 +425,6 @@ export function SettingsPanel({
           onCheckForUpdates={onCheckForUpdates}
           onOpenDownloadPage={onOpenDownloadPage}
           preferencesTransferBusy={preferencesTransferBusy}
-          preferencesTransferStatusMessage={preferencesTransferStatusMessage}
           onExportPreferences={onExportPreferences}
           onImportPreferences={onImportPreferences}
         />
@@ -399,6 +441,10 @@ export function SettingsPanel({
           onAutoAnswerTimeoutChange={onAutoAnswerTimeoutChange}
           autoAnswerDuringActiveSessionEnabled={autoAnswerDuringActiveSessionEnabled}
           onAutoAnswerDuringActiveSessionChange={onAutoAnswerDuringActiveSessionChange}
+          incomingRingtoneId={incomingRingtoneId}
+          onIncomingRingtoneIdChange={onIncomingRingtoneIdChange}
+          onPreviewIncomingRingtone={onPreviewIncomingRingtone}
+          onStopIncomingRingtonePreview={onStopIncomingRingtonePreview}
         />
       );
       break;
@@ -434,12 +480,31 @@ export function SettingsPanel({
       sectionContent = <SettingsDiagnosticsPanel />;
       break;
     case "notifications":
-      sectionContent =
-        notificationHistoryQuery === undefined ? (
-          <p>{t("settings.notifications.unavailable")}</p>
-        ) : (
-          <SettingsNotificationHistoryPanel query={notificationHistoryQuery} />
-        );
+      sectionContent = (
+        <SettingsNotificationCenterPanel
+          preferences={notificationPreferences}
+          onMasterInAppPopupEnabledChange={onMasterInAppPopupEnabledChange}
+          onModuleEnabledChange={onNotificationModuleEnabledChange}
+          onModuleMinLevelChange={onNotificationModuleMinLevelChange}
+          onModuleRaiseWindowChange={onNotificationModuleRaiseWindowChange}
+          onApplyPreset={onNotificationPreferencesPreset}
+          notificationPlacement={notificationPlacement}
+          onNotificationPlacementChange={onNotificationPlacementChange}
+          notificationStacking={notificationStacking}
+          onNotificationStackingChange={onNotificationStackingChange}
+          notificationDurationMs={notificationDurationMs}
+          onNotificationDurationMsChange={onNotificationDurationMsChange}
+          notificationMaxVisible={notificationMaxVisible}
+          onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
+          notificationClosable={notificationClosable}
+          onNotificationClosableChange={onNotificationClosableChange}
+          activeTab={notificationCenterTab}
+          onActiveTabChange={setNotificationCenterTab}
+          {...(notificationHistoryQuery !== undefined
+            ? { notificationHistoryQuery }
+            : {})}
+        />
+      );
       break;
     case "codecs":
       sectionContent = (
@@ -495,6 +560,7 @@ export function SettingsPanel({
       break;
     case "integrations":
     case "integrations-external-services":
+    case "integrations-external-applications":
     case "integrations-sdk":
       sectionContent = (
         <SettingsIntegrationsPanel
@@ -502,6 +568,7 @@ export function SettingsPanel({
           ocp={integrations.ocp}
           sdk={integrations.sdk}
           externalServices={integrations.externalServices}
+          externalApplications={integrations.externalApplications}
         />
       );
       break;

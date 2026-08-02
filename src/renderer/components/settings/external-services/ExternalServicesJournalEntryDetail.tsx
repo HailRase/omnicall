@@ -47,6 +47,24 @@ export function ExternalServicesJournalEntryDetail({
           )}
         </dd>
       </div>
+      {entry.requestBody.length > 0 ? (
+        <div>
+          <dt>{t("settings.integrations.externalServices.journal.requestBody")}</dt>
+          <dd>
+            <pre
+              className={styles.resultBody}
+              data-testid={`external-services-journal-request-body-${entry.id}`}
+            >
+              {entry.requestBody}
+            </pre>
+            {entry.requestBodyTruncated ? (
+              <p className={styles.credentialsNote}>
+                {t("settings.integrations.externalServices.journal.requestBodyTruncated")}
+              </p>
+            ) : null}
+          </dd>
+        </div>
+      ) : null}
       {entry.errorMessage !== null || entry.errorCode !== null ? (
         <div>
           <dt>{t("settings.integrations.externalServices.journal.error")}</dt>

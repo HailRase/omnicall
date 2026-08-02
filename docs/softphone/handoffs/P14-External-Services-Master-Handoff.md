@@ -93,12 +93,15 @@ UI → Facade / Use Cases → ExternalServicesAutomationService
 
 Stable automatic codes: `incoming_ringing`, `outgoing_connecting`, `call_answered`,
 `call_ended`, `call_rejected`, `call_missed`, `campaign_offered`, `campaign_accepted`,
-`campaign_rejected`, `acd_context_appeared`. Manual: `manual_run`.
+`campaign_rejected`, `acd_context_appeared`, `post_call_processing`. Manual: `manual_run`.
 
 - Focus gate: every call-related trigger requires focused call at evaluation time.
+- Operator-level (no focus gate): `campaign_*`, `post_call_processing` (OCP `OperatorStatusChanged` → `POST_CALL_PROCESSING` only).
 - Optional per-trigger delay 0–180s (event-time snapshot).
-- Base variables: `call_id`, `caller_id`, `called_id`, `timestamp`, `call_direction`,
+- Base variables on call lifecycle: `call_id`, `caller_id`, `called_id`, `timestamp`, `call_direction`,
   `event_type`, `user_login`, `hangup_reason` (+ additive campaign/ACD when present).
+- `post_call_processing` fills **always** group only (`timestamp` / `event_type` / `user_login`); call tokens → `undefined` unless a future last-call enrichment lands.
+- Event→group SSoT: `resolveExternalServiceEventVariableGroups` (Triggers `?` help + Variables when-hints must stay aligned).
 - Missing `{{name}}` → literal `undefined`.
 
 ## Settings schema and F-030

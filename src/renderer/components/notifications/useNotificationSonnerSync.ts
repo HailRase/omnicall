@@ -147,7 +147,7 @@ export function useNotificationSonnerSync({
         id: item.id,
         toasterId: NOTIFICATION_TOASTER_ID,
         duration,
-        closeButton: true,
+        closeButton: item.closable,
         icon,
         ...(item.action !== null && actionLabel !== null
           ? {

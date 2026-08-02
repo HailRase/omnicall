@@ -4,6 +4,8 @@
  * - Outputs: ExternalServicesRequestEditorProps bag.
  */
 
+import { buildExternalServicesManualRunFacts } from "@application/integration/buildExternalServicesManualRunFacts.js";
+import { readExternalServicesProductStateFromStore } from "@application/integration/readExternalServicesProductStateFromStore.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type {
   ExternalServicesSettings,
@@ -11,7 +13,10 @@ import type {
 } from "@application/index.js";
 import type { ExternalServicesQueueProps } from "../../components/settings/external-services/ExternalServicesQueue.js";
 import type { ExternalServicesRequestEditorProps } from "../../components/settings/external-services/ExternalServicesRequestEditor.js";
+import { useAccountBootstrapStore } from "../../stores/useAccountBootstrapStore.js";
 import type { UseExternalServicesRequestActionsResult } from "../useExternalServicesRequestActions.js";
+import type { NotificationDescriptor } from "../useNotifications.js";
+import { presentExternalServicesOutcomeError } from "./presentExternalServicesOutcomeError.js";
 import type { UseExternalServicesPanelSelectionResult } from "./useExternalServicesPanelSelection.js";
 
 export function buildExternalServicesRequestEditorProps(input: Readonly<{
@@ -34,6 +39,7 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
   setRequestErrorKey: UseExternalServicesPanelSelectionResult["setRequestErrorKey"];
   applySelection: UseExternalServicesPanelSelectionResult["applySelection"];
   refreshJournal: () => void;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>): ExternalServicesRequestEditorProps {
   const {
     facade,
@@ -55,7 +61,20 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
     setRequestErrorKey,
     applySelection,
     refreshJournal,
+    notify,
   } = input;
+
+  const presentError = (
+    messageKey: Parameters<typeof presentExternalServicesOutcomeError>[0]["messageKey"],
+    functionId: string,
+  ): void => {
+    presentExternalServicesOutcomeError({
+      messageKey,
+      ...(notify !== undefined ? { notify } : {}),
+      setInlineErrorKey: setRequestErrorKey,
+      functionId,
+    });
+  };
   return {
     collectionName: selectedCollection.name,
     collectionVariableKeys: selectedCollection.variables.map((item) => item.key),
@@ -77,7 +96,7 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
       setDraft((previous) => (previous === null ? previous : { ...previous, name }));
       void requestActions.rename(selectedCollection.id, draft.id, name).then((result) => {
         if (result.kind === "error") {
-          setRequestErrorKey(result.messageKey);
+          presentError(result.messageKey, "external_services.request.rename");
           return;
         }
         setSavedDraft((previous) =>
@@ -89,7 +108,7 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
     onDelete: () => {
       void requestActions.delete(selectedCollection.id, draft.id).then((result) => {
         if (result.kind === "error") {
-          setRequestErrorKey(result.messageKey);
+          presentError(result.messageKey, "external_services.request.delete");
           return;
         }
         applySelection({ kind: "collection", collectionId: selectedCollection.id });
@@ -98,7 +117,7 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
     onSave: () => {
       void requestActions.replace(selectedCollection.id, draft).then((result) => {
         if (result.kind === "error") {
-          setRequestErrorKey(result.messageKey);
+          presentError(result.messageKey, "external_services.request.save");
           return;
         }
         setSavedDraft(draft);
@@ -112,7 +131,7 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
       setRunState("queued");
       void requestActions.replace(selectedCollection.id, draft).then(async (saveResult) => {
         if (saveResult.kind === "error") {
-          setRequestErrorKey(saveResult.messageKey);
+          presentError(saveResult.messageKey, "external_services.request.save");
           setRunState("idle");
           return;
         }
@@ -120,16 +139,25 @@ export function buildExternalServicesRequestEditorProps(input: Readonly<{
         setRunState("running");
         const persistedRequest = selectedCollection.requests.find((item) => item.id === draft.id);
         if (persistedRequest === undefined) {
-          setRequestErrorKey("settings.integrations.externalServices.saveError");
+          presentError(
+            "settings.integrations.externalServices.saveError",
+            "external_services.request.save",
+          );
           setRunState("idle");
           return;
         }
+        const manualFacts = buildExternalServicesManualRunFacts(
+          readExternalServicesProductStateFromStore(
+            useAccountBootstrapStore.getState(),
+          ),
+        );
         const result = await facade.runExternalServiceRequestNow({
           collectionId: selectedCollection.id,
           requestId: persistedRequest.id,
           expectedSettingsRevision: saveResult.settingsRevision,
           profileKey,
           occurredAt: new Date().toISOString(),
+          ...manualFacts,
         });
         setRunResult(result);
         setRunState("idle");

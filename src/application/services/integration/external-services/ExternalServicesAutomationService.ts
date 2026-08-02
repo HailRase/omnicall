@@ -13,7 +13,10 @@ import type { ExternalServicesDispatchQueue } from "./ExternalServicesDispatchQu
 import type { ExternalServicesDelayScheduler } from "./ExternalServicesDelayScheduler.js";
 import type { ExternalServicesProductSnapshot } from "./ExternalServicesProductSnapshot.js";
 import type { ExternalServicesRuntimeRegistry } from "./ExternalServicesRuntimeRegistry.js";
-import { ExternalServicesCallContextTracker } from "./ExternalServicesCallContextTracker.js";
+import {
+  ExternalServicesCallContextTracker,
+  type ExternalServicesCallContext,
+} from "./ExternalServicesCallContextTracker.js";
 import { mapDomainEventToExternalServiceTrigger } from "./mapDomainEventToExternalServiceTrigger.js";
 
 export type ExternalServicesAutomationServiceDeps = Readonly<{
@@ -30,6 +33,10 @@ export class ExternalServicesAutomationService {
 
   constructor(private readonly deps: ExternalServicesAutomationServiceDeps) {
     this.tracker = deps.tracker ?? new ExternalServicesCallContextTracker();
+  }
+
+  getTrackedCall(callId: string): ExternalServicesCallContext | null {
+    return this.tracker.getCall(callId);
   }
 
   handleCommittedEvent(

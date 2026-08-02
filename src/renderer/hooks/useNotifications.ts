@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { TranslationKey } from "../i18n/messages.js";
 import type { UserNotificationModuleFilter as UserNotificationModule } from "@application/projections/settings/userNotificationJournalViewModel.js";
+import type { TranslationKey } from "../i18n/messages.js";
 
 export type NotificationLevel = "info" | "success" | "warning" | "error";
 
@@ -11,6 +11,13 @@ export type NotificationAction = Readonly<{
   labelKey: TranslationKey;
   onClick: () => void;
 }>;
+
+/** Mirrors Domain `NotificationInterruptClass` (renderer must not import Domain). */
+export type NotificationInterruptClass =
+  | "critical"
+  | "actionable"
+  | "informational"
+  | "remote";
 
 export type NotificationDescriptor = Readonly<{
   id?: string;
@@ -24,6 +31,7 @@ export type NotificationDescriptor = Readonly<{
   module?: UserNotificationModule;
   functionId?: string;
   correlationId?: string | null;
+  interruptClass?: NotificationInterruptClass;
 }>;
 
 export type NotificationItem = Readonly<{
@@ -43,12 +51,30 @@ export type UseNotificationsInput = Readonly<{
   stacking: "stacked" | "single";
   durationMs: number;
   maxVisible: number;
+  closable?: boolean;
   capture?: (
     descriptor: NotificationDescriptor,
     id: string,
     titleSnapshot: string,
-  ) => Promise<Readonly<{ shouldPresentPopup: boolean }>>;
+  ) => Promise<
+    Readonly<{
+      shouldPresentPopup: boolean;
+      shouldRaiseWindow?: boolean;
+    }>
+  >;
   resolveTitle?: (descriptor: NotificationDescriptor) => string;
+  /**
+   * ADR-0013 optional raise for actionable errors/warnings (WU-08).
+   * Injected by shell; never called for informational/remote policy outcomes.
+   */
+  raiseWindow?: (
+    payload: Readonly<{ reason: "notification_actionable"; dedupeKey: string }>,
+  ) => Promise<unknown>;
+  /**
+   * Unexpected capture throw only. Journal-failed outcomes must still return
+   * policy decisions from CaptureService (no prefs bypass).
+   */
+  onCaptureFailure?: (error: unknown) => void;
 }>;
 
 export type UseNotificationsResult = Readonly<{
@@ -134,15 +160,33 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     stacking,
     durationMs,
     maxVisible,
+    closable = true,
     capture,
     resolveTitle,
+    raiseWindow,
+    onCaptureFailure,
   } = input;
   const [queue, setQueue] = useState<ReadonlyArray<NotificationItem>>([]);
   const durationRef = useRef(durationMs);
+  const closableRef = useRef(closable);
+  const raiseWindowRef = useRef(raiseWindow);
+  const onCaptureFailureRef = useRef(onCaptureFailure);
 
   useEffect(() => {
     durationRef.current = durationMs;
   }, [durationMs]);
+
+  useEffect(() => {
+    closableRef.current = closable;
+  }, [closable]);
+
+  useEffect(() => {
+    raiseWindowRef.current = raiseWindow;
+  }, [raiseWindow]);
+
+  useEffect(() => {
+    onCaptureFailureRef.current = onCaptureFailure;
+  }, [onCaptureFailure]);
 
   const notify = useCallback(
     (descriptor: NotificationDescriptor): string => {
@@ -155,7 +199,7 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
         messageText: descriptor.messageText ?? null,
         messageParams: descriptor.messageParams ?? null,
         durationMs: effectiveDuration,
-        closable: true,
+        closable: closableRef.current,
         action: descriptor.action ?? null,
         onClose: descriptor.onClose ?? null,
       };
@@ -185,8 +229,16 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
             if (outcome.shouldPresentPopup) {
               enqueue();
             }
+            if (outcome.shouldRaiseWindow === true) {
+              void raiseWindowRef.current?.({
+                reason: "notification_actionable",
+                dedupeKey: id,
+              });
+            }
           })
-          .catch(() => {
+          .catch((error: unknown) => {
+            onCaptureFailureRef.current?.(error);
+            // Last-resort fail-open only for unexpected throws (not journal IO).
             enqueue();
           });
       }

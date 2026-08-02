@@ -1,6 +1,6 @@
 # P11 Operator Preferences Export / Import
 
-Related: **F-030**, **F-016**, **F-023**, **F-031**, **LF-076**, **LF-077**. Bounded context: Settings.
+Related: **F-030**, **F-016**, **F-023**, **F-031**, **F-034**, **LF-076**, **LF-077**. Bounded context: Settings.
 
 ## Goal
 
@@ -25,14 +25,14 @@ File: UTF-8 JSON (`*.json`), suggested name `omnicall-preferences-YYYY-MM-DD.jso
 | `exportedAt` | ISO-8601 timestamp |
 | `appVersion` | Optional exporter app version (informational) |
 | `profileKey` | Optional source `SettingsAccountKey` (informational; import targets **active** profile) |
-| `settings` | Portable `UserSettings` after sanitize (v13 includes `externalServices` trigger delays) |
+| `settings` | Portable `UserSettings` after sanitize (v14 nested `notificationPreferences` + `externalServices`) |
 | `transfer.authMaterialOmitted` | Always `true` |
 | `transfer.machineDeviceIdsCleared` | Always `true` |
 | `transfer.ocpLinkedReset` | Always `true` |
 
 Domain SSoT: `src/domain/settings/PreferencesExportDocument.ts`.
 
-Outer `PREFERENCES_EXPORT_FORMAT_VERSION` stays **1**; F-031 nests under migrated `UserSettings` (schema **13**; v12 string triggers migrate to `{ eventType, delaySeconds }`).
+Outer `PREFERENCES_EXPORT_FORMAT_VERSION` stays **1**; nested slices migrate with `UserSettings` (schema **14**; F-034 nested Notification Center prefs; F-031 External Services; v13 flat `notification*` → nested; v12 string triggers → delay bindings).
 
 ## Portable sanitize (export + import)
 
@@ -46,12 +46,13 @@ Always cleared / reset before write:
 
 Included without stripping:
 
+- `notificationPreferences` master, appearance, and per-module prefs (F-034)
 - `externalServices` collections, requests, variables, query/header rows, body modes, trigger bindings (incl. `delaySeconds`), enable flags
 - Authored External Services header/query **values** (product decision: portable configuration, not a secrets vault)
 
 Excluded:
 
-- External Services journal files and Run-now result payloads (not part of `UserSettings`)
+- F-029 user-notification journal and External Services journal / Run-now payloads (not part of `UserSettings`)
 - SIP passwords, OCP API keys, SDK pairing blobs (never in `UserSettings` export surface)
 
 Secret-like JSON **property names** (`password`, `token`, `credential`, `secret` fragments) are rejected fail-closed. Key/value rows use neutral fields `key` / `value`, so names such as `Authorization` are values, not forbidden property names.
@@ -60,12 +61,13 @@ Secret-like JSON **property names** (`password`, `token`, `credential`, `secret`
 
 | Direction | Behavior |
 | --- | --- |
-| Older bundle → newer app | `migrateUserSettings` upgrades nested settings; **new preference fields appear with defaults** (empty External Services when absent) |
+| Older bundle → newer app | `migrateUserSettings` upgrades nested settings; **new preference fields appear with defaults** (empty External Services / default Notification Center prefs when absent) |
+| Current-schema malformed nested prefs | Fail closed (`settings_validation_failed`); active profile unchanged |
 | Newer `UserSettings.schemaVersion` → older app | `unsupported_schema_version` — import fails; no mutation |
 | Newer `formatVersion` → older app | `unsupported_format_version` — import fails; no mutation |
 | Corrupt / wrong `format` | Fail closed; active profile settings and F-031 runtime unchanged |
 
-`SETTINGS_SCHEMA_VERSION` evolves with product settings (v13 for F-031 delays). Bundle evolution uses `PREFERENCES_EXPORT_FORMAT_VERSION` only when the outer document shape changes.
+`SETTINGS_SCHEMA_VERSION` evolves with product settings (v14 for F-034 nested notification prefs). Bundle evolution uses `PREFERENCES_EXPORT_FORMAT_VERSION` only when the outer document shape changes.
 
 ## Architecture slice
 
@@ -84,9 +86,9 @@ After **successful** import the facade also:
 
 - applies headset user settings (existing)
 - refreshes F-031 `ExternalServicesRuntimeRegistry` via `replaceActiveSettings`
-- returns portable `UserSettings` so the renderer projection updates without restart
+- returns portable `UserSettings` so the renderer projection updates without restart (`applyUserSettingsSnapshot` → next toast policy uses imported Notification Center prefs)
 
-Failed imports leave repository settings and F-031 runtime unchanged.
+Failed imports leave repository settings, Notification Center prefs, and F-031 runtime unchanged.
 
 Mocks: `MockPreferencesFileGateway` for non-real bootstrap.
 
@@ -98,9 +100,9 @@ Authored External Services header/query values **are** portable when present.
 
 ## Tests
 
-- Domain: sanitize, round-trip (incl. External Services), older schema migrate, unsupported format/schema fail-closed, secret field reject, journal absent.
-- Application: export→import across profile keys; External Services exact round trip; invalid import does not mutate.
-- Facade: post-import F-031 runtime refresh; failed import leaves registry unchanged.
+- Domain: sanitize, round-trip (Notification Center prefs + External Services), v13 flat notification migrate, unsupported format/schema fail-closed, malformed current prefs fail-closed, secret field reject, journals absent.
+- Application: export→import across profile keys; Notification Center + External Services exact round trip; invalid import does not mutate.
+- Facade: post-import F-031 runtime refresh; failed import leaves registry unchanged; renderer applies returned `UserSettings`.
 - Renderer: transfer section click + status.
 
 ## Out of scope (follow-ups)

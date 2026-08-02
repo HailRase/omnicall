@@ -1,5 +1,5 @@
 /**
- * Shell window raise IPC contract (ADR-0013 / telephony + SDK + OCP operator attention).
+ * Shell window raise IPC contract (ADR-0013 / telephony + SDK + OCP + F-034 actionable).
  */
 
 export const SHELL_WINDOW_RAISE_REASONS = [
@@ -10,6 +10,7 @@ export const SHELL_WINDOW_RAISE_REASONS = [
   "sdk_pairing",
   "sdk_activate_consent",
   "second_instance",
+  "notification_actionable",
 ] as const;
 
 export type ShellWindowRaiseReason = (typeof SHELL_WINDOW_RAISE_REASONS)[number];

@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createUserNotificationAccountFilter,
   createUserNotificationEntryViewId,
+  USER_NOTIFICATION_MODULE_FILTERS,
+  type UserNotificationModuleFilter,
 } from "@application/projections/settings/userNotificationJournalViewModel.js";
 import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
 import { SettingsNotificationHistoryPanel } from "./SettingsNotificationHistoryPanel.js";
@@ -13,7 +15,23 @@ import { SettingsNotificationHistoryPanel } from "./SettingsNotificationHistoryP
 beforeEach(setupJsdomRadix);
 afterEach(cleanup);
 
-function createEntry(idValue: string, title: string) {
+const EXPANDED_MODULE_LABELS: Readonly<
+  Record<"sdk" | "updates" | "externalServices" | "externalApplications", string>
+> = {
+  sdk: "SDK",
+  updates: "Обновления",
+  externalServices: "Внешние сервисы",
+  externalApplications: "Внешние приложения",
+};
+
+function createEntry(
+  idValue: string,
+  title: string,
+  options: Readonly<{
+    module?: UserNotificationModuleFilter;
+    suppressedAtEmission?: boolean;
+  }> = {},
+) {
   const accountKey = createUserNotificationAccountFilter("agent@pbx.example");
   return {
     id: createUserNotificationEntryViewId(idValue),
@@ -21,12 +39,13 @@ function createEntry(idValue: string, title: string) {
     accountKey,
     accountDisplayLabel: "agent",
     level: "error" as const,
-    module: "ocp" as const,
+    module: options.module ?? ("ocp" as const),
     functionId: "ocp.sign-in",
     titleKey: null,
     titleParams: {},
     titleSnapshot: title,
-    suppressedAtEmission: true,
+    suppressedAtEmission: options.suppressedAtEmission ?? true,
+    suppressReasons: options.suppressedAtEmission === false ? [] : ["module_disabled"],
     correlationId: null,
   };
 }
@@ -71,6 +90,126 @@ describe("SettingsNotificationHistoryPanel", () => {
     expect(query).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, pageSize: 20 }),
     );
+  });
+
+  it("exposes expanded module catalog in the history filter", async () => {
+    const user = userEvent.setup();
+    const entry = createEntry("entry-filter-catalog", "Legacy OCP", {
+      module: "ocp",
+    });
+    const query = vi.fn().mockResolvedValue({
+      entries: [entry],
+      total: 1,
+      page: 1,
+      pageSize: 20,
+      pageCount: 1,
+      identities: [{ accountKey: entry.accountKey, displayLabel: "agent" }],
+    });
+    render(<SettingsNotificationHistoryPanel query={query} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Legacy OCP")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTestId("settings-notification-history-module"));
+    const listbox = await screen.findByRole("listbox");
+    expect(
+      within(listbox).getByRole("option", { name: "Все модули" }),
+    ).toBeInTheDocument();
+    for (const label of Object.values(EXPANDED_MODULE_LABELS)) {
+      expect(
+        within(listbox).getByRole("option", { name: label }),
+      ).toBeInTheDocument();
+    }
+    expect(USER_NOTIFICATION_MODULE_FILTERS).toEqual(
+      expect.arrayContaining([
+        "sdk",
+        "updates",
+        "externalServices",
+        "externalApplications",
+      ]),
+    );
+    expect(
+      within(listbox).getByRole("option", { name: "OCP" }),
+    ).toBeInTheDocument();
+    expect(
+      within(listbox).getByRole("option", { name: "Система" }),
+    ).toBeInTheDocument();
+  });
+
+  it("filters by expanded modules and still renders legacy module rows", async () => {
+    const user = userEvent.setup();
+    const legacyEntry = createEntry("entry-legacy", "Legacy system event", {
+      module: "system",
+      suppressedAtEmission: false,
+    });
+    const sdkEntry = createEntry("entry-sdk", "SDK pairing required", {
+      module: "sdk",
+      suppressedAtEmission: true,
+    });
+    const query = vi.fn().mockImplementation(
+      (input: { module?: UserNotificationModuleFilter; search?: string }) => {
+        const entries = [legacyEntry, sdkEntry].filter((entry) => {
+          if (input.module !== undefined && entry.module !== input.module) {
+            return false;
+          }
+          if (
+            input.search !== undefined &&
+            !entry.titleSnapshot
+              .toLowerCase()
+              .includes(input.search.trim().toLowerCase())
+          ) {
+            return false;
+          }
+          return true;
+        });
+        return Promise.resolve({
+          entries,
+          total: entries.length,
+          page: 1,
+          pageSize: 20,
+          pageCount: 1,
+          identities: [
+            { accountKey: legacyEntry.accountKey, displayLabel: "agent" },
+          ],
+        });
+      },
+    );
+    render(<SettingsNotificationHistoryPanel query={query} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Legacy system event")).toBeInTheDocument();
+      expect(screen.getByText("SDK pairing required")).toBeInTheDocument();
+    });
+
+    const table = screen.getByTestId("settings-notification-history-table");
+    expect(within(table).getByText("Система")).toBeInTheDocument();
+    expect(within(table).getByText("SDK")).toBeInTheDocument();
+    expect(within(table).getByText("Показан")).toBeInTheDocument();
+    expect(within(table).getByText("Popup был отключён")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("settings-notification-history-module"));
+    await user.click(await screen.findByRole("option", { name: "SDK" }));
+
+    await waitFor(() => {
+      expect(query).toHaveBeenCalledWith(
+        expect.objectContaining({ module: "sdk", page: 1, pageSize: 20 }),
+      );
+    });
+    await waitFor(() => {
+      expect(screen.getByText("SDK pairing required")).toBeInTheDocument();
+      expect(screen.queryByText("Legacy system event")).not.toBeInTheDocument();
+    });
+
+    const search = screen.getByPlaceholderText("Поиск по уведомлениям");
+    await user.clear(search);
+    await user.type(search, "pairing");
+
+    await waitFor(() => {
+      expect(query).toHaveBeenCalledWith(
+        expect.objectContaining({ module: "sdk", search: "pairing" }),
+      );
+    });
   });
 
   it("changes page and pageSize through pagination selects", async () => {

@@ -36,6 +36,9 @@ export function useVideoCallNotifications(input: UseVideoCallNotificationsInput)
         id: `video-downgrade-${String(event["callId"])}`,
         level: "error",
         messageKey: "notification.video.remoteAudioOnly",
+        module: "media",
+        functionId: "media.video.downgrade",
+        interruptClass: "actionable",
       };
       notify(descriptor);
     });

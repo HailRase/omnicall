@@ -262,12 +262,37 @@ describe("FileSettingsRepository", () => {
     );
   });
 
-  it("fails gracefully on unsupported schema version in JSON", async () => {
+  it("coerces newer integer schema versions from disk", async () => {
     const { repository } = await createTestRepository();
-    const accountKey = createSettingsAccountKey("agent-v99@pbx.example");
+    const accountKey = createSettingsAccountKey("agent-v18@pbx.example");
+    const defaults = createDefaultUserSettings();
     await repository.seedCorruptJson(
-      "agent-v99@pbx.example",
-      JSON.stringify({ schemaVersion: 99, multiSessionsEnabled: true }),
+      "agent-v18@pbx.example",
+      JSON.stringify({
+        ...defaults,
+        schemaVersion: 18,
+        language: "en",
+        notificationPlacement: "bottom-left",
+        notificationStacking: "stacked",
+        notificationDurationMs: 4200,
+        notificationClosable: true,
+        notificationMaxVisible: 3,
+        notificationPopupEnabled: true,
+      }),
+    );
+
+    await expect(repository.getUserSettings(accountKey)).resolves.toMatchObject({
+      schemaVersion: defaults.schemaVersion,
+      language: "en",
+    });
+  });
+
+  it("fails gracefully on non-integer unsupported schema version in JSON", async () => {
+    const { repository } = await createTestRepository();
+    const accountKey = createSettingsAccountKey("agent-bad-schema@pbx.example");
+    await repository.seedCorruptJson(
+      "agent-bad-schema@pbx.example",
+      JSON.stringify({ schemaVersion: "eighteen", multiSessionsEnabled: true }),
     );
 
     await expect(repository.getUserSettings(accountKey)).rejects.toThrow(

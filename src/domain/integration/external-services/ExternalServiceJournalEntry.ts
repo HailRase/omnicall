@@ -1,6 +1,6 @@
 /**
  * - Purpose: define immutable, safe External Services dispatch history records.
- * - Inputs: redacted request facts and normalized transport outcomes.
+ * - Inputs: redacted headers, truncated request/response bodies, transport outcomes.
  * - Outputs: profile-scoped journal entries for persistence and projections.
  */
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -41,6 +41,8 @@ export type ExternalServiceJournalEntry = Readonly<{
   status: number | null;
   requestUrl: string;
   requestHeaders: ReadonlyArray<ExternalServiceKeyValue>;
+  requestBody: string;
+  requestBodyTruncated: boolean;
   responseBody: string;
   responseBodyTruncated: boolean;
   errorCode: string | null;

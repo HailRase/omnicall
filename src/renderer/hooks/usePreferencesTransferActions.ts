@@ -1,84 +1,105 @@
 import { useCallback, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { UserSettings } from "@application/index.js";
-import { translateCurrent } from "../i18n/index.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 
 export type PreferencesTransferActionResult = Readonly<
   | { kind: "cancelled" }
   | { kind: "exported"; savedFileName: string }
   | { kind: "imported" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; messageKey: string }
 >;
 
 type UsePreferencesTransferActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   currentVersion: string;
   onSettingsImported: (settings: UserSettings) => void;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
 type UsePreferencesTransferActionsResult = Readonly<{
   exportPreferences: () => Promise<PreferencesTransferActionResult>;
   importPreferences: () => Promise<PreferencesTransferActionResult>;
   isTransferBusy: boolean;
-  transferStatusMessage: string | null;
 }>;
 
 /**
  * - Purpose: bind Settings General transfer buttons to facade export/import.
- * - Inputs: facade, app version, callback to apply imported UserSettings locally.
- * - Outputs: export/import actions with busy flag and status message keys resolved.
+ * - Inputs: facade, app version, apply-imported callback, optional notify.
+ * - Outputs: export/import actions with busy flag; outcomes via notifications.
  */
 export function usePreferencesTransferActions(
   input: UsePreferencesTransferActionsInput,
 ): UsePreferencesTransferActionsResult {
-  const { facade, currentVersion, onSettingsImported } = input;
+  const { facade, currentVersion, onSettingsImported, notify } = input;
   const [isTransferBusy, setIsTransferBusy] = useState(false);
-  const [transferStatusMessage, setTransferStatusMessage] = useState<string | null>(null);
 
   const exportPreferences = useCallback(async (): Promise<PreferencesTransferActionResult> => {
     if (facade === null) {
-      const message = translateCurrent("settings.general.preferences.transfer.unavailable");
-      setTransferStatusMessage(message);
-      return { kind: "error", message };
+      notify?.({
+        level: "error",
+        messageKey: "settings.general.preferences.transfer.unavailable",
+        module: "settings",
+        functionId: "preferences.export",
+        interruptClass: "actionable",
+      });
+      return { kind: "error", messageKey: "settings.general.preferences.transfer.unavailable" };
     }
 
     setIsTransferBusy(true);
-    setTransferStatusMessage(null);
     try {
       const result = await facade.exportOperatorPreferences({ appVersion: currentVersion });
       if (!result.ok) {
-        const message = translateCurrent("settings.general.preferences.transfer.exportFailed");
-        setTransferStatusMessage(message);
-        return { kind: "error", message };
+        notify?.({
+          level: "error",
+          messageKey: "settings.general.preferences.transfer.exportFailed",
+          module: "settings",
+          functionId: "preferences.export",
+          interruptClass: "actionable",
+        });
+        return { kind: "error", messageKey: "settings.general.preferences.transfer.exportFailed" };
       }
       if (result.value.kind === "cancelled") {
         return { kind: "cancelled" };
       }
-      const message = translateCurrent("settings.general.preferences.transfer.exportSucceeded", {
-        fileName: result.value.savedFileName,
+      notify?.({
+        level: "success",
+        messageKey: "settings.general.preferences.transfer.exportSucceeded",
+        messageParams: { fileName: result.value.savedFileName },
+        module: "settings",
+        functionId: "preferences.export",
+        interruptClass: "informational",
       });
-      setTransferStatusMessage(message);
       return { kind: "exported", savedFileName: result.value.savedFileName };
     } finally {
       setIsTransferBusy(false);
     }
-  }, [currentVersion, facade]);
+  }, [currentVersion, facade, notify]);
 
   const importPreferences = useCallback(async (): Promise<PreferencesTransferActionResult> => {
     if (facade === null) {
-      const message = translateCurrent("settings.general.preferences.transfer.unavailable");
-      setTransferStatusMessage(message);
-      return { kind: "error", message };
+      notify?.({
+        level: "error",
+        messageKey: "settings.general.preferences.transfer.unavailable",
+        module: "settings",
+        functionId: "preferences.import",
+        interruptClass: "actionable",
+      });
+      return { kind: "error", messageKey: "settings.general.preferences.transfer.unavailable" };
     }
 
     setIsTransferBusy(true);
-    setTransferStatusMessage(null);
     try {
       const result = await facade.importOperatorPreferences();
       if (!result.ok) {
-        const message = translateCurrent("settings.general.preferences.transfer.importFailed");
-        setTransferStatusMessage(message);
-        return { kind: "error", message };
+        notify?.({
+          level: "error",
+          messageKey: "settings.general.preferences.transfer.importFailed",
+          module: "settings",
+          functionId: "preferences.import",
+          interruptClass: "actionable",
+        });
+        return { kind: "error", messageKey: "settings.general.preferences.transfer.importFailed" };
       }
       if (result.value.kind === "cancelled") {
         return { kind: "cancelled" };
@@ -86,18 +107,22 @@ export function usePreferencesTransferActions(
 
       onSettingsImported(result.value.settings);
 
-      const message = translateCurrent("settings.general.preferences.transfer.importSucceeded");
-      setTransferStatusMessage(message);
+      notify?.({
+        level: "success",
+        messageKey: "settings.general.preferences.transfer.importSucceeded",
+        module: "settings",
+        functionId: "preferences.import",
+        interruptClass: "informational",
+      });
       return { kind: "imported" };
     } finally {
       setIsTransferBusy(false);
     }
-  }, [facade, onSettingsImported]);
+  }, [facade, notify, onSettingsImported]);
 
   return {
     exportPreferences,
     importPreferences,
     isTransferBusy,
-    transferStatusMessage,
   };
 }

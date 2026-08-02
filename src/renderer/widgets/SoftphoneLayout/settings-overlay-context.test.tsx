@@ -11,6 +11,7 @@ import { settingsAccountTestDefaults } from "../../components/settings/panels/se
 import { settingsHeadsetStoryDefaults } from "../../components/settings/panels/settingsHeadsetTestDefaults.js";
 import { settingsIntegrationsStoryDefaults } from "../../components/settings/panels/settingsIntegrationsTestDefaults.js";
 import { settingsVideoStoryDefaults } from "../../components/settings/panels/settingsVideoTestDefaults.js";
+import { settingsNotificationCenterStoryDefaults } from "../../components/settings/panels/settingsNotificationCenterTestDefaults.js";
 import { settingsOverlayWindowControlsTestDefaults } from "../../components/settings/settingsOverlayWindowControlsTestDefaults.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
@@ -47,7 +48,10 @@ describe("settings overlay with layout zones", () => {
               notificationDurationMs={4200}
               onNotificationDurationMsChange={() => undefined}
               notificationMaxVisible={3}
+              notificationClosable
+              onNotificationClosableChange={() => undefined}
               onNotificationMaxVisibleChange={() => undefined}
+              {...settingsNotificationCenterStoryDefaults}
               multiSessionsEnabled
               onMultiSessionsChange={() => undefined}
               autoAnswerEnabled={false}
@@ -56,6 +60,10 @@ describe("settings overlay with layout zones", () => {
               onAutoAnswerTimeoutChange={() => undefined}
               autoAnswerDuringActiveSessionEnabled={false}
               onAutoAnswerDuringActiveSessionChange={() => undefined}
+              incomingRingtoneId="classic"
+              onIncomingRingtoneIdChange={() => undefined}
+              onPreviewIncomingRingtone={() => undefined}
+              onStopIncomingRingtonePreview={() => undefined}
               systemState={systemStateTestDefaults}
               {...settingsCodecTestDefaults}
               currentVersion="0.0.1"

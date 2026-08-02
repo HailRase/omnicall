@@ -1,16 +1,38 @@
 import { describe, expect, it } from "vitest";
 import {
+  createDefaultUserNotificationPreferences,
   createDefaultUserSettings,
   createSettingsAccountKey,
   parseExternalServicesSettings,
   PREFERENCES_EXPORT_FORMAT_ID,
   PREFERENCES_EXPORT_FORMAT_VERSION,
   SETTINGS_SCHEMA_VERSION,
+  type UserNotificationPreferences,
 } from "@domain/index.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { ExportOperatorPreferencesUseCase } from "./ExportOperatorPreferencesUseCase.js";
 import { ImportOperatorPreferencesUseCase } from "./ImportOperatorPreferencesUseCase.js";
+
+function createCustomNotificationPreferences(): UserNotificationPreferences {
+  const defaults = createDefaultUserNotificationPreferences();
+  return {
+    masterInAppPopupEnabled: false,
+    appearance: {
+      placement: "bottom-left",
+      stacking: "single",
+      durationMs: 8000,
+      closable: false,
+      maxVisible: 2,
+    },
+    modules: {
+      ...defaults.modules,
+      telephony: { enabled: false, minLevel: "info", raiseWindow: "never" },
+      sdk: { enabled: true, minLevel: "warning", raiseWindow: "never" },
+      updates: { enabled: true, minLevel: "error", raiseWindow: "never" },
+    },
+  };
+}
 
 const EXTERNAL_SERVICES_FIXTURE = (() => {
   const parsed = parseExternalServicesSettings({
@@ -110,6 +132,89 @@ describe("OperatorPreferencesUseCases", () => {
       autoConnect: false,
       linked: false,
     });
+  });
+
+  it("round-trips Notification Center preferences into the active target profile", async () => {
+    const sourceKey = createSettingsAccountKey("alice@example.com");
+    const targetKey = createSettingsAccountKey("bob@example.com");
+    const notificationPreferences = createCustomNotificationPreferences();
+    const repository = new InMemorySettingsRepository({
+      activeProfileKey: sourceKey,
+      userSettingsByAccount: new Map([
+        [
+          sourceKey,
+          {
+            ...createDefaultUserSettings(),
+            notificationPreferences,
+          },
+        ],
+        [targetKey, createDefaultUserSettings()],
+      ]),
+    });
+    const logger = createTestLogger();
+    const exportUseCase = new ExportOperatorPreferencesUseCase(repository, logger);
+    const importUseCase = new ImportOperatorPreferencesUseCase(repository, logger);
+
+    const exported = await exportUseCase.execute({ appVersion: "1.2.0" });
+    expect(exported.ok).toBe(true);
+    if (!exported.ok) {
+      return;
+    }
+    expect(exported.value.settings.notificationPreferences).toEqual(notificationPreferences);
+    expect(exported.value.jsonContents).toContain("notificationPreferences");
+    expect(exported.value.jsonContents).not.toContain("user-notification-journal");
+    expect(exported.value.jsonContents).not.toContain("suppressedAtEmission");
+
+    await repository.setActiveProfileKey(targetKey);
+    const imported = await importUseCase.execute({
+      jsonContents: exported.value.jsonContents,
+    });
+    expect(imported.ok).toBe(true);
+    if (!imported.ok) {
+      return;
+    }
+
+    const savedTarget = await repository.getUserSettings(targetKey);
+    const savedSource = await repository.getUserSettings(sourceKey);
+    expect(savedTarget.notificationPreferences).toEqual(notificationPreferences);
+    expect(imported.value.settings.notificationPreferences).toEqual(notificationPreferences);
+    expect(savedSource.notificationPreferences).toEqual(notificationPreferences);
+  });
+
+  it("rejects malformed notification preferences without mutating active settings", async () => {
+    const accountKey = createSettingsAccountKey("alice@example.com");
+    const originalPreferences = createCustomNotificationPreferences();
+    const original = {
+      ...createDefaultUserSettings(),
+      theme: "dark" as const,
+      notificationPreferences: originalPreferences,
+    };
+    const repository = new InMemorySettingsRepository({
+      activeProfileKey: accountKey,
+      userSettingsByAccount: new Map([[accountKey, original]]),
+    });
+    const logger = createTestLogger();
+    const importUseCase = new ImportOperatorPreferencesUseCase(repository, logger);
+
+    const imported = await importUseCase.execute({
+      jsonContents: JSON.stringify({
+        format: PREFERENCES_EXPORT_FORMAT_ID,
+        formatVersion: PREFERENCES_EXPORT_FORMAT_VERSION,
+        exportedAt: "2026-08-02T15:00:00.000Z",
+        settings: {
+          ...createDefaultUserSettings(),
+          notificationPreferences: {
+            ...createDefaultUserNotificationPreferences(),
+            masterInAppPopupEnabled: "bad",
+          },
+        },
+      }),
+    });
+    expect(imported.ok).toBe(false);
+
+    const saved = await repository.getUserSettings(accountKey);
+    expect(saved.theme).toBe("dark");
+    expect(saved.notificationPreferences).toEqual(originalPreferences);
   });
 
   it("round-trips External Services definitions into the active target profile", async () => {

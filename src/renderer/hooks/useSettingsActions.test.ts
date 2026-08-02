@@ -34,6 +34,14 @@ function createSoftphonePreloadApiMock(
     invokeProfilesFilesystem: vi.fn().mockResolvedValue({ ok: true }),
     invokeSecretStorage: vi.fn().mockResolvedValue({ ok: true }),
     openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),
+    openExternalApplicationWindow: vi.fn().mockResolvedValue({
+      ok: true,
+      focusedExisting: false,
+    }),
+    applyExternalApplicationCallEnded: vi.fn().mockResolvedValue({
+      ok: true,
+      affected: 0,
+    }),
     setNativeTheme: vi.fn().mockResolvedValue({ ok: true }),
     onBeforeClose: vi.fn().mockReturnValue(() => {}),
     acknowledgeShutdown: vi.fn().mockResolvedValue({ ok: true }),
@@ -44,6 +52,10 @@ function createSoftphonePreloadApiMock(
     toggleMaximizeWindow: vi.fn().mockResolvedValue({ ok: true }),
     getWindowMaximized: vi.fn().mockResolvedValue({ ok: true, maximized: false }),
     onWindowMaximizedChanged: vi.fn(() => () => undefined),
+    setWindowAlwaysOnTop: vi.fn().mockResolvedValue({ ok: true, alwaysOnTop: false }),
+    toggleWindowAlwaysOnTop: vi.fn().mockResolvedValue({ ok: true, alwaysOnTop: false }),
+    getWindowAlwaysOnTop: vi.fn().mockResolvedValue({ ok: true, alwaysOnTop: false }),
+    onWindowAlwaysOnTopChanged: vi.fn(() => () => undefined),
     applyShellWindowLayout: vi.fn().mockResolvedValue(undefined),
     raiseShellWindow: vi.fn().mockResolvedValue({ ok: true }),
     setShellTelephonyBusy: vi.fn().mockResolvedValue({ ok: true }),
@@ -217,5 +229,54 @@ describe("useSettingsActions", () => {
       autoUnholdOnTransferFailure: true,
     });
     expect(setNativeTheme).toHaveBeenCalledWith({ theme: "dark" });
+  });
+
+  it("persists Notification Center master and quiet-successes preset", async () => {
+    const applyMultiCallSettings = vi.fn();
+    const facade = createFacade(new InMemorySettingsRepository());
+
+    const { result } = renderHook(() =>
+      useSettingsActions({
+        facade,
+        currentSettings: {
+          multiSessionsEnabled: true,
+          autoUnholdOnTransferFailure: true,
+        },
+        applyMultiCallSettings,
+      }),
+    );
+
+    await act(async () => {
+      result.current.onMasterInAppPopupEnabledChange(false);
+      await Promise.resolve();
+    });
+
+    expect(
+      result.current.userSettings.notificationPreferences.masterInAppPopupEnabled,
+    ).toBe(false);
+
+    await act(async () => {
+      result.current.onNotificationPreferencesPreset("quietSuccesses");
+      await Promise.resolve();
+    });
+
+    expect(
+      result.current.userSettings.notificationPreferences.modules.telephony.minLevel,
+    ).toBe("warning");
+    expect(
+      result.current.userSettings.notificationPreferences.modules.contacts.minLevel,
+    ).toBe("warning");
+
+    await act(async () => {
+      result.current.onNotificationModuleRaiseWindowChange("headset", "errors_only");
+      await Promise.resolve();
+    });
+
+    expect(
+      result.current.userSettings.notificationPreferences.modules.headset.raiseWindow,
+    ).toBe("errors_only");
+    expect(
+      result.current.userSettings.notificationPreferences.modules.telephony.raiseWindow,
+    ).toBe("never");
   });
 });
