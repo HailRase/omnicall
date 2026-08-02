@@ -50,12 +50,14 @@
 | Field | Value |
 | --- | --- |
 | Feature | **F-033** Selectable Incoming Ringtone Catalog |
-| Status | **implemented** (2026-08-01) |
+| Status | **implemented** (2026-08-01; classic FM ring 2026-08-02) |
 | Design | `P11-Incoming-Ringtone-Catalog-Design.md` |
 | Schema | `UserSettings` **v18** (`incomingRingtoneId`, default `classic`) |
 | Release | MINOR pending `/release` (bundle with other user-visible work) |
 | Non-overlap | Not F-018 Tone FSM; WebAudio presets only (no OEM assets) |
 | UX | Settings → Sessions: select ≥10 presets + preview |
+| Classic | FM ring (660 Hz + square LFO, cadence `[440,66,660,1980]`, peak 0.5) |
+| Catalog | Original F-033 step presets (single oscillator) |
 
 ## Active phase
 

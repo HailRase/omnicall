@@ -2,6 +2,7 @@ import {
   DEFAULT_INCOMING_RINGTONE_ID,
   type IncomingRingtoneId,
 } from "@domain/index.js";
+import { createClassicRingtoneSession } from "./classicRingtone.js";
 import { resolveRingtonePreset } from "./ringtonePresets.js";
 
 /**
@@ -96,6 +97,10 @@ function createToneSession(
   kind: ToneKind,
   ringtoneId: IncomingRingtoneId,
 ): ToneSession {
+  if (kind === "ringtone" && ringtoneId === "classic") {
+    return createClassicRingtoneSession(context);
+  }
+
   const gainNode = context.createGain();
   gainNode.gain.value = 0.12;
   gainNode.connect(context.destination);
@@ -133,60 +138,32 @@ function createToneSession(
 
   switch (kind) {
     case "ringtone":
-      startRingtoneCadence(
-        context,
+      startCatalogRingtoneCadence(
         oscillator,
         gainNode,
         ringtoneId,
-        intervalTimers,
         timeoutTimers,
         () => stopped,
       );
       break;
     case "ringback":
-      gainNode.gain.value = 0.12;
-      oscillator.frequency.value = 440;
-      oscillator.start();
-      intervalTimers.push(
-        setInterval(() => {
-          const isOn = gainNode.gain.value > 0;
-          gainNode.gain.value = isOn ? 0 : 0.12;
-        }, 2000),
-      );
+      startSimplePulseTone(oscillator, gainNode, 440, 0.12, 2000, intervalTimers);
       break;
     case "busy":
-      gainNode.gain.value = 0.12;
-      oscillator.frequency.value = 480;
-      oscillator.start();
-      intervalTimers.push(
-        setInterval(() => {
-          const isOn = gainNode.gain.value > 0;
-          gainNode.gain.value = isOn ? 0 : 0.12;
-        }, 500),
-      );
+      startSimplePulseTone(oscillator, gainNode, 480, 0.12, 500, intervalTimers);
       break;
     case "failed":
-      gainNode.gain.value = 0.12;
-      oscillator.frequency.value = 300;
-      oscillator.start();
-      intervalTimers.push(
-        setInterval(() => {
-          const isOn = gainNode.gain.value > 0;
-          gainNode.gain.value = isOn ? 0 : 0.12;
-        }, 300),
-      );
+      startSimplePulseTone(oscillator, gainNode, 300, 0.12, 300, intervalTimers);
       break;
   }
 
   return { stop };
 }
 
-function startRingtoneCadence(
-  _context: AudioContext,
+function startCatalogRingtoneCadence(
   oscillator: OscillatorNode,
   gainNode: GainNode,
   ringtoneId: IncomingRingtoneId,
-  intervalTimers: ReturnType<typeof setInterval>[],
   timeoutTimers: ReturnType<typeof setTimeout>[],
   isStopped: () => boolean,
 ): void {
@@ -194,18 +171,6 @@ function startRingtoneCadence(
   gainNode.gain.value = 0;
   oscillator.frequency.value = Math.max(preset.steps[0]?.frequencyHz ?? 440, 1);
   oscillator.start();
-
-  // Classic dual-tone must remain identical to the pre-catalog interval flip.
-  if (ringtoneId === "classic") {
-    gainNode.gain.value = preset.masterGain;
-    oscillator.frequency.value = 440;
-    intervalTimers.push(
-      setInterval(() => {
-        oscillator.frequency.value = oscillator.frequency.value === 440 ? 480 : 440;
-      }, 1000),
-    );
-    return;
-  }
 
   let stepIndex = 0;
 
@@ -230,4 +195,23 @@ function startRingtoneCadence(
   };
 
   applyStep();
+}
+
+function startSimplePulseTone(
+  oscillator: OscillatorNode,
+  gainNode: GainNode,
+  frequencyHz: number,
+  onGain: number,
+  intervalMs: number,
+  intervalTimers: ReturnType<typeof setInterval>[],
+): void {
+  gainNode.gain.value = onGain;
+  oscillator.frequency.value = frequencyHz;
+  oscillator.start();
+  intervalTimers.push(
+    setInterval(() => {
+      const isOn = gainNode.gain.value > 0;
+      gainNode.gain.value = isOn ? 0 : onGain;
+    }, intervalMs),
+  );
 }

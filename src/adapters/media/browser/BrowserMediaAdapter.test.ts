@@ -11,15 +11,23 @@ import { WebAudioTonePlayer } from "./WebAudioTonePlayer.js";
 function createMockAudioContext(): AudioContext {
   return {
     state: "running",
+    currentTime: 0,
     resume: vi.fn().mockResolvedValue(undefined),
     close: vi.fn().mockResolvedValue(undefined),
     destination: {},
     createGain: () => ({
-      gain: { value: 0 },
+      gain: {
+        value: 0,
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+        cancelScheduledValues: vi.fn(),
+      },
       connect: vi.fn(),
       disconnect: vi.fn(),
     }),
     createOscillator: () => ({
+      type: "sine",
       frequency: { value: 0 },
       connect: vi.fn(),
       disconnect: vi.fn(),

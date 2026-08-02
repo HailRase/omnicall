@@ -1,4 +1,5 @@
 import type { IncomingRingtoneId } from "@domain/index.js";
+import { CLASSIC_RING_SEQUENCE_MS } from "./classicRingtone.js";
 
 /**
  * - Purpose: WebAudio synthesis profiles for selectable incoming ringtones.
@@ -15,18 +16,26 @@ export type RingtoneCadenceStep = Readonly<{
 export type RingtonePreset = Readonly<{
   /** Base gain applied to the master gain node. */
   masterGain: number;
-  /** Looping cadence steps; classic preserves 440/480 @ 1000ms. */
+  /** Looping cadence steps; classic documents FM ring on/off cadence. */
   steps: ReadonlyArray<RingtoneCadenceStep>;
 }>;
 
+/**
+ * Classic FM ring metadata (playback via `createClassicRingtoneSession`).
+ * Carrier 660 Hz + square LFO; steps encode on/off cadence only.
+ */
+const CLASSIC_PRESET: RingtonePreset = {
+  masterGain: 0.5,
+  steps: [
+    { frequencyHz: 660, durationMs: CLASSIC_RING_SEQUENCE_MS[0], gain: 1 },
+    { frequencyHz: 0, durationMs: CLASSIC_RING_SEQUENCE_MS[1], gain: 0 },
+    { frequencyHz: 660, durationMs: CLASSIC_RING_SEQUENCE_MS[2], gain: 1 },
+    { frequencyHz: 0, durationMs: CLASSIC_RING_SEQUENCE_MS[3], gain: 0 },
+  ],
+};
+
 const PRESETS: Readonly<Record<IncomingRingtoneId, RingtonePreset>> = {
-  classic: {
-    masterGain: 0.12,
-    steps: [
-      { frequencyHz: 440, durationMs: 1000, gain: 1 },
-      { frequencyHz: 480, durationMs: 1000, gain: 1 },
-    ],
-  },
+  classic: CLASSIC_PRESET,
   "soft-chime": {
     masterGain: 0.09,
     steps: [

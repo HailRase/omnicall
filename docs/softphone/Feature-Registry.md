@@ -125,7 +125,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Priority: critical
 - Status: implemented
 - Owner: TBD
-- Related: **F-033** (selectable incoming ringtone catalog; default `classic` preserves prior audible tone)
+- Related: **F-033** (selectable incoming ringtone catalog; default `classic` FM ring)
 - Inputs: incoming session event from telephony adapter
 - Outputs: `IncomingCallReceived`, `IncomingCallRingingStarted`, `CallAnswered`, `CallRejected`, `CallAutoAnswered`, `CallRejectedByDnd`, ringing projection, host break-reason mapping
 - Acceptance Criteria:
@@ -1172,7 +1172,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-012`, `LF-076`
 - Context: Media (primary); Settings (persistence / UI)
 - Priority: medium
-- Status: **implemented** (2026-08-01)
+- Status: **implemented** (2026-08-01; classic FM ring 2026-08-02)
 - Owner: TBD
 - Related: F-002 (incoming call), F-016 (Settings Sessions), F-018 (tone priority FSM), F-021 (i18n), F-030 (preferences round-trip)
 - Explicit non-overlap:
@@ -1181,16 +1181,18 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Inputs: `UserSettings.incomingRingtoneId` (schema **v18**, default `classic`); Settings → Sessions select + preview
 - Outputs: `MediaGateway.configureIncomingRingtone` / `previewIncomingRingtone` / `stopIncomingRingtonePreview`; audible catalog of ≥10 presets
 - Acceptance Criteria:
-  - Fresh install and migrated v17→v18 profiles keep **classic** dual-tone (no audible downgrade).
+  - Default **`classic`** uses FM WebAudio ring (carrier 660 Hz, square LFO 15 Hz × depth 200, cadence `[440,66,660,1980]` ms, peak gain 0.5).
   - Unknown persisted ids resolve to `classic` without failing settings load.
   - Incoming ringtone still stops on answer/reject/release; multi-call Tone FSM unchanged (one audible ringtone).
   - Preview plays via dedicated preview session (not through Tone coordinator request map); stops on panel unmount / timeout.
   - F-030 portable preferences include `incomingRingtoneId`.
   - i18n keys `settings.sessions.ringtone.*` for ru/en/fr/de/bg.
+  - Non-`classic` catalog presets use original F-033 step synthesis profiles (single oscillator cadence).
 - Test Coverage:
-  - Unit: `IncomingRingtoneId`, migrate v17→v18, `ringtonePresets`, BrowserMediaAdapter configure/preview
+  - Unit: `IncomingRingtoneId`, migrate v17→v18, `classicRingtone`, `ringtonePresets`, `WebAudioTonePlayer` classic vs catalog graph, BrowserMediaAdapter configure/preview
   - UI: `SettingsSessionsPanel` preview callback
   - Integration: existing incoming ringtone / TonePlaybackPriority suites remain green
   - E2E: deferred (manual: Settings → Sessions → select + preview; inbound call uses selection)
 - Design: `docs/softphone/P11-Incoming-Ringtone-Catalog-Design.md`
-- Implementation evidence: `src/domain/media/IncomingRingtoneId.ts`; `UserSettings` v18; `WebAudioTonePlayer` + `ringtonePresets.ts`; `BrowserMediaAdapter` / `ArbiterMediaGateway` / `MockMediaGateway`; facade apply on init/save/import; Settings Sessions UI
+- Implementation evidence: `src/domain/media/IncomingRingtoneId.ts`; `UserSettings` v18; `WebAudioTonePlayer` + `classicRingtone.ts` + `ringtonePresets.ts`; `BrowserMediaAdapter` / `ArbiterMediaGateway` / `MockMediaGateway`; facade apply on init/save/import; Settings Sessions UI
+- Implementation evidence (2026-08-02): classic FM ring path; catalog presets restored to original F-033 values

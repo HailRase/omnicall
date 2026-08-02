@@ -32,7 +32,7 @@ Source of truth: `SETTINGS_SCHEMA_VERSION` in `src/domain/settings/UserSettings.
 | `autoUnholdOnTransferFailure` | `boolean` | `true` | transfer policy | Required boolean. |
 | `autoAnswerTimeoutSec` | `number \| null` | `null` | LF-016 | `null` or integer `0…300`. |
 | `ringbackToneEnabled` | `boolean` | `true` | LF-033 | Required boolean; wire-ready for RBT policy. |
-| `incomingRingtoneId` | `IncomingRingtoneId` | `classic` | LF-012 / F-033 | Catalog whitelist; unknown → `classic` (no load failure). |
+| `incomingRingtoneId` | `IncomingRingtoneId` | `classic` | LF-012 / F-033 | Catalog whitelist; unknown → `classic` (no load failure). WebAudio synthesis retunes do **not** bump schema version. |
 
 legacy operator platform-only break-reason lists remain in `IncomingCallSettings` (synced from operator gateway), not in `UserSettings`.
 

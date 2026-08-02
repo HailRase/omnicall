@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INCOMING_RINGTONE_IDS } from "@domain/index.js";
+import { CLASSIC_RING_SEQUENCE_MS } from "./classicRingtone.js";
 import { resolveRingtonePreset } from "./ringtonePresets.js";
 
 describe("ringtonePresets", () => {
@@ -11,12 +12,26 @@ describe("ringtonePresets", () => {
     }
   });
 
-  it("keeps classic dual-tone cadence unchanged", () => {
+  it("documents classic FM ring cadence metadata", () => {
     expect(resolveRingtonePreset("classic")).toEqual({
-      masterGain: 0.12,
+      masterGain: 0.5,
       steps: [
-        { frequencyHz: 440, durationMs: 1000, gain: 1 },
-        { frequencyHz: 480, durationMs: 1000, gain: 1 },
+        { frequencyHz: 660, durationMs: CLASSIC_RING_SEQUENCE_MS[0], gain: 1 },
+        { frequencyHz: 0, durationMs: CLASSIC_RING_SEQUENCE_MS[1], gain: 0 },
+        { frequencyHz: 660, durationMs: CLASSIC_RING_SEQUENCE_MS[2], gain: 1 },
+        { frequencyHz: 0, durationMs: CLASSIC_RING_SEQUENCE_MS[3], gain: 0 },
+      ],
+    });
+  });
+
+  it("keeps original soft-chime catalog values", () => {
+    expect(resolveRingtonePreset("soft-chime")).toEqual({
+      masterGain: 0.09,
+      steps: [
+        { frequencyHz: 523.25, durationMs: 280, gain: 1 },
+        { frequencyHz: 659.25, durationMs: 280, gain: 0.85 },
+        { frequencyHz: 783.99, durationMs: 420, gain: 0.7 },
+        { frequencyHz: 0, durationMs: 900, gain: 0 },
       ],
     });
   });
