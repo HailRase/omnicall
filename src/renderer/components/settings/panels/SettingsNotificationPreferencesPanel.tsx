@@ -121,6 +121,17 @@ export function SettingsNotificationPreferencesPanel({
           >
             {t("settings.notifications.preferences.preset.quietSuccesses")}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="settings-notification-preset-telephony-focus"
+            onClick={() => {
+              onApplyPreset("telephonyFocus");
+            }}
+          >
+            {t("settings.notifications.preferences.preset.telephonyFocus")}
+          </Button>
         </div>
         <div className={formStyles.settingsGroup}>
           {USER_NOTIFICATION_MODULES.map((module) => (

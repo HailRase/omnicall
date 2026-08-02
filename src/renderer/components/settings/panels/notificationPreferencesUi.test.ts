@@ -34,6 +34,20 @@ describe("notificationPreferencesUi", () => {
     expect(next.modules.sdk.enabled).toBe(true);
   });
 
+  it("applies telephony focus without muting telephony or headset", () => {
+    const current = createDefaultUserNotificationPreferences();
+    const next = applyNotificationPreferencesPreset(current, "telephonyFocus");
+
+    expect(next.appearance).toEqual(current.appearance);
+    expect(next.modules.telephony.minLevel).toBe("info");
+    expect(next.modules.headset.minLevel).toBe("info");
+    expect(next.modules.account.minLevel).toBe("info");
+    expect(next.modules.ocp.minLevel).toBe("info");
+    expect(next.modules.contacts.minLevel).toBe("error");
+    expect(next.modules.updates.minLevel).toBe("error");
+    expect(next.modules.externalApplications.minLevel).toBe("error");
+  });
+
   it("restores default module prefs while preserving appearance", () => {
     const current = {
       ...createDefaultUserNotificationPreferences(),

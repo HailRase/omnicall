@@ -94,7 +94,9 @@ WU-08: reason `notification_actionable` is allowlisted (ADR-0013); Capture forwa
 | Update check toast (if any) | `updates` | `updates.check` | informational |
 | SDK non-modal toasts (if any) | `sdk` | `sdk.*` | actionable/informational |
 
-SoftphoneReadyShell OCP auth feedback is tagged (`ocp` / `ocp.auth_feedback` / `actionable`). Static checklist: `src/renderer/hooks/notificationProducerTagging.test.ts`.
+SoftphoneReadyShell OCP auth feedback is tagged (`ocp` / `ocp.auth_feedback` / `actionable`).
+External Applications save failures: `externalApplications` / `external_applications.save` / `actionable`.
+Static checklist scans all product sources under `src/renderer` (excludes `*.test.*` / `*.stories.*`): `src/renderer/hooks/notificationProducerTagging.test.ts`.
 
 ## Presentation chrome (unchanged)
 
@@ -123,10 +125,13 @@ Never log title params that may contain phones/tokens beyond existing sanitizer 
 
 | Failure | Behavior |
 | --- | --- |
-| Journal write fails | log error; presentation fail-open (show toast if policy allowed) — preserves today’s catch enqueue |
-| Policy throws | treat as bug; fail-open present + log |
+| Journal write fails | log error; Capture still returns **policy decision** (`journalPersisted: false`). Presentation follows `shouldPresentPopup` — **not** forced on. Prefs are never bypassed by disk failure. |
+| Unexpected capture throw in renderer | log via `onCaptureFailure`; last-resort enqueue (fail-open) only for this path |
+| Validation failure (invalid identity) | Capture returns `err`; shell last-resort fail-open present, no raise |
 | Raise IPC fails | log; do not retry loop; toast unaffected |
 | Settings missing module key | defaults filled by parser before policy |
+
+See also `13-AUDIT-REMEDIATION.md`.
 
 ## Concurrency
 

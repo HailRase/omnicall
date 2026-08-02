@@ -180,6 +180,88 @@ describe("useNotifications", () => {
     expect(raiseWindow).not.toHaveBeenCalled();
   });
 
+  it("honors closable preference on newly enqueued items", () => {
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        closable: false,
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "one",
+        level: "info",
+        messageText: "ok",
+      });
+    });
+
+    expect(result.current.items[0]).toEqual(
+      expect.objectContaining({
+        id: "one",
+        closable: false,
+      }),
+    );
+  });
+
+  it("fail-opens and reports unexpected capture throws", async () => {
+    const onCaptureFailure = vi.fn();
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        onCaptureFailure,
+        capture: () => Promise.reject(new Error("boom")),
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "fail-open",
+        level: "info",
+        messageText: "still shown",
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toHaveLength(1);
+    });
+    expect(onCaptureFailure).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not enqueue when capture suppresses popup", async () => {
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        maxVisible: 3,
+        capture: () =>
+          Promise.resolve({
+            shouldPresentPopup: false,
+            shouldRaiseWindow: false,
+          }),
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "suppressed",
+        level: "info",
+        messageText: "hidden",
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toHaveLength(0);
+    });
+  });
+
   it("applies updated default duration only to new notifications", () => {
     const { result, rerender } = renderHook(
       (props: { durationMs: number }) =>

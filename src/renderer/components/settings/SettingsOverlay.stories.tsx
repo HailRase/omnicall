@@ -63,6 +63,8 @@ const themeDefaults = {
   onNotificationDurationMsChange: () => undefined,
   notificationMaxVisible: 3,
   onNotificationMaxVisibleChange: () => undefined,
+  notificationClosable: true,
+  onNotificationClosableChange: () => undefined,
 } as const;
 
 const autoAnswerDefaults = {

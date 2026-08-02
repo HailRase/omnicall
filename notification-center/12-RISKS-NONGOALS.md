@@ -17,7 +17,7 @@
 | Journal format break on new modules | History load failure | Additive enum parse; fixtures for old+new |
 | Schema bump conflicts with parallel feature branches | Merge pain | Bump from then-current N; reconcile migrations on merge |
 | Quiet-successes preset hides actionable warnings if mis-ranked | Missed recovery CTA | Level rank tested; actionable errors remain error level |
-| Capture fail-open floods UI when journal disk broken | Noisy toasts | Keep current fail-open but log structurally; do not retry-loop |
+| Capture fail-open floods UI when journal disk broken | Noisy toasts / prefs bypass | **Mitigated 2026-08-02:** journal failure keeps policy decision (`journalPersisted=false`); only unexpected throws last-resort enqueue; structured Capture logs |
 | Settings hub complexity | Incomplete WU | Tabs with three clear panels; no in-call inbox |
 
 ## Explicit non-goals (v1)

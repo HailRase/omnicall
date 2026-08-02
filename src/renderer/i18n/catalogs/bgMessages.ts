@@ -1314,6 +1314,7 @@ export const bgMessages: MessageShape = {
   "settings.notifications.module.sdk": "SDK",
   "settings.notifications.module.updates": "Актуализации",
   "settings.notifications.module.externalServices": "Външни услуги",
+  "settings.notifications.module.externalApplications": "Външни приложения",
   "settings.notifications.module.system.description": "Системни събития на приложението и обвивката.",
   "settings.notifications.module.account.description": "Вход, профил и грешки при авторизация.",
   "settings.notifications.module.telephony.description": "Събития от обаждания и SIP регистрация.",
@@ -1327,6 +1328,8 @@ export const bgMessages: MessageShape = {
   "settings.notifications.module.updates.description": "Проверка за актуализации и статус на изтегляне.",
   "settings.notifications.module.externalServices.description":
     "Изходящи HTTP автоматизации и техните грешки.",
+  "settings.notifications.module.externalApplications.description":
+    "Запазване и грешки при стартиране на външни приложения.",
   "settings.notifications.center.tabsAria": "Раздели на центъра за известия",
   "settings.notifications.tab.preferences": "Предпочитания",
   "settings.notifications.tab.appearance": "Външен вид",
@@ -1360,6 +1363,7 @@ export const bgMessages: MessageShape = {
   "settings.notifications.preferences.presetsAria": "Бързи настройки за известия",
   "settings.notifications.preferences.preset.default": "По подразбиране",
   "settings.notifications.preferences.preset.quietSuccesses": "Без успехи",
+  "settings.notifications.preferences.preset.telephonyFocus": "Фокус върху телефонията",
   "settings.notifications.appearance.legend": "Външен вид на известията",
   "account.draft.discard.title": "Отхвърляне на промените?",
   "account.draft.discard.description": "Незапазените данни на новия профил ще бъдат загубени.",

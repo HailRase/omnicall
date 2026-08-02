@@ -20,6 +20,8 @@ function createAppearanceProps() {
     onNotificationDurationMsChange: vi.fn(),
     notificationMaxVisible: 3,
     onNotificationMaxVisibleChange: vi.fn(),
+    notificationClosable: true,
+    onNotificationClosableChange: vi.fn(),
   };
 }
 

@@ -543,6 +543,7 @@ const ruMessages = {
   "settings.notifications.module.sdk": "SDK",
   "settings.notifications.module.updates": "Обновления",
   "settings.notifications.module.externalServices": "Внешние сервисы",
+  "settings.notifications.module.externalApplications": "Внешние приложения",
   "settings.notifications.module.system.description": "Системные события приложения и оболочки.",
   "settings.notifications.module.account.description": "Вход, профиль и ошибки авторизации.",
   "settings.notifications.module.telephony.description": "События звонков и SIP-регистрации.",
@@ -556,6 +557,8 @@ const ruMessages = {
   "settings.notifications.module.updates.description": "Проверка обновлений и статусы загрузки.",
   "settings.notifications.module.externalServices.description":
     "Исходящие HTTP-автоматизации и их ошибки.",
+  "settings.notifications.module.externalApplications.description":
+    "Сохранение и ошибки запуска внешних приложений.",
   "settings.notifications.center.tabsAria": "Разделы центра уведомлений",
   "settings.notifications.tab.preferences": "Предпочтения",
   "settings.notifications.tab.appearance": "Внешний вид",
@@ -589,6 +592,7 @@ const ruMessages = {
   "settings.notifications.preferences.presetsAria": "Быстрые пресеты уведомлений",
   "settings.notifications.preferences.preset.default": "По умолчанию",
   "settings.notifications.preferences.preset.quietSuccesses": "Без успехов",
+  "settings.notifications.preferences.preset.telephonyFocus": "Фокус на телефонии",
   "settings.notifications.appearance.legend": "Внешний вид уведомлений",
   "account.draft.discard.title": "Отменить изменения?",
   "account.draft.discard.description": "Несохранённые данные нового профиля будут потеряны.",
@@ -2343,6 +2347,7 @@ const enMessages: MessageShape = {
   "settings.notifications.module.sdk": "SDK",
   "settings.notifications.module.updates": "Updates",
   "settings.notifications.module.externalServices": "External Services",
+  "settings.notifications.module.externalApplications": "External Applications",
   "settings.notifications.module.system.description": "Application and shell system events.",
   "settings.notifications.module.account.description": "Sign-in, profile, and authorization errors.",
   "settings.notifications.module.telephony.description": "Call events and SIP registration.",
@@ -2356,6 +2361,8 @@ const enMessages: MessageShape = {
   "settings.notifications.module.updates.description": "Update checks and download status.",
   "settings.notifications.module.externalServices.description":
     "Outbound HTTP automations and their failures.",
+  "settings.notifications.module.externalApplications.description":
+    "External application save and launch failures.",
   "settings.notifications.center.tabsAria": "Notification Center sections",
   "settings.notifications.tab.preferences": "Preferences",
   "settings.notifications.tab.appearance": "Appearance",
@@ -2389,6 +2396,7 @@ const enMessages: MessageShape = {
   "settings.notifications.preferences.presetsAria": "Notification preference presets",
   "settings.notifications.preferences.preset.default": "Default",
   "settings.notifications.preferences.preset.quietSuccesses": "Quiet successes",
+  "settings.notifications.preferences.preset.telephonyFocus": "Telephony focus",
   "settings.notifications.appearance.legend": "Notification appearance",
   "account.draft.discard.title": "Discard changes?",
   "account.draft.discard.description": "Unsaved data in the new profile will be lost.",
@@ -4065,6 +4073,7 @@ const frMessages: MessageShape = {
   "settings.notifications.module.sdk": "SDK",
   "settings.notifications.module.updates": "Mises a jour",
   "settings.notifications.module.externalServices": "Services externes",
+  "settings.notifications.module.externalApplications": "Applications externes",
   "settings.notifications.module.system.description": "Evenements systeme de l'application et du shell.",
   "settings.notifications.module.account.description": "Connexion, profil et erreurs d'autorisation.",
   "settings.notifications.module.telephony.description": "Evenements d'appel et enregistrement SIP.",
@@ -4078,6 +4087,8 @@ const frMessages: MessageShape = {
   "settings.notifications.module.updates.description": "Verification des mises a jour et telechargements.",
   "settings.notifications.module.externalServices.description":
     "Automations HTTP sortantes et leurs erreurs.",
+  "settings.notifications.module.externalApplications.description":
+    "Echecs d'enregistrement et de lancement des applications externes.",
   "settings.notifications.center.tabsAria": "Sections du centre de notifications",
   "settings.notifications.tab.preferences": "Preferences",
   "settings.notifications.tab.appearance": "Apparence",
@@ -4111,6 +4122,7 @@ const frMessages: MessageShape = {
   "settings.notifications.preferences.presetsAria": "Presets de preferences de notification",
   "settings.notifications.preferences.preset.default": "Par defaut",
   "settings.notifications.preferences.preset.quietSuccesses": "Sans succes",
+  "settings.notifications.preferences.preset.telephonyFocus": "Focus telephonie",
   "settings.notifications.appearance.legend": "Apparence des notifications",
   "account.draft.discard.title": "Annuler les modifications ?",
   "account.draft.discard.description": "Les donnees non enregistrees seront perdues.",
@@ -5783,6 +5795,7 @@ const deMessages: MessageShape = {
   "settings.notifications.module.sdk": "SDK",
   "settings.notifications.module.updates": "Updates",
   "settings.notifications.module.externalServices": "Externe Dienste",
+  "settings.notifications.module.externalApplications": "Externe Anwendungen",
   "settings.notifications.module.system.description": "Systemereignisse der App und der Shell.",
   "settings.notifications.module.account.description": "Anmeldung, Profil und Autorisierungsfehler.",
   "settings.notifications.module.telephony.description": "Anrufereignisse und SIP-Registrierung.",
@@ -5796,6 +5809,8 @@ const deMessages: MessageShape = {
   "settings.notifications.module.updates.description": "Update-Pruefung und Download-Status.",
   "settings.notifications.module.externalServices.description":
     "Ausgehende HTTP-Automatisierungen und deren Fehler.",
+  "settings.notifications.module.externalApplications.description":
+    "Speichern und Startfehler externer Anwendungen.",
   "settings.notifications.center.tabsAria": "Bereiche des Benachrichtigungscenters",
   "settings.notifications.tab.preferences": "Praeferenzen",
   "settings.notifications.tab.appearance": "Darstellung",
@@ -5829,6 +5844,7 @@ const deMessages: MessageShape = {
   "settings.notifications.preferences.presetsAria": "Voreinstellungen fuer Benachrichtigungen",
   "settings.notifications.preferences.preset.default": "Standard",
   "settings.notifications.preferences.preset.quietSuccesses": "Erfolge stumm",
+  "settings.notifications.preferences.preset.telephonyFocus": "Telefonie-Fokus",
   "settings.notifications.appearance.legend": "Darstellung der Benachrichtigungen",
   "account.draft.discard.title": "Aenderungen verwerfen?",
   "account.draft.discard.description": "Nicht gespeicherte Profildaten gehen verloren.",

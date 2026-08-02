@@ -41,6 +41,7 @@ function entry(
     titleParams: {},
     titleSnapshot: "Authorization failed",
     suppressedAtEmission: false,
+    suppressReasons: [],
     correlationId: "corr-1",
   };
 }

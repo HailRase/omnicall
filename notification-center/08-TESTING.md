@@ -17,15 +17,15 @@
 
 ## Application unit tests
 
-- `UserNotificationCaptureService`: journal always; `suppressedAtEmission` mirrors popup decision; raise flags per policy.
+- `UserNotificationCaptureService`: journal always; `suppressedAtEmission` mirrors popup decision; raise flags per policy; journal persist failure returns policy without forcing popup on.
 - Facade capture uses preferences from settings snapshot (not caller boolean authority).
-- Record/Query journal regression: filters by new modules.
+- Record/Query journal regression: filters by new modules; `suppressReasons` round-trip / legacy empty.
 - F-030 document round trip includes notification preferences; journal excluded.
-- Logging assertions: required fields present; secrets absent.
+- Logging assertions: `capture_user_notification` fields present; secrets absent.
 
 ## Renderer / hook tests
 
-- `useNotifications`: respects `shouldPresentPopup`; does not enqueue when false; fail-open on capture throw remains tested.
+- `useNotifications`: respects `shouldPresentPopup`; does not enqueue when false; unexpected throw last-resort fail-open + `onCaptureFailure`; `closable` preference applied.
 - `useActionNotifications`: descriptors include module/functionId/interruptClass.
 - OCP mapper: `module: ocp`, `functionId: ocp.notification`, `interruptClass: remote`.
 - Contacts/history/video producers tagged.

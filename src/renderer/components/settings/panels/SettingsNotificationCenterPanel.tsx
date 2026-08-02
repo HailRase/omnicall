@@ -43,6 +43,8 @@ export type SettingsNotificationCenterPanelProps = Readonly<{
   onNotificationDurationMsChange: (durationMs: number) => void;
   notificationMaxVisible: number;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
+  notificationClosable: boolean;
+  onNotificationClosableChange: (closable: boolean) => void;
   activeTab?: NotificationCenterTabId;
   onActiveTabChange?: (tab: NotificationCenterTabId) => void;
   notificationHistoryQuery?: NotificationHistoryQuery;
@@ -69,6 +71,8 @@ export function SettingsNotificationCenterPanel({
   onNotificationDurationMsChange,
   notificationMaxVisible,
   onNotificationMaxVisibleChange,
+  notificationClosable,
+  onNotificationClosableChange,
   activeTab: controlledActiveTab,
   onActiveTabChange,
   notificationHistoryQuery,
@@ -147,6 +151,8 @@ export function SettingsNotificationCenterPanel({
           onNotificationDurationMsChange={onNotificationDurationMsChange}
           notificationMaxVisible={notificationMaxVisible}
           onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
+          notificationClosable={notificationClosable}
+          onNotificationClosableChange={onNotificationClosableChange}
         />
       ) : null}
 

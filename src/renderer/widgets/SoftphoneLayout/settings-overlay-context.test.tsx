@@ -48,6 +48,8 @@ describe("settings overlay with layout zones", () => {
               notificationDurationMs={4200}
               onNotificationDurationMsChange={() => undefined}
               notificationMaxVisible={3}
+              notificationClosable
+              onNotificationClosableChange={() => undefined}
               onNotificationMaxVisibleChange={() => undefined}
               {...settingsNotificationCenterStoryDefaults}
               multiSessionsEnabled

@@ -79,8 +79,12 @@ Move controls from `SettingsGeneralPanel`:
 - Stacking segmented control
 - Duration number input
 - Max visible number input
+- Closable switch (`appearance.closable` → Sonner close button; test ID `settings-notification-closable`)
 
 Preserve existing test IDs where possible (`settings-notification-placement-control`, etc.) or add aliases and update catalog in the same WU.
+
+Preferences presets (non-persisted helpers): Default, Quiet successes, Telephony focus
+(`settings-notification-preset-*`).
 
 General panel:
 

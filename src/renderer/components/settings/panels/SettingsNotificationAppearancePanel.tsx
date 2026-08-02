@@ -12,7 +12,7 @@ import {
 } from "@application/index.js";
 import { useI18n, type TranslationKey } from "../../../i18n/index.js";
 import { SettingsNumberInput } from "../SettingsNumberInput.js";
-import { Button } from "../../ui/index.js";
+import { Button, Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 
 export type SettingsNotificationAppearancePanelProps = Readonly<{
@@ -24,6 +24,8 @@ export type SettingsNotificationAppearancePanelProps = Readonly<{
   onNotificationDurationMsChange: (durationMs: number) => void;
   notificationMaxVisible: number;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
+  notificationClosable: boolean;
+  onNotificationClosableChange: (closable: boolean) => void;
 }>;
 
 const PLACEMENT_LABELS: Readonly<Record<NotificationPlacement, TranslationKey>> = {
@@ -53,6 +55,8 @@ export function SettingsNotificationAppearancePanel({
   onNotificationDurationMsChange,
   notificationMaxVisible,
   onNotificationMaxVisibleChange,
+  notificationClosable,
+  onNotificationClosableChange,
 }: SettingsNotificationAppearancePanelProps): JSX.Element {
   const { t } = useI18n();
 
@@ -168,6 +172,22 @@ export function SettingsNotificationAppearancePanel({
                 value={notificationMaxVisible}
                 data-testid="settings-notification-max-visible"
                 onChange={onNotificationMaxVisibleChange}
+              />
+            </div>
+            <div className={formStyles.fieldRow}>
+              <label
+                className={formStyles.fieldLabelGroup}
+                htmlFor="settings-notification-closable"
+              >
+                <span className={formStyles.fieldLabel}>
+                  {t("settings.general.notifications.closable.label")}
+                </span>
+              </label>
+              <Switch
+                id="settings-notification-closable"
+                checked={notificationClosable}
+                data-testid="settings-notification-closable"
+                onCheckedChange={onNotificationClosableChange}
               />
             </div>
           </div>

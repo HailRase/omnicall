@@ -47,6 +47,8 @@ const panelProps = {
   onNotificationDurationMsChange: vi.fn(),
   notificationMaxVisible: 3,
   onNotificationMaxVisibleChange: vi.fn(),
+  notificationClosable: true,
+  onNotificationClosableChange: vi.fn(),
   ...settingsNotificationCenterStoryDefaults,
   onMasterInAppPopupEnabledChange: vi.fn(),
   onNotificationModuleEnabledChange: vi.fn(),

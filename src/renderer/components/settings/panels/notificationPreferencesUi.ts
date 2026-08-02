@@ -12,7 +12,10 @@ import {
 } from "@application/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 
-export type NotificationPreferencesPresetId = "default" | "quietSuccesses";
+export type NotificationPreferencesPresetId =
+  | "default"
+  | "quietSuccesses"
+  | "telephonyFocus";
 
 export const NOTIFICATION_CENTER_TAB_IDS = [
   "preferences",
@@ -37,6 +40,7 @@ export const MODULE_LABEL_KEY: Readonly<
   sdk: "settings.notifications.module.sdk",
   updates: "settings.notifications.module.updates",
   externalServices: "settings.notifications.module.externalServices",
+  externalApplications: "settings.notifications.module.externalApplications",
 };
 
 export const MODULE_DESCRIPTION_KEY: Readonly<
@@ -54,6 +58,8 @@ export const MODULE_DESCRIPTION_KEY: Readonly<
   sdk: "settings.notifications.module.sdk.description",
   updates: "settings.notifications.module.updates.description",
   externalServices: "settings.notifications.module.externalServices.description",
+  externalApplications:
+    "settings.notifications.module.externalApplications.description",
 };
 
 /**
@@ -96,6 +102,23 @@ export function createNotificationModulesForPreset(
     for (const module of USER_NOTIFICATION_MODULES) {
       modules[module] = quiet;
     }
+    return modules;
+  }
+
+  if (preset === "telephonyFocus") {
+    const modules = {
+      ...createDefaultUserNotificationPreferences().modules,
+    } as Record<UserNotificationModule, UserNotificationModulePreferences>;
+    const noiseMin: UserNotificationModulePreferences = {
+      ...DEFAULT_MODULE_PREFERENCES,
+      minLevel: "error",
+    };
+    modules.contacts = noiseMin;
+    modules.history = noiseMin;
+    modules.updates = noiseMin;
+    modules.externalServices = noiseMin;
+    modules.externalApplications = noiseMin;
+    modules.sdk = noiseMin;
     return modules;
   }
 

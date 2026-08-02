@@ -1,4 +1,5 @@
 import type { SettingsAccountKey } from "./SettingsAccountKey.js";
+import type { NotificationSuppressReason } from "./userNotificationPresentationPolicy.js";
 
 export const USER_NOTIFICATION_LEVELS = [
   "info",
@@ -22,6 +23,7 @@ export const USER_NOTIFICATION_MODULES = [
   "sdk",
   "updates",
   "externalServices",
+  "externalApplications",
 ] as const;
 
 export type UserNotificationModule = (typeof USER_NOTIFICATION_MODULES)[number];
@@ -44,6 +46,11 @@ export type UserNotificationJournalEntry = Readonly<{
   titleParams: Readonly<Record<string, UserNotificationTitleParam>>;
   titleSnapshot: string;
   suppressedAtEmission: boolean;
+  /**
+   * Structured presentation suppress reasons from capture policy.
+   * Absent/empty on legacy journal rows loaded before this field existed.
+   */
+  suppressReasons: ReadonlyArray<NotificationSuppressReason>;
   correlationId: string | null;
 }>;
 

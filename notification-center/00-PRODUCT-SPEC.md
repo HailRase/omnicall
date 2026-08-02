@@ -65,6 +65,7 @@ Stable module codes used by journal, prefs, and filters:
 | `sdk` | SDK operator-facing toast outcomes (non-modal) |
 | `updates` | Manual update check outcomes surfaced as toast |
 | `externalServices` | External Services Run/automation user-facing toasts if any |
+| `externalApplications` | External Applications save/launch user-facing toasts |
 
 Every `notify(...)` call must supply `module` + `functionId`. Missing values default to `system` / `renderer.notification` only as a temporary migration bridge; WU tagging removes new omissions.
 

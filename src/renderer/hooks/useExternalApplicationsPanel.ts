@@ -224,8 +224,8 @@ export function useExternalApplicationsPanel(
         notify?.({
           level: "error",
           messageKey: "settings.integrations.externalApplications.validation.saveFailed",
-          module: "settings",
-          functionId: "settings.external_applications.save",
+          module: "externalApplications",
+          functionId: "external_applications.save",
           interruptClass: "actionable",
         });
         return;

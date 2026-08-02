@@ -220,6 +220,8 @@ function SoftphoneShellLayoutRoute({
         correlationId: descriptor.correlationId ?? null,
       });
       if (!result.ok) {
+        // Validation-only failure: CaptureService returns ok when journal IO fails
+        // and still carries policy. Unexpected validation → last-resort fail-open.
         return { shouldPresentPopup: true, shouldRaiseWindow: false };
       }
       return {
@@ -234,14 +236,19 @@ function SoftphoneShellLayoutRoute({
       window.softphone.raiseShellWindow(payload),
     [],
   );
+  const handleNotificationCaptureFailure = useCallback((error: unknown): void => {
+    console.error("notification_capture_unexpected_failure", error);
+  }, []);
   const notifications = useNotifications({
     placement: settingsActions.userSettings.notificationPreferences.appearance.placement,
     stacking: settingsActions.userSettings.notificationPreferences.appearance.stacking,
     durationMs: settingsActions.userSettings.notificationPreferences.appearance.durationMs,
     maxVisible: settingsActions.userSettings.notificationPreferences.appearance.maxVisible,
+    closable: settingsActions.userSettings.notificationPreferences.appearance.closable,
     capture: captureNotification,
     resolveTitle: resolveNotificationTitle,
     raiseWindow: raiseNotificationWindow,
+    onCaptureFailure: handleNotificationCaptureFailure,
   });
   const preferencesTransfer = usePreferencesTransferActions({
     facade,
@@ -705,6 +712,10 @@ function SoftphoneShellLayoutRoute({
                 settingsActions.userSettings.notificationPreferences.appearance.maxVisible
               }
               onNotificationMaxVisibleChange={settingsActions.onNotificationMaxVisibleChange}
+              notificationClosable={
+                settingsActions.userSettings.notificationPreferences.appearance.closable
+              }
+              onNotificationClosableChange={settingsActions.onNotificationClosableChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
               autoAnswerEnabled={settingsActions.userSettings.autoAnswerTimeoutSec !== null}

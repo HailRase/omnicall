@@ -477,6 +477,7 @@ export class AccountBootstrapFacade {
         notificationJournalRepository,
         deps.logger,
       ),
+      deps.logger,
     );
     this.queryUserNotificationJournalUseCase =
       new QueryUserNotificationJournalUseCase(notificationJournalRepository);

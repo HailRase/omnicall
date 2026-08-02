@@ -22,6 +22,7 @@
 - [`10-WORK-UNITS.md`](./10-WORK-UNITS.md) — ordered executable WUs.
 - [`11-ACCEPTANCE.md`](./11-ACCEPTANCE.md) — product and non-regression gate.
 - [`12-RISKS-NONGOALS.md`](./12-RISKS-NONGOALS.md) — risks, mitigations, and exclusions.
+- [`13-AUDIT-REMEDIATION.md`](./13-AUDIT-REMEDIATION.md) — post-WU-10 audit hardening (fail-open, catalog, closable).
 - [`PROGRESS.md`](./PROGRESS.md) — machine-readable WU status.
 - [`AGENT-CONTINUATION.md`](./AGENT-CONTINUATION.md) — exact continuation protocol.
 

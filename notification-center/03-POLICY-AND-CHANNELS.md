@@ -115,9 +115,9 @@ Settings may offer non-persisted quick actions that write the same fields:
 | --- | --- |
 | Default | All modules enabled, minLevel `info`, raise `never`, master on |
 | Quiet successes | All modules `minLevel = warning` (errors+warnings only) |
-| Telephony focus | `telephony`+`headset`+`account` full; `ocp` remote still on; `contacts`/`history`/`updates` minLevel `error` |
+| Telephony focus | `telephony`+`headset`+`account`+`ocp` full (`info`); noise modules (`contacts`/`history`/`updates`/`sdk`/`externalServices`/`externalApplications`) `minLevel = error` |
 
-Presets are optional WU polish; not required for acceptance if manual controls exist.
+Presets are non-persisted UI helpers that write the same preference fields (implemented in Preferences panel).
 
 ## Shell visibility (informational)
 

@@ -53,14 +53,18 @@ Application / UI projections only — no Domain Electron/React/Zustand/storage i
 - Every `notify(...)` must supply `module` + `functionId` (+ `interruptClass`); missing values
   may temporarily default to `system` / bridge function id only during migration.
 - Do not add phantom modules without producers on the branch.
-- `externalApplications` deferred (no producers on branch at WU-01).
+- `externalApplications` deferred at WU-01; **added 2026-08-02** when F-032 toast producers existed
+  (defaults popup-on; no silent hide).
 
 ### 4. Journal always-on (ADR-AF-007)
 
 - Preferences never disable journal capture.
-- Master or module popup off still records entries with `suppressedAtEmission: true`.
-- Capture failure handling remains fail-open for presentation unless a later ADR revises it
-  with tests; journal write failures are logged, not swallowed silently.
+- Master or module popup off still records entries with `suppressedAtEmission: true`
+  and additive `suppressReasons` from policy (legacy rows load as `[]`).
+- **Journal write failure (amended 2026-08-02):** Capture still returns the Domain policy
+  decision with `journalPersisted: false`. Presentation follows `shouldPresentPopup` —
+  disk failure must **not** force toasts on when prefs suppress them.
+- Unexpected renderer capture throws remain last-resort fail-open present + `onCaptureFailure` log.
 
 ### 5. Raise and OS boundaries
 
@@ -96,7 +100,9 @@ Application / UI projections only — no Domain Electron/React/Zustand/storage i
 - Trade-offs: schema bump + producer tagging work; optional raise/OS remain deferrable.
 - Testing: migration identity, policy matrix, capture outcome, non-regression of F-029/LF-060/
   ADR-0013 surfaces (`notification-center/08-TESTING.md`).
-- Observability: suppress reasons and journal `suppressedAtEmission` remain inspectable.
+- Observability: Capture logs `capture_user_notification` with suppress reasons /
+  `journalPersisted`; journal stores `suppressedAtEmission` + `suppressReasons`.
+- Post-WU-10 hardening: `notification-center/13-AUDIT-REMEDIATION.md`.
 - Migration: N→N+1 additive; rollback = prior schema readers fail closed on unknown future only.
 - Acceptance: Proposed at WU-00; **Accepted** at WU-02; raise path enabled at WU-08
   (`notification_actionable` allowlisted; Preferences raise UI live; defaults unchanged).

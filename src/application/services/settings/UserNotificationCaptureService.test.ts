@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { InMemoryUserNotificationJournalRepository } from "@adapters/settings/InMemoryUserNotificationJournalRepository.js";
 import {
   createDefaultUserNotificationPreferences,
   createSettingsAccountKey,
 } from "@domain/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
+import type { UserNotificationJournalRepository } from "@ports/index.js";
 import { RecordUserNotificationUseCase } from "../../use-cases/settings/RecordUserNotificationUseCase.js";
 import { QueryUserNotificationJournalUseCase } from "../../use-cases/settings/QueryUserNotificationJournalUseCase.js";
 import {
@@ -12,21 +13,20 @@ import {
   UserNotificationCaptureService,
 } from "./UserNotificationCaptureService.js";
 
-function createService(): UserNotificationCaptureService {
+function createService(
+  repository: UserNotificationJournalRepository = new InMemoryUserNotificationJournalRepository(),
+  logger = createTestLogger(),
+): UserNotificationCaptureService {
   return new UserNotificationCaptureService(
-    new RecordUserNotificationUseCase(
-      new InMemoryUserNotificationJournalRepository(),
-      createTestLogger(),
-    ),
+    new RecordUserNotificationUseCase(repository, logger),
+    logger,
   );
 }
 
 describe("UserNotificationCaptureService", () => {
   it("always records and suppresses popup from preferences when master is off", async () => {
     const repository = new InMemoryUserNotificationJournalRepository();
-    const service = new UserNotificationCaptureService(
-      new RecordUserNotificationUseCase(repository, createTestLogger()),
-    );
+    const service = createService(repository);
     const preferences = {
       ...createDefaultUserNotificationPreferences(),
       masterInAppPopupEnabled: false,
@@ -53,8 +53,10 @@ describe("UserNotificationCaptureService", () => {
     if (result.ok) {
       expect(result.value.shouldPresentPopup).toBe(false);
       expect(result.value.shouldRaiseWindow).toBe(false);
+      expect(result.value.journalPersisted).toBe(true);
       expect(result.value.suppressReasons).toContain("master_popup_disabled");
       expect(result.value.entry.suppressedAtEmission).toBe(true);
+      expect(result.value.entry.suppressReasons).toContain("master_popup_disabled");
       expect(result.value.entry.titleParams).toEqual({ username: "agent" });
       expect(result.value.entry.titleSnapshot).not.toContain("must-not-persist");
     }
@@ -78,15 +80,14 @@ describe("UserNotificationCaptureService", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.shouldPresentPopup).toBe(true);
+      expect(result.value.journalPersisted).toBe(true);
       expect(result.value.entry.suppressedAtEmission).toBe(false);
     }
   });
 
   it("suppresses by module minLevel and keeps journal entry", async () => {
     const repository = new InMemoryUserNotificationJournalRepository();
-    const service = new UserNotificationCaptureService(
-      new RecordUserNotificationUseCase(repository, createTestLogger()),
-    );
+    const service = createService(repository);
     const defaults = createDefaultUserNotificationPreferences();
     const result = await service.capture({
       preferences: {
@@ -113,6 +114,50 @@ describe("UserNotificationCaptureService", () => {
       expect(result.value.entry.suppressedAtEmission).toBe(true);
     }
     expect(await repository.listEntries()).toHaveLength(1);
+  });
+
+  it("keeps policy decisions when journal persist fails (no prefs bypass)", async () => {
+    const logger = createTestLogger();
+    const repository: UserNotificationJournalRepository = {
+      listEntries: vi.fn(async () => []),
+      appendEntry: vi.fn(async () => {
+        throw new Error("disk_full");
+      }),
+      clearEntries: vi.fn(async () => undefined),
+    };
+    const service = createService(repository, logger);
+    const preferences = {
+      ...createDefaultUserNotificationPreferences(),
+      masterInAppPopupEnabled: false,
+    };
+
+    const result = await service.capture({
+      preferences,
+      interruptClass: "informational",
+      notification: {
+        accountKey: createSettingsAccountKey("agent@pbx.example"),
+        accountDisplayLabel: "agent",
+        level: "success",
+        module: "contacts",
+        functionId: "contacts.csv.export",
+        titleSnapshot: "Exported",
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.journalPersisted).toBe(false);
+      expect(result.value.shouldPresentPopup).toBe(false);
+      expect(result.value.shouldRaiseWindow).toBe(false);
+      expect(result.value.suppressReasons).toContain("master_popup_disabled");
+    }
+    expect(
+      logger.entries.some(
+        (entry) =>
+          entry.message === "capture_user_notification" &&
+          entry.context?.result === "journal_failed",
+      ),
+    ).toBe(true);
   });
 
   it("forwards shouldRaiseWindow when product raise is enabled and policy raises", async () => {

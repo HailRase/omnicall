@@ -33,7 +33,7 @@
 
 - [x] Presentation policy is evaluated in Application/Domain capture path, not ad hoc in random components.
 - [x] ADR-0025 accepted.
-- [x] Capture failure handling remains safe (no swallowed critical errors; fail-open presentation documented/tested).
+- [x] Capture failure handling remains safe (no swallowed critical errors; journal IO keeps policy — no prefs bypass; unexpected throw last-resort fail-open documented/tested).
 - [x] File size / layer budgets respected on touched modules.
 
 ## Portability and persistence

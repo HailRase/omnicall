@@ -45,11 +45,13 @@ export const USER_NOTIFICATION_MODULES = [
   "sdk",
   "updates",
   "externalServices",
+  "externalApplications",
 ] as const;
 ```
 
-- Add `externalApplications` in the same WU only if that module already exists in product code on the branch; otherwise defer with a follow-up note in PROGRESS (no phantom module without producers).
+- `externalApplications` added post-WU-10 when F-032 producers existed (defaults popup-on; no silent hide).
 - Journal persistence must accept the expanded union; old journal files with known modules continue to parse.
+- Journal entries persist additive `suppressReasons: NotificationSuppressReason[]` (missing → `[]` on load; no journal schemaVersion bump).
 - UI filter/i18n keys must cover every catalog member.
 
 ## Level ordering

@@ -16,11 +16,12 @@ beforeEach(setupJsdomRadix);
 afterEach(cleanup);
 
 const EXPANDED_MODULE_LABELS: Readonly<
-  Record<"sdk" | "updates" | "externalServices", string>
+  Record<"sdk" | "updates" | "externalServices" | "externalApplications", string>
 > = {
   sdk: "SDK",
   updates: "Обновления",
   externalServices: "Внешние сервисы",
+  externalApplications: "Внешние приложения",
 };
 
 function createEntry(
@@ -44,6 +45,7 @@ function createEntry(
     titleParams: {},
     titleSnapshot: title,
     suppressedAtEmission: options.suppressedAtEmission ?? true,
+    suppressReasons: options.suppressedAtEmission === false ? [] : ["module_disabled"],
     correlationId: null,
   };
 }
@@ -120,7 +122,12 @@ describe("SettingsNotificationHistoryPanel", () => {
       ).toBeInTheDocument();
     }
     expect(USER_NOTIFICATION_MODULE_FILTERS).toEqual(
-      expect.arrayContaining(["sdk", "updates", "externalServices"]),
+      expect.arrayContaining([
+        "sdk",
+        "updates",
+        "externalServices",
+        "externalApplications",
+      ]),
     );
     expect(
       within(listbox).getByRole("option", { name: "OCP" }),

@@ -91,6 +91,8 @@ export type SettingsPanelProps = Readonly<{
   onNotificationDurationMsChange: (durationMs: number) => void;
   notificationMaxVisible: number;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
+  notificationClosable: boolean;
+  onNotificationClosableChange: (closable: boolean) => void;
   multiSessionsEnabled: boolean;
   onMultiSessionsChange: (enabled: boolean) => void;
   autoAnswerEnabled: boolean;
@@ -263,6 +265,8 @@ export function SettingsPanel({
   onNotificationDurationMsChange,
   notificationMaxVisible,
   onNotificationMaxVisibleChange,
+  notificationClosable,
+  onNotificationClosableChange,
   multiSessionsEnabled,
   onMultiSessionsChange,
   autoAnswerEnabled,
@@ -492,6 +496,8 @@ export function SettingsPanel({
           onNotificationDurationMsChange={onNotificationDurationMsChange}
           notificationMaxVisible={notificationMaxVisible}
           onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
+          notificationClosable={notificationClosable}
+          onNotificationClosableChange={onNotificationClosableChange}
           activeTab={notificationCenterTab}
           onActiveTabChange={setNotificationCenterTab}
           {...(notificationHistoryQuery !== undefined
