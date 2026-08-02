@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-02 13:44
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `80886133`
 
 ## Где
 - `src/domain/integration/external-services/template/resolveExternalServiceEventVariableGroups.ts`
