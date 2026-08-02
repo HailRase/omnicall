@@ -382,6 +382,19 @@ Highest visual priority:
 
 Never let cosmetic UI obscure call state.
 
+## Feedback Channels (ADR-0026)
+
+Do not show the same outcome as both a toast and an inline error/success block.
+
+- Ephemeral operation outcomes → Notification Center (`notify` / Capture / toast + journal).
+- Form-persistent auth errors → owning form Alert (Account); journal without toast.
+- Field validation → FormField under the control.
+- Persistent connection/update state → shell banners with actions.
+- Blocking conflicts / multi-stage sign-in → modals / overlays.
+- Confirm dialogs → no embedded outcome strips; toast on fail/success.
+
+Details: `docs/softphone/adr/ADR-0026-feedback-channel-law.md`, `UI-Architecture.md` § Feedback Channel Law.
+
 ## Component Design Protocol
 
 Before implementing a component define:

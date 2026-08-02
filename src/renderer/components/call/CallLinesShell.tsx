@@ -1,7 +1,6 @@
 import type { JSX } from "react";
 import type { CallLinesShellViewModel } from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
-import chromeTextStyles from "../shell/ShellChromeText.module.css";
 import { CallLineRow } from "./CallLineRow.js";
 import styles from "./CallLinesShell.module.css";
 
@@ -19,8 +18,9 @@ export type CallLinesShellProps = Readonly<{
 
 /**
  * - Purpose: render call line list with unified row controls for single and multi-line.
- * - Inputs: shell view-model, operation error, and line action callbacks.
+ * - Inputs: shell view-model and line action callbacks.
  * - Outputs: accessible list UI or null when no established lines.
+ * - Note: multi-call policy errors render once in CallSessionStack (Feedback Channel Law).
  */
 export function CallLinesShell({
   shell,
@@ -44,15 +44,6 @@ export function CallLinesShell({
       data-testid="call-lines-panel"
       aria-label={t("call.lines.ariaLabel")}
     >
-      {shell.policyErrorMessage !== null && !compact ? (
-        <p
-          className={chromeTextStyles.hintError}
-          data-testid="multi-call-policy-error"
-          role="alert"
-        >
-          {shell.policyErrorMessage}
-        </p>
-      ) : null}
       <ul className={styles.list}>
         {shell.lines.map((line) => (
           <CallLineRow

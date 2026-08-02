@@ -178,11 +178,13 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     if (accountError === null) {
       return;
     }
+    // AccountPanel Alert owns visible UX (persistent form error). Journal via Capture;
+    // interruptClass critical suppresses toast (Feedback Channel Law / ADR-0026).
     notify({
       ...buildAccountErrorDescriptor(accountError),
       module: "account",
       functionId: "account.sign_in",
-      interruptClass: attachOpenSystemState ? "actionable" : "informational",
+      interruptClass: "critical",
       ...(attachOpenSystemState
         ? {
             action: {

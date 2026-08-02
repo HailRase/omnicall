@@ -188,33 +188,10 @@ function SoftphoneShellLayoutRoute({
     sipAutoReregisterEnabled: settingsActions.userSettings.sipAutoReregisterEnabled,
   });
   const userAvatarMenu = useUserAvatarMenu();
-  const callBindings = useCallFeatureShell({ facade });
-  const fullscreenSession = resolveFullscreenVideoSession(
-    callVideoMediaUiProjection.byCallId,
-  );
-  const isVideoFullscreen = fullscreenSession !== null;
-  const fullscreenCallId = fullscreenSession?.callId ?? null;
-  const fullscreenVideoState = fullscreenSession?.videoState ?? null;
-  const fullscreenLine =
-    fullscreenCallId === null
-      ? null
-      : (callBindings.callLinesShell.lines.find((line) => line.callId === fullscreenCallId) ??
-        (callBindings.controlTargetLine?.callId === fullscreenCallId
-          ? callBindings.controlTargetLine
-          : null));
-  useShellWindowLayout({
-    settingsOpen: overlayShell.settingsOpen,
-    videoFullscreen: isVideoFullscreen,
-  });
   const appUpdate = useAppUpdate({
     backgroundCheckOnMount: true,
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
-  });
-  const preferencesTransfer = usePreferencesTransferActions({
-    facade,
-    currentVersion: appUpdate.snapshot.currentVersion,
-    onSettingsImported: settingsActions.applyUserSettingsSnapshot,
   });
   const resolveNotificationTitle = useCallback(
     (descriptor: NotificationDescriptor): string =>
@@ -265,6 +242,33 @@ function SoftphoneShellLayoutRoute({
     capture: captureNotification,
     resolveTitle: resolveNotificationTitle,
     raiseWindow: raiseNotificationWindow,
+  });
+  const preferencesTransfer = usePreferencesTransferActions({
+    facade,
+    currentVersion: appUpdate.snapshot.currentVersion,
+    onSettingsImported: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
+  });
+  const callBindings = useCallFeatureShell({
+    facade,
+    notify: notifications.notify,
+  });
+  const fullscreenSession = resolveFullscreenVideoSession(
+    callVideoMediaUiProjection.byCallId,
+  );
+  const isVideoFullscreen = fullscreenSession !== null;
+  const fullscreenCallId = fullscreenSession?.callId ?? null;
+  const fullscreenVideoState = fullscreenSession?.videoState ?? null;
+  const fullscreenLine =
+    fullscreenCallId === null
+      ? null
+      : (callBindings.callLinesShell.lines.find((line) => line.callId === fullscreenCallId) ??
+        (callBindings.controlTargetLine?.callId === fullscreenCallId
+          ? callBindings.controlTargetLine
+          : null));
+  useShellWindowLayout({
+    settingsOpen: overlayShell.settingsOpen,
+    videoFullscreen: isVideoFullscreen,
   });
   useEffect(() => {
     const notify = notifications.notify;
@@ -323,10 +327,12 @@ function SoftphoneShellLayoutRoute({
     onOpenAccountSettings: () => {
       overlayShell.openSettings("account");
     },
+    notify: notifications.notify,
   });
   const sdkSettingsPanel = useSdkSettingsPanel({
     facade,
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
   });
   const externalServicesPanel = useExternalServicesPanel({
     facade,
@@ -334,6 +340,7 @@ function SoftphoneShellLayoutRoute({
       overlayShell.settingsOpen &&
       overlayShell.settingsSection === "integrations-external-services",
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
   });
   const externalApplicationsPanel = useExternalApplicationsPanel({
     facade,
@@ -341,6 +348,7 @@ function SoftphoneShellLayoutRoute({
       overlayShell.settingsOpen &&
       overlayShell.settingsSection === "integrations-external-applications",
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    notify: notifications.notify,
   });
   useShellWindowAttentionFromCalls({
     incomingCallProjection: callBindings.incomingCallProjection,
@@ -725,7 +733,6 @@ function SoftphoneShellLayoutRoute({
               onCheckForUpdates={appUpdate.onCheckForUpdates}
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
               preferencesTransferBusy={preferencesTransfer.isTransferBusy}
-              preferencesTransferStatusMessage={preferencesTransfer.transferStatusMessage}
               onExportPreferences={() => {
                 void preferencesTransfer.exportPreferences();
               }}
@@ -850,6 +857,8 @@ function SoftphoneShellLayoutRoute({
                 error: accountActions.error,
                 successKey: accountActions.successKey,
                 warningKey: accountActions.warningKey,
+                openSystemStateAction: accountActions.openSystemStateAction,
+                onOpenSystemState: openSystemState,
                 panelMode: accountActions.panelMode,
                 disabled: blockingAuthState,
                 authorizeDisabledReason: accountAuthorizeDisabledReason,

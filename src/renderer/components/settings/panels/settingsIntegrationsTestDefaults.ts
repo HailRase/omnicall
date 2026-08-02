@@ -113,7 +113,6 @@ const externalApplicationsDefaults = {
   historyError: false,
   busy: false,
   loadError: false,
-  saveError: false,
   forceNameEditKey: 0,
   onSelectApplication: vi.fn(),
   onSelectHistory: vi.fn(),

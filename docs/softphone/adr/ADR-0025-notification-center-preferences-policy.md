@@ -3,7 +3,7 @@
 - Status: **Accepted**
 - Date: 2026-08-02
 - Deciders: Softphone platform
-- Related: F-034; F-016 / LF-060 (toasts); F-029 / ADR-AF-007 (journal); F-030 (portability); ADR-0013 (critical raise); plan `notification-center/`
+- Related: F-034; F-016 / LF-060 (toasts); F-029 / ADR-AF-007 (journal); F-030 (portability); ADR-0013 (critical raise); ADR-0026 (Feedback Channel Law); plan `notification-center/`
 
 ## Context
 
@@ -107,6 +107,7 @@ Application / UI projections only — no Domain Electron/React/Zustand/storage i
 - UI does not own presentation policy or call adapters/raw IPC for suppress decisions.
 - External toast library (Sonner) remains replaceable behind viewport/hook seams.
 - State transitions and Domain Events for telephony/OCP/SDK remain unchanged by this ADR.
+- OCP wire `entity: "notification"` presentation maps only `body` + `type` (`success`/`error`; else `info`); Softphone prefs own placement/duration/stacking; wire sticky/position/time/deleted/blocked/uuid do not drive toast lifecycle (ADR-0026 single channel).
 - Critical flows remain observable via F-029 journal.
 
 ## Related Links

@@ -112,7 +112,6 @@ export type SettingsPanelProps = Readonly<{
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
   preferencesTransferBusy?: boolean;
-  preferencesTransferStatusMessage?: string | null;
   onExportPreferences?: () => void;
   onImportPreferences?: () => void;
   systemState: Readonly<{
@@ -187,6 +186,8 @@ export type SettingsPanelProps = Readonly<{
     error: AccountAuthorizationErrorProjection | null;
     successKey: TranslationKey | null;
     warningKey: TranslationKey | null;
+    openSystemStateAction?: boolean;
+    onOpenSystemState?: () => void;
     panelMode: SavedProfilePanelMode;
     disabled: boolean;
     authorizeDisabledReason: string | null;
@@ -283,7 +284,6 @@ export function SettingsPanel({
   onCheckForUpdates,
   onOpenDownloadPage,
   preferencesTransferBusy,
-  preferencesTransferStatusMessage,
   onExportPreferences,
   onImportPreferences,
   systemState,
@@ -344,6 +344,10 @@ export function SettingsPanel({
           error={account.error}
           successKey={account.successKey}
           warningKey={account.warningKey}
+          openSystemStateAction={account.openSystemStateAction === true}
+          {...(account.onOpenSystemState !== undefined
+            ? { onOpenSystemState: account.onOpenSystemState }
+            : {})}
           panelMode={account.panelMode}
           disabled={account.disabled}
           authorizeDisabledReason={account.authorizeDisabledReason}
@@ -417,7 +421,6 @@ export function SettingsPanel({
           onCheckForUpdates={onCheckForUpdates}
           onOpenDownloadPage={onOpenDownloadPage}
           preferencesTransferBusy={preferencesTransferBusy}
-          preferencesTransferStatusMessage={preferencesTransferStatusMessage}
           onExportPreferences={onExportPreferences}
           onImportPreferences={onImportPreferences}
         />

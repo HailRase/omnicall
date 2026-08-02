@@ -1,7 +1,7 @@
 /**
- * - Purpose: map OCP notification payloads to Softphone toast descriptors.
- * - Inputs: OcpNotificationPayload from gateway.
- * - Outputs: NotificationDescriptor for useNotifications.notify.
+ * - Purpose: map OCP notification wire to Softphone Notification Center toast descriptors.
+ * - Inputs: OcpNotificationPayload (presentation uses body + type only).
+ * - Outputs: NotificationDescriptor for notify, or null when body empty.
  */
 
 import type { OcpNotificationPayload } from "@application/index.js";
@@ -10,17 +10,21 @@ import type {
   NotificationLevel,
 } from "../../hooks/useNotifications.js";
 
+/**
+ * - Purpose: map OCP type to toast level (success/error only; else info).
+ * - Inputs: OcpNotificationPayload.type.
+ * - Outputs: NotificationLevel for Capture/Sonner.
+ */
 function mapOcpNotificationLevel(
   type: OcpNotificationPayload["type"],
 ): NotificationLevel {
   switch (type) {
     case "error":
       return "error";
-    case "warning":
-      return "warning";
     case "success":
       return "success";
     default:
+      // warning | notify | help | preloader | progress → info (prefs decide visibility)
       return "info";
   }
 }
@@ -28,27 +32,27 @@ function mapOcpNotificationLevel(
 /**
  * - Purpose: convert OCP notification entity into UI Kit toast descriptor.
  * - Inputs: payload from OcpNotificationPresenter.present.
- * - Outputs: descriptor or null when payload should be skipped.
+ * - Outputs: descriptor or null when trimmed body is empty.
+ *
+ * Presentation ignores OCP id/uuid/time/blocked/deleted/sticky/position for lifecycle;
+ * only body + type drive text/level. Placement/duration/stacking come from F-034 prefs.
  */
 export function mapOcpNotificationToToastDescriptor(
   payload: OcpNotificationPayload,
 ): NotificationDescriptor | null {
-  if (payload.deleted || payload.blocked) {
-    return null;
-  }
   const body = payload.body.trim();
   if (body.length === 0) {
     return null;
   }
 
+  const stableId = payload.id.trim();
   const descriptor: NotificationDescriptor = {
-    id: `ocp-notification-${payload.id}`,
+    ...(stableId.length > 0 ? { id: `ocp-notification-${stableId}` } : {}),
     level: mapOcpNotificationLevel(payload.type),
     messageText: body,
     module: "ocp",
     functionId: "ocp.notification",
     interruptClass: "remote",
-    ...(payload.sticky === true ? { durationMs: 0 } : {}),
   };
   return descriptor;
 }

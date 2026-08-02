@@ -41,7 +41,6 @@ export type UseCallHistoryDetailShellResult = Readonly<{
   isNotFound: boolean;
   entry: CallHistoryDetailViewModel | null;
   deleteConfirmationOpen: boolean;
-  deleteErrorMessage: string | null;
   isDeleting: boolean;
   openDeleteConfirmation: () => void;
   closeDeleteConfirmation: () => void;
@@ -71,7 +70,6 @@ export function useCallHistoryDetailShell({
   const multiCallProjection = useAccountBootstrapStore((state) => state.multiCallProjection);
   const activeHistoryEntry = useShellRouteDataStore((state) => state.activeHistoryEntry);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const projectionEntry = useMemo(
@@ -106,36 +104,31 @@ export function useCallHistoryDetailShell({
   );
 
   const openDeleteConfirmation = useCallback((): void => {
-    setDeleteErrorMessage(null);
     setDeleteConfirmationOpen(true);
   }, []);
 
   const closeDeleteConfirmation = useCallback((): void => {
     setDeleteConfirmationOpen(false);
-    setDeleteErrorMessage(null);
   }, []);
 
   const deleteEntry = actions.deleteEntry;
 
   const confirmDelete = useCallback(async (): Promise<boolean> => {
     setIsDeleting(true);
-    setDeleteErrorMessage(null);
     const result = await deleteEntry(entryId);
     setIsDeleting(false);
 
     if (isErr(result)) {
-      setDeleteErrorMessage(t("history.error.deleteFailed"));
       return false;
     }
 
     setDeleteConfirmationOpen(false);
     return true;
-  }, [deleteEntry, entryId, t]);
+  }, [deleteEntry, entryId]);
 
   return {
     ...routeEntry,
     deleteConfirmationOpen,
-    deleteErrorMessage,
     isDeleting,
     openDeleteConfirmation,
     closeDeleteConfirmation,

@@ -21,6 +21,8 @@ export type SettingsAccountPanelProps = Readonly<{
   error: AccountAuthorizationErrorProjection | null;
   successKey: TranslationKey | null;
   warningKey: TranslationKey | null;
+  openSystemStateAction?: boolean;
+  onOpenSystemState?: () => void;
   panelMode: SavedProfilePanelMode;
   disabled?: boolean;
   authorizeDisabledReason: string | null;
@@ -76,6 +78,8 @@ export function SettingsAccountPanel({
   error,
   successKey,
   warningKey,
+  openSystemStateAction = false,
+  onOpenSystemState,
   panelMode,
   disabled = false,
   authorizeDisabledReason,
@@ -147,6 +151,8 @@ export function SettingsAccountPanel({
           error={error}
           successKey={successKey}
           warningKey={warningKey}
+          openSystemStateAction={openSystemStateAction}
+          {...(onOpenSystemState !== undefined ? { onOpenSystemState } : {})}
           panelMode={panelMode}
           disabled={disabled}
           authorizeDisabledReason={authorizeDisabledReason}

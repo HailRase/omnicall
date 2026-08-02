@@ -26,7 +26,6 @@ export type ExternalApplicationsPanelProps = Readonly<{
   historyError: boolean;
   busy: boolean;
   loadError: boolean;
-  saveError: boolean;
   forceNameEditKey: number;
   onSelectApplication: (id: ExternalApplicationsPanelApplication["id"]) => void;
   onSelectHistory: () => void;
@@ -75,7 +74,6 @@ export function ExternalApplicationsPanel({
   historyError,
   busy,
   loadError,
-  saveError,
   forceNameEditKey,
   onSelectApplication,
   onSelectHistory,
@@ -132,7 +130,6 @@ export function ExternalApplicationsPanel({
           <ExternalApplicationsEditor
             application={selectedApplication}
             busy={busy}
-            saveError={saveError}
             forceNameEditKey={forceNameEditKey}
             onChange={onChange}
             onSave={onSave}

@@ -112,7 +112,7 @@ Unchanged semantics from today, relocated under Notification Center → Appearan
 - Repeated operation outcomes are **not** deduplicated (current LF-060 law).
 - Capture failure must fail open for presentation (today: enqueue toast if capture throws) unless ADR revises it; journal write failure is logged.
 - OCP transport recovery banner continues to suppress duplicate OCP auth feedback toasts (existing SoftphoneReadyShell rule).
-- Sticky OCP notifications (`durationMs: 0`) remain sticky when presented; suppression prefs still apply before presentation.
+- OCP wire `sticky` / `position` / `time` / `deleted` / `blocked` are ignored for toast lifecycle; duration/placement come from Notification Center prefs; suppression prefs still apply before presentation.
 - SDK-hidden window: optional `errors_only` raise must respect ADR-0013 / SDK window policy and must not fight intentional host hide for informational toasts.
 - Profile switch loads that profile’s preferences immediately; in-flight toast queue may drain with previous visual settings without crashing.
 

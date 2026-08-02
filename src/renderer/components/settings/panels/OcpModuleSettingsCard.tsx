@@ -140,7 +140,8 @@ export function OcpModuleSettingsCard({
         </div>
       </div>
 
-      {errorKey !== null ? (
+      {/* Ephemeral save/load failures: notifications (ADR-0026). domainRequired reserved for FormField. */}
+      {errorKey === "settings.integrations.ocp.error.domainRequired" ? (
         <p className={formStyles.error} data-testid="ocp-module-error" role="alert">
           {t(errorKey)}
         </p>

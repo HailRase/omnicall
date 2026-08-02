@@ -16,7 +16,6 @@ export type HistoryDeleteConfirmationModalProps = Readonly<{
   open: boolean;
   entryLabel: string | null;
   isDeleting: boolean;
-  errorMessage: string | null;
   onCloseAutoFocus?: (event: Event) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -25,13 +24,12 @@ export type HistoryDeleteConfirmationModalProps = Readonly<{
 /**
  * - Purpose: confirm deletion of one call history entry (F-013).
  * - Inputs: modal visibility, entry label, and confirm/cancel callbacks.
- * - Outputs: accessible blocking alert dialog without business logic.
+ * - Outputs: accessible blocking alert dialog; delete outcomes use notifications.
  */
 export function HistoryDeleteConfirmationModal({
   open,
   entryLabel,
   isDeleting,
-  errorMessage,
   onCloseAutoFocus,
   onConfirm,
   onCancel,
@@ -56,12 +54,6 @@ export function HistoryDeleteConfirmationModal({
             })}
           </AlertDialogDescription>
         </AlertDialogHeader>
-
-        {errorMessage !== null ? (
-          <p role="alert" data-testid="history-delete-error">
-            {errorMessage}
-          </p>
-        ) : null}
 
         <AlertDialogFooter>
           <AlertDialogCancel asChild>

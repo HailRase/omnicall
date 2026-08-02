@@ -58,7 +58,7 @@
 
 - [x] SIP-only staged sign-in toasts still correct (no false “registered” claims).
 - [x] Headset fault toasts still surface under defaults.
-- [x] OCP sticky notifications still sticky when presented.
+- [x] OCP wire sticky/position/time/deleted/blocked ignored; toast duration/placement from Softphone prefs.
 - [x] Contacts/history CSV toasts still surface under defaults.
 - [x] Update banner / non-toast update UX unchanged unless explicitly tagged updates toasts exist.
 - [x] External Services / SDK / OCP wire paths unchanged.

@@ -20,11 +20,13 @@ import { useExternalServicesActions } from "./useExternalServicesActions.js";
 import { useExternalServicesJournal } from "./useExternalServicesJournal.js";
 import { useExternalServicesRequestActions } from "./useExternalServicesRequestActions.js";
 import { useExternalServicesShell } from "./useExternalServicesShell.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 
 type UseExternalServicesPanelInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   sectionActive: boolean;
   onActiveUserSettingsRefresh: (settings: UserSettings) => void;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
 export type UseExternalServicesPanelResult = Readonly<{
@@ -44,7 +46,7 @@ export type UseExternalServicesPanelResult = Readonly<{
 export function useExternalServicesPanel(
   input: UseExternalServicesPanelInput,
 ): UseExternalServicesPanelResult {
-  const { facade, sectionActive, onActiveUserSettingsRefresh } = input;
+  const { facade, sectionActive, onActiveUserSettingsRefresh, notify } = input;
   const shell = useExternalServicesShell({ facade, sectionActive });
   const actions = useExternalServicesActions({
     facade,
@@ -103,6 +105,7 @@ export function useExternalServicesPanel(
     dialogsApi,
     waitingQueueItems: queue.waitingQueueItems,
     bumpQueueRefresh: queue.bumpQueueRefresh,
+    ...(notify !== undefined ? { notify } : {}),
   });
 
   return {

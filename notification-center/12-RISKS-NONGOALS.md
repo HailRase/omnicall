@@ -26,6 +26,7 @@
 - Quiet hours, schedules, Focus modes.
 - Per-message “don’t show again” without journal.
 - Replacing incoming/campaign/SDK modals with toast+raise.
+- Replacing form-persistent Account Alert, OCP/Update banners, or rich External Services run panels with toast-only UX (see ADR-0026 Feedback Channel Law).
 - Raise on every toast or on success/info.
 - Second toast stack or LF-059 revival.
 - Cloud sync of prefs beyond F-030.

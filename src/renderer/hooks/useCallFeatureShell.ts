@@ -24,6 +24,7 @@ import { useIncomingCallActions } from "./useIncomingCallActions.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
 import { useVideoCallActions } from "./useVideoCallActions.js";
 import { useScreenSharePicker } from "./useScreenSharePicker.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 import {
   applyHeadsetSyncBusyToActiveCallControls,
   applyHeadsetSyncBusyToCallLine,
@@ -31,14 +32,15 @@ import {
 
 type UseCallFeatureShellInput = Readonly<{
   facade: AccountBootstrapFacade;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
 /**
  * - Purpose: bind call feature projections, shell derivations, and action handlers.
- * - Inputs: account bootstrap facade.
+ * - Inputs: account bootstrap facade and optional notification presenter.
  * - Outputs: zone-ready props for context, controls, and overlay shells.
  */
-export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
+export function useCallFeatureShell({ facade, notify }: UseCallFeatureShellInput) {
   const {
     projection,
     callProjection,
@@ -173,7 +175,10 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     facade,
     shell: callLinesShellWithSyncBusy,
   });
-  const screenSharePicker = useScreenSharePicker({ facade });
+  const screenSharePicker = useScreenSharePicker({
+    facade,
+    ...(notify !== undefined ? { notify } : {}),
+  });
   const videoCallActions = useVideoCallActions({
     facade,
     openScreenSharePicker: screenSharePicker.openPicker,

@@ -184,7 +184,7 @@ export function ScreenSharePickerDialog({
               : null}
           </div>
 
-          {errorKey !== null ? (
+          {errorKey === "call.video.screenShare.picker.loadFailed" ? (
             <p className={styles.error} role="alert" data-testid="screen-share-picker-error">
               {t(errorKey)}
             </p>

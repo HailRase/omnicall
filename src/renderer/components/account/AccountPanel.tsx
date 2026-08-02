@@ -21,6 +21,7 @@ import formStyles from "../settings/SettingsForm.module.css";
 import {
   Button,
   Alert,
+  AlertAction,
   AlertDescription,
   InputGroup,
   InputGroupInput,
@@ -39,6 +40,8 @@ type AccountPanelProps = Readonly<{
   error: AccountAuthorizationErrorProjection | null;
   successKey: TranslationKey | null;
   warningKey: TranslationKey | null;
+  openSystemStateAction?: boolean;
+  onOpenSystemState?: () => void;
   disabled?: boolean;
   showTitle?: boolean;
   panelMode: SavedProfilePanelMode;
@@ -80,6 +83,8 @@ export function AccountPanel({
   signInMode,
   submitting,
   error,
+  openSystemStateAction = false,
+  onOpenSystemState,
   disabled = false,
   showTitle = true,
   panelMode,
@@ -172,6 +177,19 @@ export function AccountPanel({
             <AlertDescription>
               {formatAccountAuthorizationError(t, error)}
             </AlertDescription>
+            {openSystemStateAction && onOpenSystemState !== undefined ? (
+              <AlertAction>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  data-testid="account-error-open-system-state"
+                  onClick={onOpenSystemState}
+                >
+                  {t("account.notification.openSystemStateAction")}
+                </Button>
+              </AlertAction>
+            ) : null}
           </Alert>
         ) : null}
         {signInMode === "sip_only" ? (

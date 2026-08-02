@@ -5,19 +5,17 @@ import formStyles from "../SettingsForm.module.css";
 
 export type SettingsPreferencesTransferSectionProps = Readonly<{
   isBusy: boolean;
-  statusMessage: string | null;
   onExport: () => void;
   onImport: () => void;
 }>;
 
 /**
  * - Purpose: present portable preferences export/import controls in General settings.
- * - Inputs: busy flag, status message, export/import callbacks.
- * - Outputs: accessible fieldset without facade access.
+ * - Inputs: busy flag and export/import callbacks.
+ * - Outputs: accessible fieldset; transfer outcomes use notifications.
  */
 export function SettingsPreferencesTransferSection({
   isBusy,
-  statusMessage,
   onExport,
   onImport,
 }: SettingsPreferencesTransferSectionProps): JSX.Element {
@@ -36,16 +34,6 @@ export function SettingsPreferencesTransferSection({
           <p className={formStyles.fieldDescription}>
             {t("settings.general.preferences.transfer.secretsNote")}
           </p>
-          {statusMessage !== null ? (
-            <p
-              className={formStyles.fieldDescription}
-              role="status"
-              aria-live="polite"
-              data-testid="settings-preferences-transfer-status"
-            >
-              {statusMessage}
-            </p>
-          ) : null}
           <div className={formStyles.actionRow}>
             <Button
               variant="secondary"

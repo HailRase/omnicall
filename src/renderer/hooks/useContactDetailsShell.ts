@@ -31,7 +31,6 @@ export type UseContactDetailsShellResult = Readonly<{
   isNotFound: boolean;
   contact: ContactDetailsViewModel | null;
   deleteConfirmationOpen: boolean;
-  deleteErrorMessage: string | null;
   isDeleting: boolean;
   openDeleteConfirmation: () => void;
   closeDeleteConfirmation: () => void;
@@ -54,7 +53,6 @@ export function useContactDetailsShell({
   const multiCallProjection = useAccountBootstrapStore((state) => state.multiCallProjection);
   const activeContact = useShellRouteDataStore((state) => state.activeContact);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const shell = useMemo(
@@ -78,38 +76,33 @@ export function useContactDetailsShell({
   );
 
   const openDeleteConfirmation = useCallback((): void => {
-    setDeleteErrorMessage(null);
     setDeleteConfirmationOpen(true);
   }, []);
 
   const closeDeleteConfirmation = useCallback((): void => {
     setDeleteConfirmationOpen(false);
-    setDeleteErrorMessage(null);
   }, []);
 
   const deleteContact = actions.deleteContact;
 
   const confirmDelete = useCallback(async (): Promise<boolean> => {
     setIsDeleting(true);
-    setDeleteErrorMessage(null);
     const result = await deleteContact(contactId);
     setIsDeleting(false);
 
     if (isErr(result)) {
-      setDeleteErrorMessage(t("contacts.error.deleteFailed"));
       return false;
     }
 
     setDeleteConfirmationOpen(false);
     return true;
-  }, [contactId, deleteContact, t]);
+  }, [contactId, deleteContact]);
 
   return {
     isLoading: routeContact.isLoading,
     isNotFound: routeContact.isNotFound,
     contact: routeContact.contact,
     deleteConfirmationOpen,
-    deleteErrorMessage,
     isDeleting,
     openDeleteConfirmation,
     closeDeleteConfirmation,

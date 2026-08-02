@@ -92,13 +92,20 @@ If optional module `errors_only` is implemented:
 
 ## OCP remote notifications
 
-`mapOcpNotificationToToastDescriptor` sets:
+`mapOcpNotificationToToastDescriptor` presentation uses **only**:
+
+- `body` → `messageText` (skip if trim empty)
+- `type` → level: `success`→success, `error`→error; all other wire types → `info`
+
+Ignored for toast lifecycle: `uuid`, `time`, `blocked`, `deleted`, `sticky`, `position` (and any other OCP fields). Optional stable toast id from wire `id` when non-empty.
+
+Always tags:
 
 - `module: "ocp"`
 - `functionId: "ocp.notification"`
 - `interruptClass: "remote"`
 
-Remote class: never auto-raise in v1. Suppressible via OCP module prefs / minLevel / master.
+Remote class: never auto-raise in v1. Suppressible via OCP module prefs / minLevel / master. Placement/duration/stacking from Softphone Notification Center prefs (F-034 / ADR-0025), not OCP wire.
 
 ## Recommended operator presets (UI helpers, not separate schema)
 
@@ -123,5 +130,5 @@ v1 policy does **not** require knowing minimized/obscured state for toast suppre
 | SIP registration succeeded toast | shown + journaled | shown + journaled |
 | Master popup off (via new UI) | field existed, no UI | journaled, suppressed |
 | Incoming call | modal + raise | modal + raise |
-| OCP sticky notification | sticky toast | sticky toast if OCP module allows |
+| OCP notification (any sticky/position) | toast via prefs | toast if OCP module allows; duration/placement from Softphone prefs |
 | CSV export success | toast often untagged → system | toast with `contacts` module, still shown by default |

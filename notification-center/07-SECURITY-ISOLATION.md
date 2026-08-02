@@ -54,7 +54,7 @@ When/if implemented:
 
 | Threat | Mitigation |
 | --- | --- |
-| Malicious OCP notification spam | Module disable + minLevel; no raise for remote; sticky still suppressible |
+| Malicious OCP notification spam | Module disable + minLevel; no raise for remote; wire sticky ignored; prefs suppress |
 | Preference export leaks | No secrets in prefs; journal excluded |
 | Focus steal harassment | Raise default never; actionable-only; dedupe |
 | Renderer bypass of policy | Facade/capture is sole authority; code review + tests |

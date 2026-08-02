@@ -91,6 +91,28 @@ Components must not receive or call:
 
 Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalog`.
 
+## Feedback Channel Law (ADR-0026)
+
+User-visible errors / warnings / success must use **one** channel per event. Do not dual-render toast + inline strip.
+
+| Class | Channel |
+| --- | --- |
+| Ephemeral operation outcome | `notify` → Capture → Sonner (+ journal) |
+| Form-persistent / field validation | `Alert` or `FormField` on owning surface |
+| Persistent system state | Shell banner (`OcpConnectionBanner`, `UpdateAvailableBanner`) |
+| Blocking / multi-stage | Modal / overlay / splash |
+| Rich diagnostic payload | Inline result panel (e.g. External Services run) |
+| List load empty/error | Panel empty/error region |
+
+Rules:
+
+- Confirm modals must not embed outcome error strips; use `notify`.
+- Account sign-in errors: `AccountPanel` Alert owns UX; `notify` with `interruptClass: "critical"` journals without toast.
+- Multi-call `policyErrorMessage`: only `CallSessionStack`.
+- Settings mutations (SDK/OCP/EA/ES save, screen-share confirm) → `notify`; keep FormField/`validation.*`, list-load regions, codec policy strips, ES RunResult, SDK poll gateway strip.
+- Critical ADR-0013 raises and connection/update banners stay non-toast.
+- Full decision: `docs/softphone/adr/ADR-0026-feedback-channel-law.md`.
+
 ## Allowed Imports In Renderer
 
 | From | Allowed |

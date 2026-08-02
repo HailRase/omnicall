@@ -15,6 +15,7 @@ export type CallSessionStackProps = Readonly<{
  * - Purpose: vertical multi-session rail matching reference SessionStack layout.
  * - Inputs: call lines shell view-model and line select callback.
  * - Outputs: stacked compact session cards for multi-call selection.
+ * - Note: sole owner of multi-call policyErrorMessage chrome (ADR-0026).
  * @uiMeta lf=LF-021 f=F-016 smoke=R7-*
  */
 export function CallSessionStack({

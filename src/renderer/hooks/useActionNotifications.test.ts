@@ -160,7 +160,7 @@ describe("useActionNotifications", () => {
         messageKey: "account.error.authorizationFailed",
         module: "account",
         functionId: "account.sign_in",
-        interruptClass: "actionable",
+        interruptClass: "critical",
         action: expect.objectContaining({
           labelKey: "account.notification.openSystemStateAction",
         }),
@@ -168,7 +168,7 @@ describe("useActionNotifications", () => {
     );
   });
 
-  it("does not attach System State action for validation errors", () => {
+  it("journals account errors as critical without toast-owned presentation", () => {
     const notify = vi.fn();
     const input = createBaseInput({
       notifications: { notify },
@@ -184,9 +184,11 @@ describe("useActionNotifications", () => {
 
     const descriptor = notify.mock.calls[0]?.[0] as {
       messageKey: string;
+      interruptClass: string;
       action?: unknown;
     };
     expect(descriptor.messageKey).toBe("account.error.validationFailed");
+    expect(descriptor.interruptClass).toBe("critical");
     expect(descriptor.action).toBeUndefined();
   });
 

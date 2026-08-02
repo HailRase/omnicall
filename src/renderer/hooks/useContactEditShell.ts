@@ -39,8 +39,6 @@ export type UseContactEditShellResult = Readonly<{
   isSaving: boolean;
   values: ContactFormValues;
   fieldErrors: ContactFormFieldErrors;
-  formErrorMessage: string | null;
-  successMessage: string | null;
   onFieldChange: (field: keyof ContactFormValues, value: string) => void;
   onSubmit: () => Promise<string | null>;
 }>;
@@ -75,8 +73,6 @@ export function useContactEditShell({
   const [fieldErrorKeys, setFieldErrorKeys] = useState<
     Partial<Record<keyof ContactFormValues, ContactFieldErrorKey>>
   >({});
-  const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const initializedRouteKeyRef = useRef<string | null>(null);
 
   const routeLoadState = useMemo(
@@ -108,8 +104,6 @@ export function useContactEditShell({
 
     initializedRouteKeyRef.current = routeKey;
     setFieldErrorKeys({});
-    setFormErrorMessage(null);
-    setSuccessMessage(null);
     setIsLoading(routeLoadState.isLoading);
     setIsNotFound(routeLoadState.isNotFound);
     setValues(routeLoadState.initialValues);
@@ -125,8 +119,6 @@ export function useContactEditShell({
       delete next[field];
       return next;
     });
-    setFormErrorMessage(null);
-    setSuccessMessage(null);
   }, []);
 
   const createContact = actions.createContact;
@@ -135,8 +127,6 @@ export function useContactEditShell({
   const onSubmit = useCallback(async (): Promise<string | null> => {
     setIsSaving(true);
     setFieldErrorKeys({});
-    setFormErrorMessage(null);
-    setSuccessMessage(null);
 
     const payload = toContactInput(values);
     const result = isCreateMode
@@ -151,15 +141,12 @@ export function useContactEditShell({
           extractContactValidationErrors(result.error.cause),
         );
         setFieldErrorKeys(mapped);
-      } else {
-        setFormErrorMessage(t("contacts.error.saveFailed"));
       }
       return null;
     }
 
-    setSuccessMessage(t(isCreateMode ? "contacts.success.created" : "contacts.success.updated"));
     return result.value.id;
-  }, [contactId, createContact, isCreateMode, t, updateContact, values]);
+  }, [contactId, createContact, isCreateMode, updateContact, values]);
 
   const fieldErrors = useMemo(
     () =>
@@ -176,8 +163,6 @@ export function useContactEditShell({
     isSaving,
     values,
     fieldErrors,
-    formErrorMessage,
-    successMessage,
     onFieldChange,
     onSubmit,
   };

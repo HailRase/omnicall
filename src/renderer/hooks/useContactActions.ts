@@ -49,19 +49,74 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
   );
 
   const createContact = useCallback(
-    async (contact: ContactInput) => facade.createContact(contact),
-    [facade],
+    async (contact: ContactInput) => {
+      const result = await facade.createContact(contact);
+      if (isErr(result)) {
+        if (result.error.code !== "validation_failed") {
+          notify?.({
+            level: "error",
+            messageKey: "contacts.error.saveFailed",
+            module: "contacts",
+            functionId: "contacts.create",
+            interruptClass: "actionable",
+          });
+        }
+        return result;
+      }
+      notify?.({
+        level: "success",
+        messageKey: "contacts.success.created",
+        module: "contacts",
+        functionId: "contacts.create",
+        interruptClass: "informational",
+      });
+      return result;
+    },
+    [facade, notify],
   );
 
   const updateContact = useCallback(
-    async (contactId: string, update: ContactUpdateInput) =>
-      facade.updateContact(contactId, update),
-    [facade],
+    async (contactId: string, update: ContactUpdateInput) => {
+      const result = await facade.updateContact(contactId, update);
+      if (isErr(result)) {
+        if (result.error.code !== "validation_failed") {
+          notify?.({
+            level: "error",
+            messageKey: "contacts.error.saveFailed",
+            module: "contacts",
+            functionId: "contacts.update",
+            interruptClass: "actionable",
+          });
+        }
+        return result;
+      }
+      notify?.({
+        level: "success",
+        messageKey: "contacts.success.updated",
+        module: "contacts",
+        functionId: "contacts.update",
+        interruptClass: "informational",
+      });
+      return result;
+    },
+    [facade, notify],
   );
 
   const deleteContact = useCallback(
-    async (contactId: string) => facade.deleteContact(contactId),
-    [facade],
+    async (contactId: string) => {
+      const result = await facade.deleteContact(contactId);
+      if (isErr(result)) {
+        notify?.({
+          level: "error",
+          messageKey: "contacts.error.deleteFailed",
+          module: "contacts",
+          functionId: "contacts.delete",
+          interruptClass: "actionable",
+        });
+      }
+      return result;
+    },
+    [facade, notify],
   );
 
   const callContact = useCallback(

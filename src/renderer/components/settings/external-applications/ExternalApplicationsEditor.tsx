@@ -21,7 +21,6 @@ import styles from "./ExternalApplications.module.css";
 export type ExternalApplicationsEditorProps = Readonly<{
   application: ExternalApplicationsPanelApplication;
   busy: boolean;
-  saveError: boolean;
   forceNameEditKey: number;
   onChange: (application: ExternalApplicationsPanelApplication) => void;
   onSave: () => void;
@@ -34,7 +33,6 @@ export type ExternalApplicationsEditorProps = Readonly<{
 export function ExternalApplicationsEditor({
   application,
   busy,
-  saveError,
   forceNameEditKey,
   onChange,
   onSave,
@@ -71,12 +69,6 @@ export function ExternalApplicationsEditor({
           {t("settings.integrations.externalApplications.save")}
         </Button>
       </div>
-
-      {saveError ? (
-        <p className={styles.error} role="alert">
-          {t("settings.integrations.externalApplications.validation.saveFailed")}
-        </p>
-      ) : null}
 
       <div className={styles.urlBarBlock}>
         <div className={styles.urlBar}>

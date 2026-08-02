@@ -15,6 +15,7 @@ import {
 import type { OcpSessionProjection } from "@application/projections/integration/ocpSessionProjection.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useAuthShellFlags } from "./useAuthShellFlags.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 
 export type OcpSettingsPanelErrorKey =
   | "settings.integrations.ocp.error.domainRequired"
@@ -37,6 +38,7 @@ type UseOcpSettingsPanelInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   onActiveUserSettingsRefresh: (settings: UserSettings) => void;
   onOpenAccountSettings: () => void;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
 /**
@@ -46,12 +48,23 @@ type UseOcpSettingsPanelInput = Readonly<{
 export function useOcpSettingsPanel(
   input: UseOcpSettingsPanelInput,
 ): UseOcpSettingsPanelResult {
-  const { facade, onActiveUserSettingsRefresh, onOpenAccountSettings } = input;
+  const { facade, onActiveUserSettingsRefresh, onOpenAccountSettings, notify } = input;
   const session = useAccountBootstrapStore((state) => state.ocpSessionProjection);
   const { hasActiveAccountSession } = useAuthShellFlags();
   const [settings, setSettings] = useState<OcpIntegrationSettings>(OCP_INTEGRATION_DEFAULTS);
   const [activeLoginLabel, setActiveLoginLabel] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<OcpSettingsPanelErrorKey | null>(null);
+
+  const presentSaveFailed = useCallback((): void => {
+    notify?.({
+      level: "error",
+      messageKey: "settings.integrations.ocp.error.saveFailed",
+      module: "ocp",
+      functionId: "ocp.settings.save",
+      interruptClass: "actionable",
+    });
+    setErrorKey(null);
+  }, [notify]);
 
   const editShell = deriveOcpModuleEditShell({
     hasActiveAccountSession,
@@ -75,7 +88,7 @@ export function useOcpSettingsPanel(
     }
     const settingsResult = await facade.getUserSettingsForAccount();
     if (!settingsResult.ok) {
-      setErrorKey("settings.integrations.ocp.error.saveFailed");
+      presentSaveFailed();
       return;
     }
     setErrorKey(null);
@@ -83,7 +96,7 @@ export function useOcpSettingsPanel(
     const activeAccount = await facade.getActiveSipAccount();
     const username = activeAccount?.username.trim() ?? "";
     setActiveLoginLabel(username.length > 0 ? username : null);
-  }, [facade]);
+  }, [facade, presentSaveFailed]);
 
   useEffect(() => {
     void loadActivePanel();
@@ -104,7 +117,7 @@ export function useOcpSettingsPanel(
       }
       const result = await facade.updateOcpSettings(next);
       if (!result.ok) {
-        setErrorKey("settings.integrations.ocp.error.saveFailed");
+        presentSaveFailed();
         return false;
       }
       setErrorKey(null);
@@ -112,7 +125,7 @@ export function useOcpSettingsPanel(
       await refreshActiveSettings();
       return true;
     },
-    [editShell.configEditable, facade, refreshActiveSettings],
+    [editShell.configEditable, facade, presentSaveFailed, refreshActiveSettings],
   );
 
   const onEnabledChange = useCallback(

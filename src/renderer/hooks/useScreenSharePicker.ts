@@ -10,11 +10,13 @@ import type {
   DisplayCaptureSourceDto,
 } from "@shared/ipc/DisplayCaptureContract.js";
 import type { TranslationKey } from "../i18n/index.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 
 export type ScreenSharePickerSourceKind = "screen" | "window" | "chromeTab";
 
 type UseScreenSharePickerInput = Readonly<{
   facade: AccountBootstrapFacade;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
 export type UseScreenSharePickerResult = Readonly<{
@@ -40,7 +42,7 @@ export type UseScreenSharePickerResult = Readonly<{
 export function useScreenSharePicker(
   input: UseScreenSharePickerInput,
 ): UseScreenSharePickerResult {
-  const { facade } = input;
+  const { facade, notify } = input;
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -97,7 +99,13 @@ export function useScreenSharePicker(
       .then(async (pendingResult) => {
         if (!pendingResult.ok) {
           setConfirming(false);
-          setErrorKey("call.video.screenShare.picker.confirmFailed");
+          notify?.({
+            level: "error",
+            messageKey: "call.video.screenShare.picker.confirmFailed",
+            module: "media",
+            functionId: "media.screen_share.confirm",
+            interruptClass: "actionable",
+          });
           return;
         }
         const switchResult = await facade.switchLocalVideoSourceById(
@@ -112,12 +120,18 @@ export function useScreenSharePicker(
             reset();
             return;
           }
-          setErrorKey("call.video.screenShare.picker.confirmFailed");
+          notify?.({
+            level: "error",
+            messageKey: "call.video.screenShare.picker.confirmFailed",
+            module: "media",
+            functionId: "media.screen_share.confirm",
+            interruptClass: "actionable",
+          });
           return;
         }
         reset();
       });
-  }, [callId, confirming, facade, reset, selectedSourceId]);
+  }, [callId, confirming, facade, notify, reset, selectedSourceId]);
 
   const handleSetActiveKind = useCallback(
     (kind: ScreenSharePickerSourceKind): void => {

@@ -16,7 +16,6 @@ export type ContactDeleteConfirmationModalProps = Readonly<{
   open: boolean;
   contactName: string | null;
   isDeleting: boolean;
-  errorMessage: string | null;
   onCloseAutoFocus?: (event: Event) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -25,13 +24,12 @@ export type ContactDeleteConfirmationModalProps = Readonly<{
 /**
  * - Purpose: confirm deletion of a local contact (F-025).
  * - Inputs: modal visibility, contact label, and confirm/cancel callbacks.
- * - Outputs: accessible blocking alert dialog without business logic.
+ * - Outputs: accessible blocking alert dialog; delete outcomes use notifications.
  */
 export function ContactDeleteConfirmationModal({
   open,
   contactName,
   isDeleting,
-  errorMessage,
   onCloseAutoFocus,
   onConfirm,
   onCancel,
@@ -56,12 +54,6 @@ export function ContactDeleteConfirmationModal({
             })}
           </AlertDialogDescription>
         </AlertDialogHeader>
-
-        {errorMessage !== null ? (
-          <p role="alert" data-testid="contacts-delete-error">
-            {errorMessage}
-          </p>
-        ) : null}
 
         <AlertDialogFooter>
           <AlertDialogCancel asChild>

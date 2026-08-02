@@ -208,7 +208,6 @@ function HistoryDetailsRoute({
         open={detailShell.deleteConfirmationOpen}
         entryLabel={detailShell.entry?.primaryLabel ?? null}
         isDeleting={detailShell.isDeleting}
-        errorMessage={detailShell.deleteErrorMessage}
         onCloseAutoFocus={onCloseAutoFocus}
         onCancel={detailShell.closeDeleteConfirmation}
         onConfirm={() => {

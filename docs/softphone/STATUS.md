@@ -4,6 +4,7 @@
 
 **Updated:** 2026-08-02
 **Version:** `1.2.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
+**Feedback channels:** ADR-0026 Feedback Channel Law — anti-dual; ephemeral outcomes → `notify` (incl. SDK/OCP/EA/ES save + screen-share confirm); Account errors → persistent Alert + journaled critical; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
 **Tests:** F-032/F-033 on main + F-034 Notification Center on `feature/notification-center` (schema **v19**); full vitest pending post-merge verify
 **Settings nav:** Integrations = always-open cluster (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
 **Settings schema:** `UserSettings` **v19** = v18 (EA/ringtone/always-on-top) + nested `notificationPreferences` (F-034); migrates 3…18 upward (no downgrade)

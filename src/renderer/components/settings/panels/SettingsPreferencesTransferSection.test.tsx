@@ -23,7 +23,6 @@ describe("SettingsPreferencesTransferSection", () => {
     render(
       <SettingsPreferencesTransferSection
         isBusy={false}
-        statusMessage={null}
         onExport={onExport}
         onImport={onImport}
       />,
@@ -36,18 +35,15 @@ describe("SettingsPreferencesTransferSection", () => {
     expect(onImport).toHaveBeenCalledTimes(1);
   });
 
-  it("shows status message when provided", () => {
+  it("does not render inline transfer status (notifications own outcomes)", () => {
     render(
       <SettingsPreferencesTransferSection
         isBusy={false}
-        statusMessage="Exported"
         onExport={() => undefined}
         onImport={() => undefined}
       />,
     );
 
-    expect(screen.getByTestId("settings-preferences-transfer-status")).toHaveTextContent(
-      "Exported",
-    );
+    expect(screen.queryByTestId("settings-preferences-transfer-status")).not.toBeInTheDocument();
   });
 });

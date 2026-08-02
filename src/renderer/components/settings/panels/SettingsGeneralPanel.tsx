@@ -25,7 +25,6 @@ export type SettingsGeneralPanelProps = Readonly<{
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
   preferencesTransferBusy?: boolean | undefined;
-  preferencesTransferStatusMessage?: string | null | undefined;
   onExportPreferences?: (() => void) | undefined;
   onImportPreferences?: (() => void) | undefined;
 }>;
@@ -62,7 +61,6 @@ export function SettingsGeneralPanel({
   onCheckForUpdates,
   onOpenDownloadPage,
   preferencesTransferBusy = false,
-  preferencesTransferStatusMessage = null,
   onExportPreferences,
   onImportPreferences,
 }: SettingsGeneralPanelProps): JSX.Element {
@@ -153,7 +151,6 @@ export function SettingsGeneralPanel({
       {showPreferencesTransfer ? (
         <SettingsPreferencesTransferSection
           isBusy={preferencesTransferBusy}
-          statusMessage={preferencesTransferStatusMessage}
           onExport={onExportPreferences}
           onImport={onImportPreferences}
         />
