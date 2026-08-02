@@ -45,8 +45,16 @@ import {
   EXTERNAL_SERVICES_DEFAULTS,
   type ExternalServicesSettings,
 } from "../integration/external-services/ExternalServicesSettings.js";
+import {
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  type ExternalApplicationsSettings,
+} from "../integration/external-applications/ExternalApplicationsSettings.js";
+import {
+  DEFAULT_INCOMING_RINGTONE_ID,
+  type IncomingRingtoneId,
+} from "../media/IncomingRingtoneId.js";
 
-export const SETTINGS_SCHEMA_VERSION = 13 as const;
+export const SETTINGS_SCHEMA_VERSION = 18 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -68,6 +76,8 @@ export type UserSettings = Readonly<{
   autoAnswerTimeoutSec: number | null;
   autoAnswerDuringActiveSessionEnabled: boolean;
   ringbackToneEnabled: boolean;
+  /** Selected incoming ringtone preset; classic preserves pre-v18 WebAudio dual-tone. */
+  incomingRingtoneId: IncomingRingtoneId;
   sipAutoReconnectEnabled: boolean;
   sipReconnectIntervalSec: number;
   sipReconnectMaxAttempts: number;
@@ -80,6 +90,8 @@ export type UserSettings = Readonly<{
   codecPreferences: CodecPreferences;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  /** Softphone BrowserWindow always-on-top pin (titlebar control; F-016). */
+  windowAlwaysOnTop: boolean;
   /** Last successfully connected headset id (`vendorId:productId:productName`). */
   headsetPreferredDeviceId: string | null;
   /** Preferred mic deviceId; null = browser/system default. */
@@ -100,6 +112,8 @@ export type UserSettings = Readonly<{
   sdkIntegration: SdkIntegrationSettings;
   /** Profile-scoped outbound HTTP automation definitions. */
   externalServices: ExternalServicesSettings;
+  /** Profile-scoped call screen-pop / external application window definitions. */
+  externalApplications: ExternalApplicationsSettings;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -125,6 +139,7 @@ export function createDefaultUserSettings(): UserSettings {
     autoAnswerTimeoutSec: null,
     autoAnswerDuringActiveSessionEnabled: false,
     ringbackToneEnabled: true,
+    incomingRingtoneId: DEFAULT_INCOMING_RINGTONE_ID,
     sipAutoReconnectEnabled: true,
     sipReconnectIntervalSec: DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
     sipReconnectMaxAttempts: DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
@@ -136,6 +151,7 @@ export function createDefaultUserSettings(): UserSettings {
     codecPreferences: createDefaultCodecPreferences(),
     headsetEnabled: false,
     headsetAutoReconnect: true,
+    windowAlwaysOnTop: false,
     headsetPreferredDeviceId: null,
     preferredAudioInputDeviceId: DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
     preferredVideoInputDeviceId: DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
@@ -146,5 +162,6 @@ export function createDefaultUserSettings(): UserSettings {
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
     externalServices: EXTERNAL_SERVICES_DEFAULTS,
+    externalApplications: EXTERNAL_APPLICATIONS_DEFAULTS,
   };
 }

@@ -10,30 +10,37 @@ export type ShellWindowControlsViewModel = Readonly<{
   isShuttingDown: boolean;
   maximizeEnabled: boolean;
   isMaximized: boolean;
+  isPinned: boolean;
   onMinimize: () => void;
   onClose: () => void;
   onRestart: () => void;
   onToggleMaximize: () => void;
+  onTogglePin: () => void;
 }>;
 
 type UseShellWindowControlsInput = Readonly<{
   isShuttingDown: boolean;
   settingsOpen: boolean;
+  /** Persist pin after a successful native toggle (UserSettings.windowAlwaysOnTop). */
+  onPinnedPersist?: (pinned: boolean) => void;
 }>;
 
 /**
  * - Purpose: bind custom shell window controls to preload lifecycle IPC (F-016).
- * - Inputs: shutdown flag and settings-open flag for work-area fill affordance.
+ * - Inputs: shutdown flag, settings-open flag, optional pin persist callback.
  * - Outputs: platform-aware window control callbacks for presentational UI.
  */
 export function useShellWindowControls(
   input: UseShellWindowControlsInput,
 ): ShellWindowControlsViewModel {
-  const { isShuttingDown, settingsOpen } = input;
+  const { isShuttingDown, settingsOpen, onPinnedPersist } = input;
   const lifecycleGatewayRef = useRef(new PreloadAppLifecycleGateway());
   const platformGatewayRef = useRef(new PreloadPlatformInfoGateway());
+  const onPinnedPersistRef = useRef(onPinnedPersist);
+  onPinnedPersistRef.current = onPinnedPersist;
   const [platform, setPlatform] = useState<PlatformVersionResponse["platform"]>("linux");
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -61,6 +68,20 @@ export function useShellWindowControls(
       const result = await gateway.getWindowMaximized();
       if (result.ok) {
         setIsMaximized(result.maximized);
+      }
+    })();
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const gateway = lifecycleGatewayRef.current;
+    const unsubscribe = gateway.onWindowAlwaysOnTopChanged(setIsPinned);
+
+    void (async () => {
+      const result = await gateway.getWindowAlwaysOnTop();
+      if (result.ok) {
+        setIsPinned(result.alwaysOnTop);
       }
     })();
 
@@ -104,6 +125,20 @@ export function useShellWindowControls(
     void lifecycleGatewayRef.current.toggleMaximizeWindow();
   }, [isShuttingDown, settingsOpen]);
 
+  const onTogglePin = useCallback((): void => {
+    if (isShuttingDown) {
+      return;
+    }
+    void (async () => {
+      const result = await lifecycleGatewayRef.current.toggleWindowAlwaysOnTop();
+      if (!result.ok) {
+        return;
+      }
+      setIsPinned(result.alwaysOnTop);
+      onPinnedPersistRef.current?.(result.alwaysOnTop);
+    })();
+  }, [isShuttingDown]);
+
   return useMemo(
     () => ({
       platform,
@@ -111,19 +146,23 @@ export function useShellWindowControls(
       isShuttingDown,
       maximizeEnabled,
       isMaximized,
+      isPinned,
       onMinimize,
       onClose,
       onRestart,
       onToggleMaximize,
+      onTogglePin,
     }),
     [
       isMaximized,
+      isPinned,
       isShuttingDown,
       maximizeEnabled,
       onClose,
       onMinimize,
       onRestart,
       onToggleMaximize,
+      onTogglePin,
       platform,
       showNativeWindowControls,
     ],

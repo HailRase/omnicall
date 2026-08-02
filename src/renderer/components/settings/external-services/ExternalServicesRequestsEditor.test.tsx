@@ -107,6 +107,7 @@ describe("External Services requests UI", () => {
     await user.click(screen.getByText("Variables"));
     expect(screen.getByTestId("external-services-system-variables")).toBeInTheDocument();
     expect(screen.getByTestId("external-services-variable-call_id")).toBeInTheDocument();
+    expect(screen.getByTestId("external-services-variable-help-call_id")).toBeInTheDocument();
     expect(screen.getByText("ID звонка")).toBeInTheDocument();
     await user.click(screen.getByTestId("external-services-variable-insert-call_id"));
     expect(onChange).toHaveBeenCalledWith(

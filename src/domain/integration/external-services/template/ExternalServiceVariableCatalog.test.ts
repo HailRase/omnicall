@@ -7,6 +7,7 @@ import {
   formatExternalServiceVariableToken,
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
+  resolveExternalServiceSystemVariableAvailability,
 } from "./ExternalServiceVariableCatalog.js";
 import { buildExternalServiceVariables } from "./buildExternalServiceVariables.js";
 
@@ -55,5 +56,14 @@ describe("ExternalServiceVariableCatalog", () => {
     expect(new Set(EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES).size).toBe(
       EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES.length,
     );
+  });
+
+  it("resolves availability for unique and dual-group system names", () => {
+    expect(resolveExternalServiceSystemVariableAvailability("timestamp")).toBe("always");
+    expect(resolveExternalServiceSystemVariableAvailability("call_id")).toBe("call");
+    expect(resolveExternalServiceSystemVariableAvailability("campaign_id")).toBe("campaign");
+    expect(resolveExternalServiceSystemVariableAvailability("acd_phase")).toBe("acd");
+    expect(resolveExternalServiceSystemVariableAvailability("queue_name")).toBe("campaign_acd");
+    expect(resolveExternalServiceSystemVariableAvailability("base_url")).toBeNull();
   });
 });

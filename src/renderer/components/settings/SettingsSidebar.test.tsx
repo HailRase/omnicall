@@ -197,6 +197,10 @@ describe("SettingsSidebar", () => {
     expect(screen.getByText("OCP Module")).toBeVisible();
     expect(screen.getByTestId("settings-nav-integrations-external-services")).toBeInTheDocument();
     expect(screen.getByText("Внешние сервисы")).toBeVisible();
+    expect(
+      screen.getByTestId("settings-nav-integrations-external-applications"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Внешние приложения")).toBeVisible();
     expect(screen.getByTestId("settings-nav-integrations-sdk")).toBeInTheDocument();
     expect(screen.queryByTestId("settings-nav-group-integrations-group")).not.toContainElement(
       screen.getByTestId("settings-nav-integrations-sdk"),
@@ -207,6 +211,9 @@ describe("SettingsSidebar", () => {
 
     await user.click(screen.getByTestId("settings-nav-integrations-external-services"));
     expect(onSectionChange).toHaveBeenCalledWith("integrations-external-services");
+
+    await user.click(screen.getByTestId("settings-nav-integrations-external-applications"));
+    expect(onSectionChange).toHaveBeenCalledWith("integrations-external-applications");
   });
 
   it("keeps Integrations children visible when expanded without accordion toggle", () => {
@@ -218,6 +225,7 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-group-integrations-group")).toBeInTheDocument();
     expect(screen.getByTestId("settings-nav-integrations-ocp")).toBeEnabled();
     expect(screen.getByTestId("settings-nav-integrations-external-services")).toBeEnabled();
+    expect(screen.getByTestId("settings-nav-integrations-external-applications")).toBeEnabled();
   });
 
   it("navigates to first Integrations child from expanded section label", async () => {
@@ -244,6 +252,9 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-integrations-ocp")).toBeDisabled();
     expect(
       screen.getByTestId("settings-nav-integrations-external-services"),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId("settings-nav-integrations-external-applications"),
     ).toBeDisabled();
   });
 

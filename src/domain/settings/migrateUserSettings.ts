@@ -22,6 +22,11 @@ import {
   EXTERNAL_SERVICES_DEFAULTS,
   parseExternalServicesSettings,
 } from "../integration/external-services/index.js";
+import {
+  EXTERNAL_APPLICATIONS_DEFAULTS,
+  parseExternalApplicationsSettings,
+} from "../integration/external-applications/index.js";
+import { resolveIncomingRingtoneId } from "../media/IncomingRingtoneId.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -38,7 +43,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v11.
+ * - Purpose: upgrade persisted or in-memory settings to current UserSettings schema.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -72,6 +77,11 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 17 ||
+    version === 16 ||
+    version === 15 ||
+    version === 14 ||
+    version === 13 ||
     version === 12 ||
     version === 11 ||
     version === 10 ||
@@ -156,6 +166,16 @@ function coerceToCurrentUserSettings(
       },
     };
   }
+  const externalApplications = parseExternalApplicationsForMigration(record);
+  if (externalApplications === null) {
+    return {
+      ok: false,
+      error: {
+        code: "validation_failed",
+        message: "externalApplications_invalid",
+      },
+    };
+  }
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -165,6 +185,11 @@ function coerceToCurrentUserSettings(
       typeof record["headsetAutoReconnect"] === "boolean"
         ? record["headsetAutoReconnect"]
         : true,
+    windowAlwaysOnTop:
+      typeof record["windowAlwaysOnTop"] === "boolean"
+        ? record["windowAlwaysOnTop"]
+        : false,
+    incomingRingtoneId: resolveIncomingRingtoneId(record["incomingRingtoneId"]),
     headsetPreferredDeviceId:
       typeof preferredRaw === "string" && preferredRaw.trim().length > 0
         ? preferredRaw.trim()
@@ -203,6 +228,7 @@ function coerceToCurrentUserSettings(
     ocpIntegration: parsedOcp,
     sdkIntegration: parsedSdk,
     externalServices,
+    externalApplications,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -222,6 +248,17 @@ function parseExternalServicesForMigration(
     return EXTERNAL_SERVICES_DEFAULTS;
   }
   const parsed = parseExternalServicesSettings(migrateExternalServiceTriggers(raw));
+  return parsed.ok ? parsed.value : null;
+}
+
+function parseExternalApplicationsForMigration(
+  record: Record<string, unknown>,
+): UserSettings["externalApplications"] | null {
+  const raw = record["externalApplications"];
+  if (raw === undefined) {
+    return EXTERNAL_APPLICATIONS_DEFAULTS;
+  }
+  const parsed = parseExternalApplicationsSettings(raw);
   return parsed.ok ? parsed.value : null;
 }
 
@@ -287,6 +324,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
       v1Validated.autoAnswerDuringActiveSessionEnabled ??
       defaults.autoAnswerDuringActiveSessionEnabled,
     ringbackToneEnabled: v1Validated.ringbackToneEnabled ?? defaults.ringbackToneEnabled,
+    incomingRingtoneId: defaults.incomingRingtoneId,
     sipAutoReconnectEnabled: defaults.sipAutoReconnectEnabled,
     sipReconnectIntervalSec: defaults.sipReconnectIntervalSec,
     sipReconnectMaxAttempts: defaults.sipReconnectMaxAttempts,
@@ -301,6 +339,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     codecPreferences: defaults.codecPreferences,
     headsetEnabled: defaults.headsetEnabled,
     headsetAutoReconnect: defaults.headsetAutoReconnect,
+    windowAlwaysOnTop: defaults.windowAlwaysOnTop,
     headsetPreferredDeviceId: defaults.headsetPreferredDeviceId,
     preferredAudioInputDeviceId: defaults.preferredAudioInputDeviceId,
     preferredVideoInputDeviceId: defaults.preferredVideoInputDeviceId,
@@ -311,6 +350,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
     externalServices: EXTERNAL_SERVICES_DEFAULTS,
+    externalApplications: EXTERNAL_APPLICATIONS_DEFAULTS,
   };
 }
 

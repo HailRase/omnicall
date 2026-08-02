@@ -3,6 +3,7 @@ declare const classes: {
   readonly controlsFrameless: string;
   readonly controlsMacOs: string;
   readonly controlsMacOsTrafficLights: string;
+  readonly macOsPinControl: string;
   readonly macOsRestartAfterTrafficLights: string;
   readonly trafficLight: string;
   readonly trafficLightClose: string;
@@ -13,6 +14,7 @@ declare const classes: {
   readonly trafficLightRestartGlyph: string;
   readonly windowControlButton: string;
   readonly windowControlButtonClose: string;
+  readonly windowControlButtonPinActive: string;
   readonly windowControlButtonRestart: string;
 };
 export default classes;

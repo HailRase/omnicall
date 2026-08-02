@@ -9,6 +9,7 @@ import { type CSSProperties, type JSX, type Ref } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "../../../../i18n/index.js";
 import type { TemplateAutocompleteSuggestion } from "./buildTemplateAutocompleteSuggestions.js";
+import { TEMPLATE_AUTOCOMPLETE_AVAILABILITY_KEYS } from "./templateAutocompleteAvailabilityI18n.js";
 import styles from "../ExternalServices.module.css";
 
 export type TemplateAutocompletePopupProps = Readonly<{
@@ -57,6 +58,7 @@ export function TemplateAutocompletePopup({
           suggestion.kind === "system"
             ? t("settings.integrations.externalServices.variables.autocompleteKind.system")
             : t("settings.integrations.externalServices.variables.autocompleteKind.collection");
+        const whenLabel = t(TEMPLATE_AUTOCOMPLETE_AVAILABILITY_KEYS[suggestion.availability]);
         return (
           <div
             id={optionId}
@@ -75,7 +77,13 @@ export function TemplateAutocompletePopup({
             onMouseEnter={() => onActiveIndexChange(index)}
           >
             <code className={styles.templateAutocompleteToken}>{`{{${suggestion.name}}}`}</code>
-            <span className={styles.templateAutocompleteKind}>{kindLabel}</span>
+            <span className={styles.templateAutocompleteMeta}>
+              <span className={styles.templateAutocompleteKind}>{kindLabel}</span>
+              <span className={styles.templateAutocompleteMetaSep} aria-hidden="true">
+                ·
+              </span>
+              <span className={styles.templateAutocompleteWhen}>{whenLabel}</span>
+            </span>
           </div>
         );
       })}

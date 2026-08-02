@@ -56,6 +56,10 @@ const autoAnswerDefaults = {
   onAutoAnswerTimeoutChange: vi.fn(),
   autoAnswerDuringActiveSessionEnabled: false,
   onAutoAnswerDuringActiveSessionChange: vi.fn(),
+  incomingRingtoneId: "classic" as const,
+  onIncomingRingtoneIdChange: vi.fn(),
+  onPreviewIncomingRingtone: vi.fn(),
+  onStopIncomingRingtonePreview: vi.fn(),
 } as const;
 
 const codecDefaults = settingsCodecTestDefaults;

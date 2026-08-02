@@ -7,6 +7,7 @@ import type {
   ExternalServiceTriggerContext,
   SettingsAccountKey,
 } from "@domain/index.js";
+import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 import type { DomainEvent } from "@domain/shared/DomainEvent.js";
 import { ExternalServicesCallContextTracker } from "./ExternalServicesCallContextTracker.js";
 
@@ -49,6 +50,8 @@ export function mapDomainEventToExternalServiceTrigger(
       return mapCampaignCleared(event, context);
     case "CallOcpContextResolved":
       return mapAcdContext(event, context);
+    case "OperatorStatusChanged":
+      return mapPostCallProcessing(event, context);
     default:
       return null;
   }
@@ -198,6 +201,24 @@ function mapOperatorTrigger(
       profileKey: context.profileKey,
       userLogin: context.userLogin,
       campaign,
+    },
+    focusedAtEvent: true,
+  };
+}
+
+function mapPostCallProcessing(
+  event: DomainEvent,
+  context: ExternalServiceTriggerMapContext,
+): MappedExternalServiceTrigger | null {
+  if (event["newStatus"] !== OperatorStatus.POST_CALL_PROCESSING) {
+    return null;
+  }
+  return {
+    trigger: {
+      eventType: "post_call_processing",
+      occurredAt: event.occurredAt,
+      profileKey: context.profileKey,
+      ...(context.userLogin !== undefined ? { userLogin: context.userLogin } : {}),
     },
     focusedAtEvent: true,
   };

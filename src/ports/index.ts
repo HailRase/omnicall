@@ -7,6 +7,9 @@ export type {
   BindCallVideoSurfacesCommand,
   MediaGateway,
   AttachRemoteAudioCommand,
+  ConfigureIncomingRingtoneCommand,
+  PreviewIncomingRingtoneCommand,
+  StopIncomingRingtonePreviewCommand,
   PlayIncomingRingtoneCommand,
   PlayRingtoneCommand,
   PlayBusyToneCommand,
@@ -108,6 +111,11 @@ export type {
   ExternalGatewayValidationResult,
   ExternalGatewayValidationSuccess,
 } from "./integration/ExternalClientGateway.js";
+export type {
+  ExternalApplicationWindowGateway,
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResult,
+} from "./integration/ExternalApplicationWindowGateway.js";
 export type {
   BrokerProductRequest,
   BrokerRequestFailure,

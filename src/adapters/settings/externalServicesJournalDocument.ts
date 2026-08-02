@@ -137,11 +137,18 @@ function parseJournalEntry(
   const startedAt = readRequiredString(record["startedAt"]);
   const requestUrl = readRequiredString(record["requestUrl"]);
   const responseBody = readString(record["responseBody"]);
+  // Legacy v1 rows may omit request body fields; treat as empty (no body captured).
+  const requestBody =
+    record["requestBody"] === undefined ? "" : readString(record["requestBody"]);
   const correlationId = readRequiredString(record["correlationId"]);
   const outcome = record["outcome"];
   const durationMs = record["durationMs"];
   const status = record["status"];
   const responseBodyTruncated = record["responseBodyTruncated"];
+  const requestBodyTruncated =
+    record["requestBodyTruncated"] === undefined
+      ? false
+      : record["requestBodyTruncated"];
   const errorCode = record["errorCode"];
   const errorMessage = record["errorMessage"];
   const headersRaw = record["requestHeaders"];
@@ -164,6 +171,7 @@ function parseJournalEntry(
     eventType === null ||
     startedAt === null ||
     requestUrl === null ||
+    requestBody === null ||
     responseBody === null ||
     correlationId === null ||
     method === null ||
@@ -174,6 +182,7 @@ function parseJournalEntry(
     typeof durationMs !== "number" ||
     !Number.isFinite(durationMs) ||
     durationMs < 0 ||
+    typeof requestBodyTruncated !== "boolean" ||
     typeof responseBodyTruncated !== "boolean" ||
     !Array.isArray(headersRaw) ||
     profileKey !== expectedProfileKey
@@ -221,6 +230,8 @@ function parseJournalEntry(
       status,
       requestUrl,
       requestHeaders,
+      requestBody,
+      requestBodyTruncated,
       responseBody,
       responseBodyTruncated,
       errorCode,

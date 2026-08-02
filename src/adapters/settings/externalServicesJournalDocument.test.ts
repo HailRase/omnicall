@@ -43,6 +43,8 @@ function createEntry(id: string): ExternalServiceJournalEntry {
         enabled: true,
       },
     ],
+    requestBody: "{\"event\":\"manual_run\"}",
+    requestBodyTruncated: false,
     responseBody: "ok",
     responseBodyTruncated: false,
     errorCode: null,
@@ -72,7 +74,7 @@ describe("externalServicesJournalDocument", () => {
     expect(parsed.value.entries[0]?.method).toBe("POST");
   });
 
-  it("defaults missing method on legacy journal rows", () => {
+  it("defaults missing method and request body on legacy journal rows", () => {
     const legacy = createEntry("legacy");
     const parsed = parseExternalServicesJournalDocument(
       {
@@ -108,6 +110,8 @@ describe("externalServicesJournalDocument", () => {
       return;
     }
     expect(parsed.value.entries[0]?.method).toBe("GET");
+    expect(parsed.value.entries[0]?.requestBody).toBe("");
+    expect(parsed.value.entries[0]?.requestBodyTruncated).toBe(false);
   });
 
   it("rejects unsupported format and unredacted protected headers", () => {

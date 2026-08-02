@@ -78,6 +78,64 @@ export class PreloadAppLifecycleGateway implements AppLifecycleGateway {
     return softphone.onWindowMaximizedChanged(handler);
   }
 
+  async setWindowAlwaysOnTop(
+    alwaysOnTop: boolean,
+  ): ReturnType<AppLifecycleGateway["setWindowAlwaysOnTop"]> {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return { ok: false };
+    }
+    const response: unknown = await softphone.setWindowAlwaysOnTop({ alwaysOnTop });
+    if (typeof response !== "object" || response === null) {
+      return { ok: false };
+    }
+    const candidate = response as Record<string, unknown>;
+    if (candidate["ok"] !== true || typeof candidate["alwaysOnTop"] !== "boolean") {
+      return { ok: false };
+    }
+    return { ok: true, alwaysOnTop: candidate["alwaysOnTop"] };
+  }
+
+  async toggleWindowAlwaysOnTop(): ReturnType<AppLifecycleGateway["toggleWindowAlwaysOnTop"]> {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return { ok: false };
+    }
+    const response: unknown = await softphone.toggleWindowAlwaysOnTop();
+    if (typeof response !== "object" || response === null) {
+      return { ok: false };
+    }
+    const candidate = response as Record<string, unknown>;
+    if (candidate["ok"] !== true || typeof candidate["alwaysOnTop"] !== "boolean") {
+      return { ok: false };
+    }
+    return { ok: true, alwaysOnTop: candidate["alwaysOnTop"] };
+  }
+
+  async getWindowAlwaysOnTop(): ReturnType<AppLifecycleGateway["getWindowAlwaysOnTop"]> {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return { ok: false };
+    }
+    const response: unknown = await softphone.getWindowAlwaysOnTop();
+    if (typeof response !== "object" || response === null) {
+      return { ok: false };
+    }
+    const candidate = response as Record<string, unknown>;
+    if (candidate["ok"] !== true || typeof candidate["alwaysOnTop"] !== "boolean") {
+      return { ok: false };
+    }
+    return { ok: true, alwaysOnTop: candidate["alwaysOnTop"] };
+  }
+
+  onWindowAlwaysOnTopChanged(handler: (alwaysOnTop: boolean) => void): () => void {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return () => {};
+    }
+    return softphone.onWindowAlwaysOnTopChanged(handler);
+  }
+
   onBeforeClose(handler: (payload: AppShutdownPayload) => void): () => void {
     const softphone = window.softphone;
     if (softphone === undefined) {

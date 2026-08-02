@@ -56,6 +56,10 @@ describe("settings overlay with layout zones", () => {
               onAutoAnswerTimeoutChange={() => undefined}
               autoAnswerDuringActiveSessionEnabled={false}
               onAutoAnswerDuringActiveSessionChange={() => undefined}
+              incomingRingtoneId="classic"
+              onIncomingRingtoneIdChange={() => undefined}
+              onPreviewIncomingRingtone={() => undefined}
+              onStopIncomingRingtonePreview={() => undefined}
               systemState={systemStateTestDefaults}
               {...settingsCodecTestDefaults}
               currentVersion="0.0.1"

@@ -108,9 +108,9 @@ external-services-variables-system-warning
 - URL bar: method Select + URL Input + icon-only Send (`settings.integrations.external-services.send`); Send enabled when URL is non-empty.
 - Tabs: Params / Headers / Body / Triggers / Variables; Params/Headers/Triggers show `(N)` for enabled/selected counts when N > 0; Body uses horizontal radio body-mode selector (none/json/urlencoded/raw only).
 - Compact key/value rows for Params and Headers (narrow inputs + compact Add row).
-- Triggers list uses padded card layout under tabs and explains focused-line + Variables tab.
-- Variables tab: compact catalog (groups always/call/campaign/acd) with short label + `{{token}}` + brief description, insert-target line, and Insert into focused URL/Body.
-- Template fields (URL, Params/Headers values, Body): typing `{{` opens variable autocomplete (system + collection); prefix filters; Enter/click inserts `{{name}}`; single `{` does not open.
+- Triggers list uses padded card layout under tabs and explains focused-line + Variables tab; each event label has `?` listing available system groups/`{{token}}`s from Domain `resolveExternalServiceEventVariableGroups` (same matrix as Variables when-hints; authored vars always noted).
+- Variables tab: compact catalog (groups always/call/campaign/acd) with **when-available subtitle per group**, short label + clickable `?` help popup (operator-facing meaning; portals into nearest scroll pane with Floating UI flip/shift; local z-index, not `document.body`) + `{{token}}`, one-line context hint (`Outside its context → undefined`), insert-target line, and Insert into focused URL/Body.
+- Template fields (URL, Params/Headers values, Body): typing `{{` opens variable autocomplete (system + collection); each option shows `System|Collection · {when}`; prefix filters; Enter/click inserts `{{name}}`; single `{` does not open.
 - URL placeholder demonstrates `{{call_id}}`.
 - Collection variables dialog clarifies custom vs system names (system precedence) with validation (see Collection variables dialog).
 - Bottom pane: taller Response | History with collapse/expand icon toggle.
@@ -152,7 +152,7 @@ external-services-discard-changes
 - No duplicate “Journal” heading/description under History tab (tab label is enough).
 - Compact single-line collapsed summary: time · names · badges · status · duration.
 - Latest 100 records, newest first in UI.
-- Expandable detail: URL, redacted headers, error, and truncated body.
+- Expandable detail: URL, redacted headers, non-empty truncated request body, error, and truncated response body.
 - Empty state, loading state, load error with Retry.
 - No rerun-from-journal or response-driven action in v1.
 

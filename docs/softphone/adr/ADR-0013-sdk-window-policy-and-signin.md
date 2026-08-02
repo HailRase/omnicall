@@ -49,9 +49,13 @@ Two product risks:
    | Activate consent pending | renderer → IPC raise | once per consent episode (`attentionId`, like pairingRequestId); not once per origin+profile forever |
    | Second app instance | main `second-instance` | same bring-to-front helper |
 
-   Must not leave the shell permanently always-on-top. Must not raise on every
-   WebSocket connect/reconnect without operator interaction. Domain / Call Engine
-   never import Electron.
+   Raise helpers must **not** leave a *new* permanent always-on-top as a side
+   effect of focus stealing — the temporary pulse must restore
+   `BrowserWindow.isAlwaysOnTop()` (including a user-owned titlebar pin from
+   F-016 `UserSettings.windowAlwaysOnTop`). User pin is orthogonal to SDK
+   `window:show` / `window:hide` (visibility); hide must not clear pin.
+   Must not raise on every WebSocket connect/reconnect without operator
+   interaction. Domain / Call Engine never import Electron.
 
 2. **`window:hide` (privileged, capability `window.hide`):** **Available** on the protocol v1
    product surface under this amendment. Rules:

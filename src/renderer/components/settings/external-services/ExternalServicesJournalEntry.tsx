@@ -45,6 +45,7 @@ const EVENT_KEYS: Readonly<Record<string, TranslationKey>> = {
   campaign_accepted: "settings.integrations.externalServices.trigger.campaign_accepted",
   campaign_rejected: "settings.integrations.externalServices.trigger.campaign_rejected",
   acd_context_appeared: "settings.integrations.externalServices.trigger.acd_context_appeared",
+  post_call_processing: "settings.integrations.externalServices.trigger.post_call_processing",
   manual_run: "settings.integrations.externalServices.trigger.manual_run",
 };
 

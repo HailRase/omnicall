@@ -126,12 +126,17 @@ type ExternalServiceExecutionResult =
 
 ## Manual run
 
-- UI submits collection ID, request ID, and expected settings revision.
+- UI submits collection ID, request ID, expected settings revision, and product snapshot facts at click time:
+  - `userLogin` from `readExternalServicesProductStateFromStore` (SIP username, else OCP authenticated login);
+  - optional `focusedCallContext.callId` when a line is focused.
+- Composition may enrich focused-call parties from `ExternalServicesCallContextTracker` when that call was already tracked by automation.
 - Use Case reloads/validates the active profile definition and rejects stale/deleted IDs.
 - Manual run does not require collection/request enabled and does not require an automatic trigger switch.
 - It uses `manual_run`, the same queue/concurrency/transport/journal pipeline, and returns a promise to the invoking UI.
+- Always-available variables (`timestamp`, `event_type`, `user_login`) resolve on Send; call/campaign/acd tokens stay `undefined` outside their context.
 - The UI promise is independent from telephony; closing the editor does not cancel an already started request.
 - Multiple manual runs enqueue normally and do not bypass the concurrency limit.
+- Journal truncates request and response bodies to 16 KiB; empty request body is omitted from History UI.
 
 ## Journal write
 

@@ -33,6 +33,8 @@ function createEntry(
       { id: "header-auth", key: "Authorization", value: "***" },
       { id: "header-trace", key: "X-Trace", value: "safe" },
     ],
+    requestBody: "{\"event\":\"call_answered\"}",
+    requestBodyTruncated: false,
     responseBody: "{\"ok\":true}",
     responseBodyTruncated: false,
     errorCode: null,
@@ -74,11 +76,12 @@ describe("ExternalServicesJournal", () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
-  it("shows redacted headers, truncation, and a 100-entry cap hint", async () => {
+  it("shows redacted headers, request body, truncation, and a 100-entry cap hint", async () => {
     const user = userEvent.setup();
     const entries = [
       createEntry({
         id: "entry-new",
+        requestBody: "{\"event\":\"manual_run\"}",
         responseBody: "partial-body",
         responseBodyTruncated: true,
         outcome: "http_error",
@@ -86,7 +89,7 @@ describe("ExternalServicesJournal", () => {
         errorCode: "http_error",
         errorMessage: "failed",
       }),
-      createEntry({ id: "entry-old" }),
+      createEntry({ id: "entry-old", requestBody: "" }),
     ];
 
     render(
@@ -109,7 +112,16 @@ describe("ExternalServicesJournal", () => {
       "***",
     );
     expect(screen.queryByText("Bearer")).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId("external-services-journal-request-body-entry-new"),
+    ).toHaveTextContent("{\"event\":\"manual_run\"}");
     expect(screen.getByText("Тело ответа обрезано.")).toBeInTheDocument();
     expect(screen.getByText(/http_error: failed/)).toBeInTheDocument();
+
+    const oldEntry = screen.getByTestId("external-services-journal-entry-entry-old");
+    await user.click(oldEntry.querySelector("button") ?? oldEntry);
+    expect(
+      screen.queryByTestId("external-services-journal-request-body-entry-old"),
+    ).not.toBeInTheDocument();
   });
 });

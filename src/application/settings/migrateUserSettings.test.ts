@@ -50,6 +50,77 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v16 settings and defaults windowAlwaysOnTop to false", () => {
+    const v16 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 16 as const,
+    };
+    delete (v16 as { windowAlwaysOnTop?: unknown }).windowAlwaysOnTop;
+
+    const result = migrateUserSettings(v16);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.windowAlwaysOnTop).toBe(false);
+    }
+  });
+
+  it("migrates v17 settings and defaults incomingRingtoneId to classic", () => {
+    const v17 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 17 as const,
+    };
+    delete (v17 as { incomingRingtoneId?: unknown }).incomingRingtoneId;
+
+    const result = migrateUserSettings(v17);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.incomingRingtoneId).toBe("classic");
+    }
+  });
+
+  it("preserves incomingRingtoneId when migrating from v17", () => {
+    const v17 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 17 as const,
+      incomingRingtoneId: "soft-chime" as const,
+    };
+    const result = migrateUserSettings(v17);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.incomingRingtoneId).toBe("soft-chime");
+    }
+  });
+
+  it("maps unknown incomingRingtoneId to classic during migration", () => {
+    const v17 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 17 as const,
+      incomingRingtoneId: "iphone-official",
+    };
+    const result = migrateUserSettings(v17);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.incomingRingtoneId).toBe("classic");
+    }
+  });
+
+  it("preserves windowAlwaysOnTop when migrating from v16", () => {
+    const v16 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 16 as const,
+      windowAlwaysOnTop: true,
+    };
+    const result = migrateUserSettings(v16);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.windowAlwaysOnTop).toBe(true);
+    }
+  });
+
   it("migrates v11 with an External Services default without data loss", () => {
     const v11 = {
       ...createDefaultUserSettings(),
@@ -88,6 +159,104 @@ describe("migrateUserSettings", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.externalServices.collections[0]?.name).toBe("CRM");
+    }
+  });
+
+  it("migrates v13 settings to current with empty External Applications defaults", () => {
+    const v13 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 13 as const,
+    };
+    const withoutApps = { ...v13 } as Record<string, unknown>;
+    delete withoutApps["externalApplications"];
+
+    const result = migrateUserSettings(withoutApps);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.externalApplications.applications).toEqual([]);
+    }
+  });
+
+  it("migrates v14 External Applications with missing conditions to current defaults", () => {
+    const applicationId = "11111111-1111-4111-8111-111111111111";
+    const v14 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 14 as const,
+      externalApplications: {
+        applications: [
+          {
+            id: applicationId,
+            name: "CRM",
+            enabled: true,
+            urlTemplate: "https://crm.example.test/{{call_id}}",
+            openMode: "electron_window",
+            window: { width: 1100, height: 800 },
+            variables: [],
+            triggers: [{ eventType: "incoming_ringing", delaySeconds: 0 }],
+          },
+        ],
+      },
+    };
+
+    const result = migrateUserSettings(v14);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.externalApplications.applications[0]?.conditions).toEqual({
+        callDirection: "any",
+        queueNames: [],
+      });
+      expect(result.value.externalApplications.applications[0]?.windowBehavior).toEqual({
+        raiseOnOpen: true,
+        alwaysOnTopDuringCall: false,
+        onCallEnded: "leave",
+      });
+    }
+  });
+
+  it("migrates v15 queueNameEquals into queueNames list", () => {
+    const applicationId = "11111111-1111-4111-8111-111111111111";
+    const v15 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 15 as const,
+      externalApplications: {
+        applications: [
+          {
+            id: applicationId,
+            name: "CRM",
+            enabled: true,
+            urlTemplate: "https://crm.example.test/{{call_id}}",
+            openMode: "electron_window",
+            window: { width: 1100, height: 800 },
+            variables: [],
+            triggers: [{ eventType: "incoming_ringing", delaySeconds: 0 }],
+            conditions: {
+              callDirection: "any",
+              requireCallerId: false,
+              queueNameEquals: "Sales",
+            },
+            windowBehavior: {
+              raiseOnOpen: true,
+              alwaysOnTopDuringCall: false,
+              onCallEnded: "leave",
+            },
+          },
+        ],
+      },
+    };
+
+    const result = migrateUserSettings(v15);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.externalApplications.applications[0]?.conditions).toEqual({
+        callDirection: "any",
+        queueNames: ["Sales"],
+      });
     }
   });
 

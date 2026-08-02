@@ -93,9 +93,49 @@ describe("ExecuteExternalServiceRequestUseCase", () => {
       jsonValidity: "valid",
     });
     expect(entries[0]?.requestHeaders[0]?.value).toBe("***");
+    expect(entries[0]?.requestBody).toBe("{\"event\":\"call_answered\"}");
+    expect(entries[0]?.requestBodyTruncated).toBe(false);
     expect(entries[0]?.outcome).toBe("http_success");
     expect(JSON.stringify(logger.entries)).not.toContain("Bearer secret-token");
     expect(JSON.stringify(logger.entries)).not.toContain("crm.example.test");
+  });
+
+  it("journals empty request body when body mode is none", async () => {
+    const http = new MockOutboundHttpAdapter();
+    http.enqueueResult({
+      kind: "response",
+      status: 204,
+      durationMs: 5,
+      body: "",
+    });
+    const journal = new InMemoryExternalServicesJournalRepository();
+    const useCase = new ExecuteExternalServiceRequestUseCase({
+      outboundHttp: http,
+      journalRepository: journal,
+      clock: new MockClock(new Date("2026-07-29T12:00:00.000Z")),
+      uuidGenerator: new DeterministicUuidGenerator(),
+      logger: createTestLogger({ featureId: "F-031", boundedContext: "Integration" }),
+    });
+    const settings = createExternalServicesTestSettings({
+      body: { mode: "none", value: "" },
+    });
+    const collection = settings.collections[0]!;
+    const request = collection.requests[0]!;
+
+    await useCase.execute(
+      createJob({
+        collection,
+        request,
+        collectionId: collection.id,
+        requestId: request.id,
+        collectionName: collection.name,
+        requestName: request.name,
+      }),
+    );
+    const entries = await journal.list(EXTERNAL_SERVICES_TEST_PROFILE_KEY, 10);
+
+    expect(entries[0]?.requestBody).toBe("");
+    expect(entries[0]?.requestBodyTruncated).toBe(false);
   });
 
   it("keeps non-2xx bodies and separates journal persistence failures", async () => {

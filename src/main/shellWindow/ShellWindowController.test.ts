@@ -18,11 +18,15 @@ type MockBrowserWindow = {
   isMaximized: ReturnType<typeof vi.fn>;
   maximize: ReturnType<typeof vi.fn>;
   unmaximize: ReturnType<typeof vi.fn>;
+  isAlwaysOnTop: ReturnType<typeof vi.fn>;
+  setAlwaysOnTop: ReturnType<typeof vi.fn>;
+  isDestroyed: ReturnType<typeof vi.fn>;
   on: ReturnType<typeof vi.fn>;
 };
 
 function createMockWindow(bounds: Electron.Rectangle): MockBrowserWindow {
   let currentBounds = { ...bounds };
+  let alwaysOnTop = false;
   const handlers = new Map<string, Array<() => void>>();
 
   const window: MockBrowserWindow = {
@@ -39,6 +43,11 @@ function createMockWindow(bounds: Electron.Rectangle): MockBrowserWindow {
     isMaximized: vi.fn(() => false),
     maximize: vi.fn(),
     unmaximize: vi.fn(),
+    isAlwaysOnTop: vi.fn(() => alwaysOnTop),
+    setAlwaysOnTop: vi.fn((next: boolean) => {
+      alwaysOnTop = next;
+    }),
+    isDestroyed: vi.fn(() => false),
     on: vi.fn((event: string, handler: () => void) => {
       const list = handlers.get(event) ?? [];
       list.push(handler);
@@ -319,5 +328,22 @@ describe("ShellWindowController", () => {
     expect(
       sanitizeCompactDimensions({ width: 420, height: 720 }, WORK_AREA),
     ).toEqual({ width: 420, height: 720 });
+  });
+
+  it("toggles always-on-top pin and notifies listeners", () => {
+    const window = createMockWindow({ x: 100, y: 200, width: 420, height: 720 });
+    const controller = new ShellWindowController(
+      window as unknown as Electron.BrowserWindow,
+      () => WORK_AREA,
+    );
+    const onAlwaysOnTop = vi.fn();
+    controller.onAlwaysOnTopChange(onAlwaysOnTop);
+
+    expect(controller.isAlwaysOnTop()).toBe(false);
+    expect(controller.toggleAlwaysOnTop()).toEqual({ ok: true, alwaysOnTop: true });
+    expect(window.setAlwaysOnTop).toHaveBeenCalledWith(true);
+    expect(onAlwaysOnTop).toHaveBeenCalledWith(true);
+    expect(controller.setAlwaysOnTop(false)).toEqual({ ok: true, alwaysOnTop: false });
+    expect(onAlwaysOnTop).toHaveBeenLastCalledWith(false);
   });
 });

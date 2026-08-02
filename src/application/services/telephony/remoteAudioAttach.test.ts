@@ -22,6 +22,9 @@ describe("attachRemoteAudioWhenReady", () => {
         return Promise.resolve(attempts === 1 ? ok("deferred") : ok("attached"));
       },
       bindCallVideoSurfaces: () => Promise.resolve(ok(undefined)),
+      configureIncomingRingtone: () => Promise.resolve(ok(undefined)),
+      previewIncomingRingtone: () => Promise.resolve(ok(undefined)),
+      stopIncomingRingtonePreview: () => Promise.resolve(ok(undefined)),
       playRingbackTone: () => Promise.resolve(ok(undefined)),
       playIncomingRingtone: () => Promise.resolve(ok(undefined)),
       playRingtone: () => Promise.resolve(ok(undefined)),

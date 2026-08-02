@@ -5,6 +5,12 @@ Public release history for **OmniCall** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [Unreleased]
+
+### Added
+
+- External Services / External Applications: automatic trigger **Post-call processing** (`post_call_processing`) when OCP operator status becomes `POST_CALL_PROCESSING`
+
 ## [1.2.0] - 2026-07-31
 
 ### Added

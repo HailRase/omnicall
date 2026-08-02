@@ -79,7 +79,7 @@ The port returns transport facts only; HTTP 2xx classification stays in Domain/A
 - `ExternalServicesAutomationService`: subscribes/unsubscribes, converts supported events to typed trigger facts, applies the focused-line gate, snapshots active profile/config, matches enabled definitions, and enqueues immutable jobs.
 - `ExternalServicesDispatchQueue`: FIFO pending jobs, maximum three in flight, profile/request invalidation, and no retries.
 - `ExecuteExternalServiceRequestUseCase`: resolves variables, composes query/body/headers, calls `OutboundHttpPort`, classifies result, redacts/truncates, appends journal, and returns a Run result when requested.
-- `RunExternalServiceRequestNowUseCase`: creates `manual_run` variables from active profile plus optional current focused-call context and delegates to execute.
+- `RunExternalServiceRequestNowUseCase`: creates `manual_run` variables from active profile identity plus optional current focused-call context and delegates to execute (UI supplies snapshot facts via `buildExternalServicesManualRunFacts`; composition may enrich call parties from the tracker).
 - `SaveExternalServicesSettingsUseCase`: validates and replaces only the nested settings slice through `SettingsRepository`.
 - `QueryExternalServicesUseCase`: returns collection rows, enabled counts, request rows, and journal records as UI-safe Application view models.
 - Import/export Use Cases own collection transfer parsing, UUID collision handling, and `(copy)` naming.
