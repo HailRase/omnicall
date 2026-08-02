@@ -7,17 +7,31 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-02
+
 ### Added
 
-- **F-032** External Application windows: optional guest close-guard via
-  `window.omnicall.setCloseGuard`. Native Close asks the card
-  page; explicit `true` closes, otherwise the window stays. Cards without a guard
-  keep prior unrestricted close. Call-ended `close` and app dispose force-close
-  without the guard (ADR-0024 amendment).
-- **F-016** Shell always-on-top pin in window controls (Win/macOS/Linux): centered
-  Pin/PinOff toggle with clear pressed state; persists `windowAlwaysOnTop` in
-  UserSettings schema **v17**; compatible with ADR-0013 raise pulse and SDK
-  `window:show` / `window:hide` (pin is not cleared by hide/show).
+- **F-034** Notification Center (Settings → Notifications): master/module popup
+  preferences, Appearance (placement/stacking/duration/max visible/closable),
+  History journal filters, optional per-module window raise (`errors_only`,
+  default never). Nested `notificationPreferences` on UserSettings schema **v19**;
+  F-030 export/import round-trips prefs (journal excluded). ADR-0025 / ADR-0026.
+- **F-033** Selectable incoming ringtone catalog in Settings → Sessions (presets +
+  volume preview).
+- **F-032** External Applications (Settings → Integrations): launch cards, triggers,
+  conditions, variables, history; optional guest close-guard via
+  `window.omnicall.setCloseGuard` (ADR-0024 amendment).
+- **F-016** Shell always-on-top pin in window controls (Win/macOS/Linux): persists
+  `windowAlwaysOnTop` (schema **v17**); compatible with ADR-0013 raise and SDK
+  show/hide.
+- **F-031/F-032** Automatic trigger **Post-call processing** when OCP operator
+  status becomes `POST_CALL_PROCESSING`.
+
+### Fixed
+
+- Notification capture keeps preference policy when journal disk IO fails (no
+  forced toast when popups are disabled).
+- Release preflight eslint cleanups in ringtone/close-guard/notification tests.
 
 ## [1.2.0] - 2026-07-31
 
@@ -453,7 +467,8 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.2.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.3.0...main
+[1.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.0
 [1.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.2.0
 [1.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.2
 [1.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.1
