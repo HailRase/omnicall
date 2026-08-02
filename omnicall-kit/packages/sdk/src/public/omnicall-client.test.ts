@@ -71,7 +71,6 @@ function createHarness(input?: {
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'fixture-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-test',
     requestedProfile: 'presentation',
     requestedCapabilities: input?.requestedCapabilities ?? [
       'session.read.redacted',
@@ -265,7 +264,9 @@ describe('OmniCallClient snapshot and events', () => {
     await waitFor(() => countGetSnapshotSends(transport) > before);
     expect(replyToGetSnapshotReplyOnly(transport, 99)).toBe(true);
     await flush();
-    expect(harness.client.getRevision()).toBe(13);
+    // Successful reply advances latest-known; cache stays at prior snapshot.
+    expect(harness.client.getRevision()).toBe(99);
+    expect(harness.client.getCachedSnapshot()?.revision).toBe(13);
     harness.client.disconnect();
     await expect(pending).rejects.toSatisfy(
       (error: unknown) =>
@@ -282,13 +283,16 @@ describe('OmniCallClient snapshot and events', () => {
     await waitFor(() => countGetSnapshotSends(transport) > before);
     expect(replyToGetSnapshotWithMismatch(transport, 13, 99)).toBe(true);
     await flush();
-    expect(harness.client.getRevision()).toBe(13);
+    // Reply revision 99 updates latest-known; cache body remains revision 13.
+    expect(harness.client.getRevision()).toBe(99);
+    expect(harness.client.getCachedSnapshot()?.revision).toBe(13);
     harness.scheduler.advanceBy(500);
     await expect(pending).rejects.toSatisfy(
       (error: unknown) =>
         isOmniCallClientError(error) && error.code === 'timeout'
     );
-    expect(harness.client.getRevision()).toBe(13);
+    expect(harness.client.getRevision()).toBe(99);
+    expect(harness.client.getCachedSnapshot()?.revision).toBe(13);
   });
 
   it('resolves when matching snapshot arrives after reply-only', async () => {

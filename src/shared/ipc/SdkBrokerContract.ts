@@ -21,6 +21,11 @@ export type SdkBrokerRequestIpcPayload = Readonly<{
   origin?: string;
 }>;
 
+/** Main → renderer: stop an in-flight broker operation before it mutates state. */
+export type SdkBrokerCancelIpcPayload = Readonly<{
+  brokerRequestId: string;
+}>;
+
 export type SdkBrokerReplySuccessIpcPayload = Readonly<{
   brokerRequestId: string;
   ok: true;
@@ -51,9 +56,10 @@ export type SdkBrokerReplyIpcResponse = Readonly<{
   ok: boolean;
 }>;
 
-/** Main → renderer: authenticated client socket ended (clear pending logout only). */
+/** Main → renderer: authenticated client socket ended (abort owned work only). */
 export type SdkBrokerClientSessionEndedIpcPayload = Readonly<{
   clientId: string;
+  origin: string;
 }>;
 
 function isNonEmptyString(value: unknown): value is string {
@@ -107,6 +113,16 @@ export function parseSdkBrokerRequestIpcPayload(
     ...(typeof clientId === "string" ? { clientId } : {}),
     ...(typeof origin === "string" ? { origin } : {}),
   };
+}
+
+export function parseSdkBrokerCancelIpcPayload(
+  value: unknown,
+): SdkBrokerCancelIpcPayload | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const brokerRequestId = (value as Record<string, unknown>)["brokerRequestId"];
+  return isNonEmptyString(brokerRequestId) ? { brokerRequestId } : null;
 }
 
 /**
@@ -197,10 +213,16 @@ export function parseSdkBrokerClientSessionEndedIpcPayload(
   }
   const candidate = value as Record<string, unknown>;
   const clientId = candidate["clientId"];
-  if (!isNonEmptyString(clientId)) {
+  const origin = candidate["origin"];
+  if (
+    !isNonEmptyString(clientId) ||
+    typeof origin !== "string" ||
+    origin.length === 0 ||
+    origin.length > 253
+  ) {
     return null;
   }
-  return { clientId };
+  return { clientId, origin };
 }
 
 /**

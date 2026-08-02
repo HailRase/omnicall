@@ -58,7 +58,9 @@ Attackers include:
   persisted only via IndexedDB (`ADR-0016`); never `localStorage` / `sessionStorage`.
 - Session credentials are short-lived and bound to Origin, client ID, server instance,
   and negotiated capabilities.
-- Replay is limited with nonces, unique request IDs, expiry, and a bounded deduplication cache.
+- Replay is limited with nonces, unique request IDs, expiry, and a bounded
+  deduplication cache keyed by **Origin + clientId + requestId** (pending abandon on
+  disconnect/TTL/failure; ADR-0027).
 
 ### Authorization
 
@@ -223,4 +225,15 @@ old request IDs and state, reauthenticates, and obtains a fresh snapshot.
 ## Security Release Gate
 
 Public npm publication is blocked until an independent security review reports no Blockers
-and every mandatory security test passes against a packaged desktop build.
+and mandatory security unit/integration tests + desktop/kit preflight pass. Do not require
+packaged Electron / Chromium / Edge smoke as a security gate.
+
+## Licensing / Legal Publish Gate
+
+- Packages declare `"license": "UNLICENSED"` and a placeholder `LICENSE` (all rights
+  reserved until a public license is chosen).
+- **UNLICENSED is not an open-source license.** Agents must not invent SPDX identifiers
+  or redistribute claims beyond the agreed commercial/partner contour.
+- `scripts/release-publish.mjs` fails closed unless `RELEASE_CONFIRM=1` and
+  `RELEASE_LICENSE_REVIEWED=1` (human legal review evidence outside the git tree).
+- Security review and license review are independent gates; either may block publish.

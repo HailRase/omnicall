@@ -57,7 +57,7 @@ npm install @softomnitel/omnicall-kit
 закрытом npm registry:
 
 ```bash
-npm install @softomnitel/omnicall-kit@0.1.4
+npm install @softomnitel/omnicall-kit@0.2.0
 ```
 
 Пакет ESM-only. Импортируйте его через `import`, а не `require`.
@@ -92,7 +92,6 @@ const client = createOmniCallClient({
   url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
   origin: window.location.origin,
   application: { name: 'my-crm', version: '1.0.0' },
-  sdkVersion: '0.1.4',
   requestedProfile: 'call_controller',
   requestedCapabilities: [
     'session.read.redacted',
@@ -318,7 +317,6 @@ function createOmniCallClient(options: OmniCallClientOptions): OmniCallClient;
 | `url` | `string` | Да | WebSocket URL SDK gateway Desktop. |
 | `origin` | `string` | Да | Точный Origin CRM. |
 | `application` | `ApplicationIdentity` | Да | Имя и версия вашего приложения. |
-| `sdkVersion` | `string` | Да | Версия SDK, совместимая с Desktop. |
 | `requestedProfile` | `PairingProfile` | Да | `presentation`, `operator` или `call_controller`. |
 | `requestedCapabilities` | `readonly CapabilityId[]` | Нет | Запрашиваемые неприоритетные права. |
 | `keyStore` | `PopKeyStore` | Да | Хранилище идентичности pairing. |
@@ -938,4 +936,6 @@ namespaces клиента.
 
 В `package.json` указано `UNLICENSED`. Это не open-source лицензия: не
 предполагайте право на свободное распространение или изменение вне согласованного
-контура. Уточните условия у владельца пакета.
+контура. Уточните условия у владельца пакета. Публикация npm fail-closed без
+человеческого license review (`RELEASE_LICENSE_REVIEWED=1`); агенты не выбирают
+SPDX за владельца.

@@ -121,7 +121,10 @@ async function handleSdkGatewaySettingsOperation(
       if (gateway === null) {
         return { ok: false, reason: "gateway_unavailable" };
       }
-      const revoked = await gateway.revokePairedClient(operation.clientId);
+      const revoked = await gateway.revokePairedClient(
+        operation.clientId,
+        operation.origin,
+      );
       if (!revoked) {
         return { ok: false, reason: "client_not_found" };
       }

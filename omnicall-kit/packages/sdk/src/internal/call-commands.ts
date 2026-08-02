@@ -21,8 +21,10 @@ import {
 import {
   guardReady,
   mapReplyFailure,
+  observeReplyRevision,
   readCallMutationResult,
-  requireWireIdentity
+  requireWireIdentity,
+  type ObserveWireRevision
 } from './product-commands.js';
 import type { Scheduler } from './scheduler.js';
 
@@ -80,6 +82,7 @@ export function createCallCommandApi(deps: {
   readonly connection: ConnectionSession;
   readonly scheduler: Scheduler;
   readonly getGrantedCapabilities: () => readonly CapabilityId[];
+  readonly observeWireRevision?: ObserveWireRevision;
 }): CallCommandApi {
   const runCallMutation = async (
     commandType: CommandType,
@@ -118,6 +121,7 @@ export function createCallCommandApi(deps: {
       commandType,
       body: buildBody(fields)
     });
+    observeReplyRevision(deps.observeWireRevision, result);
     if (!result.ok || !result.reply.ok) {
       return Promise.reject(mapReplyFailure(result));
     }

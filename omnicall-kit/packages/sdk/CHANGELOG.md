@@ -1,5 +1,20 @@
 # @softomnitel/omnicall-kit
 
+## 0.2.0
+
+### Minor Changes
+
+- **ADR-0027 / F-011 production-readiness:** latest-known `getRevision()` from
+  snapshots, successful replies, public events, and `stale_state.currentRevision`
+  (monotonic; cleared on disconnect/reconnect/revoke/incompatible/failed).
+  `getCachedSnapshot()` stays an honest snapshot cache (not patched by replies/events).
+- Package-owned `SDK_VERSION` (`0.2.0`); remove manual `sdkVersion` from client options.
+- Add `discoverOmniCallDesktop({ fetch, signal? })` for trusted loopback discovery.
+- `waitUntil` accepts `{ timeoutMs, signal }` and throws typed `WaitUntilTimeoutError`
+  (numeric timeout overload kept).
+- Additional protocol DTO re-exports for integrator typing DX.
+- Example `crm-pairing-lite` pins workspace kit `0.2.0`; sdk-09 capability regression retained.
+
 ## 0.1.4
 
 ### Patch Changes

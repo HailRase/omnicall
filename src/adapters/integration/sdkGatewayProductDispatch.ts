@@ -1,33 +1,30 @@
 /**
- * DI-05/DI-06 product command execution: snapshot/call via broker, window via main.
+ * DI-05/DI-06 product command execution via broker (WU-02: window joins broker).
+ * Native BrowserWindow still runs in main through Application→IPC after revision validate.
  */
 
 import type { CommandType, CapabilityId, WireMessage } from "@softomnitel/omnicall-protocol";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {
   buildCommandFailureReply,
-  buildCommandSuccessReply,
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { buildWindowVisibilityEvent } from "./sdkGatewaySnapshotMessage.js";
-import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import { gateSdkCommandDedup } from "./sdkGatewayDedupGate.js";
+import type {
+  SdkDedupPrincipal,
+  SdkRequestDedupCache,
+} from "./sdkGatewayRequestDedup.js";
 import { deliverSdkSnapshotReply } from "./sdkGatewaySnapshotDispatch.js";
 import { denyActivateWhenOriginPolicyForbids } from "./sdkGatewayActivateApproval.js";
 
-export type SdkProductCommandRoute =
-  | {
-      readonly action: "command_broker";
-      readonly requestId: string;
-      readonly commandType: CommandType;
-      readonly message: Extract<WireMessage, { kind: "command" }>;
-    }
-  | {
-      readonly action: "command_window";
-      readonly requestId: string;
-      readonly commandType: "window:show" | "window:get-state" | "window:hide";
-      readonly expectedRevision?: number;
-    };
+export type SdkProductCommandRoute = {
+  readonly action: "command_broker";
+  readonly requestId: string;
+  readonly commandType: CommandType;
+  readonly message: Extract<WireMessage, { kind: "command" }>;
+};
 
 export type SdkProductDispatchContext = Readonly<{
   readonly connection: SdkGatewayConnection;
@@ -51,10 +48,10 @@ export async function dispatchSdkProductRoute(input: {
   readonly route: SdkProductCommandRoute;
   readonly productSurface: SdkGatewayProductSurface | null;
   readonly context: SdkProductDispatchContext;
-  readonly onNotReady: (route: SdkProductCommandRoute) => void;
+  readonly onNotReady: (route: SdkProductCommandRoute) => void | Promise<void>;
 }): Promise<void> {
   if (input.productSurface === null) {
-    input.onNotReady(input.route);
+    await input.onNotReady(input.route);
     return;
   }
   await handleSdkProductCommand({
@@ -91,214 +88,68 @@ export async function handleSdkProductCommand(input: {
     return;
   }
   const { requestId, commandType } = input.route;
-  const dedup = input.requestDedup.begin(requestId, input.now().getTime());
-  if (dedup.action === "replay") {
-    input.sendJson(input.connection, dedup.reply);
-    return;
-  }
-  if (dedup.action === "await") {
-    const reply = await dedup.promise;
-    input.sendJson(input.connection, reply);
-    return;
-  }
-
-  if (!input.product.isProductReady()) {
-    const reply = buildCommandFailureReply({
-      requestId,
-      commandType,
-      code: "not_ready",
-      identity,
-      now: input.now,
-    });
-    input.requestDedup.complete(requestId, reply, input.now().getTime());
-    input.sendJson(input.connection, reply);
-    input.log("sdk_gateway_command", {
-      commandType,
-      requestId,
-      result: "not_ready",
-    });
-    return;
-  }
-
-  if (input.route.action === "command_window") {
-    const windowResult = executeWindowCommand(
-      input,
-      identity,
-      input.route.commandType,
-      input.route.expectedRevision,
-    );
-    input.requestDedup.complete(
-      requestId,
-      windowResult.reply,
-      input.now().getTime(),
-    );
-    // Reply before visibility event (DI-05 ordering contract).
-    input.sendJson(input.connection, windowResult.reply);
-    if (windowResult.visibilityEvent !== undefined) {
-      input.connection.eventSequence += 1;
-      input.emitToConnection(
-        input.connection,
-        buildWindowVisibilityEvent({
-          identity,
-          now: input.now,
-          sequence: input.connection.eventSequence,
-          revision: windowResult.visibilityEvent.revision,
-          visible: windowResult.visibilityEvent.visible,
-        }),
-      );
-    }
-    return;
-  }
-
-  if (
-    input.route.action === "command_broker" &&
-    denyActivateWhenOriginPolicyForbids({
-      connection: input.connection,
-      requestDedup: input.requestDedup,
-      now: input.now,
-      sendJson: input.sendJson,
-      log: input.log,
-      identity,
-      command: input.route.message,
-      isOriginActivateAllowed: input.isOriginActivateAllowed,
-    })
-  ) {
-    return;
-  }
-
-  await handleBrokerCommand(input, identity, input.route.message);
-}
-
-function executeWindowCommand(
-  input: Parameters<typeof handleSdkProductCommand>[0],
-  identity: SdkGatewayIdentity,
-  commandType: "window:show" | "window:get-state" | "window:hide",
-  expectedRevision: number | undefined,
-): {
-  readonly reply: WireMessage;
-  readonly visibilityEvent?: { readonly revision: number; readonly visible: boolean };
-} {
-  if (commandType === "window:get-state") {
-    const state = input.product.getWindowState();
-    if (!state.ok) {
-      input.log("sdk_gateway_command", {
-        commandType,
-        requestId: input.route.requestId,
-        result: state.code,
-      });
-      return {
-        reply: buildCommandFailureReply({
-          requestId: input.route.requestId,
-          commandType,
-          code: state.code,
-          identity,
-          now: input.now,
-        }),
-      };
-    }
-    input.log("sdk_gateway_command", {
-      commandType,
-      requestId: input.route.requestId,
-      result: "ok",
-    });
-    return {
-      reply: buildCommandSuccessReply({
-        requestId: input.route.requestId,
-        commandType,
-        identity,
-        now: input.now,
-        revision: state.revision,
-        result: { visible: state.visible },
-      }),
-    };
-  }
-
-  if (commandType === "window:hide") {
-    if (expectedRevision === undefined) {
-      return {
-        reply: buildCommandFailureReply({
-          requestId: input.route.requestId,
-          commandType,
-          code: "invalid_payload",
-          identity,
-          now: input.now,
-        }),
-      };
-    }
-    const hidden = input.product.hideWindow(expectedRevision);
-    if (!hidden.ok) {
-      input.log("sdk_gateway_command", {
-        commandType,
-        requestId: input.route.requestId,
-        result: hidden.code,
-      });
-      return {
-        reply: buildCommandFailureReply({
-          requestId: input.route.requestId,
-          commandType,
-          code: hidden.code,
-          identity,
-          now: input.now,
-        }),
-      };
-    }
-    input.log("sdk_gateway_command", {
-      commandType,
-      requestId: input.route.requestId,
-      result: "ok",
-    });
-    return {
-      reply: buildCommandSuccessReply({
-        requestId: input.route.requestId,
-        commandType,
-        identity,
-        now: input.now,
-        revision: hidden.revision,
-        result: { visible: false },
-      }),
-      visibilityEvent: { revision: hidden.revision, visible: false },
-    };
-  }
-
-  const shown = input.product.showWindow();
-  if (!shown.ok) {
-    input.log("sdk_gateway_command", {
-      commandType,
-      requestId: input.route.requestId,
-      result: shown.code,
-    });
-    return {
-      reply: buildCommandFailureReply({
-        requestId: input.route.requestId,
-        commandType,
-        code: shown.code,
-        identity,
-        now: input.now,
-      }),
-    };
-  }
-  input.log("sdk_gateway_command", {
+  const gate = await gateSdkCommandDedup({
+    connection: input.connection,
+    requestDedup: input.requestDedup,
+    requestId,
     commandType,
-    requestId: input.route.requestId,
-    result: "ok",
+    identity,
+    now: input.now,
+    sendJson: input.sendJson,
+    log: input.log,
   });
-  return {
-    reply: buildCommandSuccessReply({
-      requestId: input.route.requestId,
-      commandType,
-      identity,
-      now: input.now,
-      revision: shown.revision,
-      result: { visible: true },
-    }),
-    visibilityEvent: { revision: shown.revision, visible: true },
-  };
+  if (gate.action === "terminal") {
+    return;
+  }
+  const { principal } = gate;
+
+  try {
+    if (!input.product.isProductReady()) {
+      const reply = buildCommandFailureReply({
+        requestId,
+        commandType,
+        code: "not_ready",
+        identity,
+        now: input.now,
+      });
+      input.requestDedup.complete(principal, reply, input.now().getTime());
+      input.sendJson(input.connection, reply);
+      input.log("sdk_gateway_command", {
+        commandType,
+        requestId,
+        result: "not_ready",
+      });
+      return;
+    }
+
+    if (
+      denyActivateWhenOriginPolicyForbids({
+        connection: input.connection,
+        requestDedup: input.requestDedup,
+        dedupPrincipal: principal,
+        now: input.now,
+        sendJson: input.sendJson,
+        log: input.log,
+        identity,
+        command: input.route.message,
+        isOriginActivateAllowed: input.isOriginActivateAllowed,
+      })
+    ) {
+      return;
+    }
+
+    await handleBrokerCommand(input, identity, input.route.message, principal);
+  } catch (error: unknown) {
+    input.requestDedup.abandon(principal, "failed");
+    throw error;
+  }
 }
 
 async function handleBrokerCommand(
   input: Parameters<typeof handleSdkProductCommand>[0],
   identity: SdkGatewayIdentity,
   command: Extract<WireMessage, { kind: "command" }>,
+  principal: SdkDedupPrincipal,
 ): Promise<void> {
   const clientId = input.connection.clientId;
   const brokerResult = await input.product.requestProductCommand(command, {
@@ -319,11 +170,7 @@ async function handleBrokerCommand(
         ? { details: brokerResult.details }
         : {}),
     });
-    input.requestDedup.complete(
-      command.requestId,
-      reply,
-      input.now().getTime(),
-    );
+    input.requestDedup.complete(principal, reply, input.now().getTime());
     input.sendJson(input.connection, reply);
     input.log("sdk_gateway_command", {
       commandType: command.type,
@@ -342,6 +189,7 @@ async function handleBrokerCommand(
       command,
       reply,
       requestDedup: input.requestDedup,
+      dedupPrincipal: principal,
       now: input.now,
       sendJson: input.sendJson,
       log: input.log,
@@ -351,15 +199,45 @@ async function handleBrokerCommand(
     return;
   }
 
-  input.requestDedup.complete(
-    command.requestId,
-    reply,
-    input.now().getTime(),
-  );
+  input.requestDedup.complete(principal, reply, input.now().getTime());
+  // Reply before visibility event (DI-05 ordering contract).
   input.sendJson(input.connection, reply);
+  maybeEmitWindowVisibilityEvent(input, identity, command, reply);
   input.log("sdk_gateway_command", {
     commandType: command.type,
     requestId: command.requestId,
     result: reply.ok ? "ok" : reply.error.code,
   });
+}
+
+function maybeEmitWindowVisibilityEvent(
+  input: Parameters<typeof handleSdkProductCommand>[0],
+  identity: SdkGatewayIdentity,
+  command: Extract<WireMessage, { kind: "command" }>,
+  reply: Extract<WireMessage, { kind: "reply" }>,
+): void {
+  if (
+    !reply.ok ||
+    (command.type !== "window:show" && command.type !== "window:hide")
+  ) {
+    return;
+  }
+  const visible =
+    typeof reply.result === "object" &&
+    reply.result !== null &&
+    "visible" in reply.result &&
+    typeof reply.result["visible"] === "boolean"
+      ? reply.result["visible"]
+      : command.type === "window:show";
+  input.connection.eventSequence += 1;
+  input.emitToConnection(
+    input.connection,
+    buildWindowVisibilityEvent({
+      identity,
+      now: input.now,
+      sequence: input.connection.eventSequence,
+      revision: reply.revision,
+      visible,
+    }),
+  );
 }

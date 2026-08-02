@@ -3,17 +3,18 @@
 Aligns with [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 If this page disagrees with the API report, the **report wins**.
 
-**Full public inventory:** **77** symbols (see table below). Method/namespace sections are
+**Full public inventory:** **87** symbols (see table below). Method/namespace sections are
 integrator-oriented summaries; the inventory is the complete export list.
 
 Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript.md).
 
-## Public symbol inventory (77)
+## Public symbol inventory (87)
 
 | Kind | Symbol |
 | --- | --- |
 | type | `ActivateProfileMode` |
 | type | `ActivateProfileResult` |
+| re-export | `ApplicationIdentity` |
 | type | `AuthClient` |
 | type | `AuthClientOptions` |
 | type | `AuthSessionSnapshot` |
@@ -24,6 +25,7 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | type | `OmniCallClientOptions` |
 | type | `OmniCallEvent` |
 | type | `OmniCallEventOf` |
+| type | `OmniCallDiscoveryOptions` |
 | type | `OmniCallOperatorApi` |
 | type | `OmniCallWindowApi` |
 | type | `BrowserWebSocketConstructor` |
@@ -35,6 +37,7 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | type | `ConnectionState` |
 | function | `createAuthClient` |
 | function | `createOmniCallClient` |
+| function | `discoverOmniCallDesktop` |
 | function | `createBrowserJitterSource` |
 | function | `createBrowserScheduler` |
 | function | `createBrowserWebSocketTransport` |
@@ -48,6 +51,7 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | type | `DiagnosticLevel` |
 | type | `DiagnosticResult` |
 | type | `DiagnosticsSink` |
+| type | `DiscoveryDocument` |
 | type | `FakeScheduler` |
 | type | `HeartbeatPolicy` |
 | type | `InteractionRequiredDetails` |
@@ -65,8 +69,10 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | type | `OperatorStatusChangeKind` |
 | type | `OperatorStatusChangeResult` |
 | type | `PairingRequiredInfo` |
+| re-export | `PairingProfile` |
 | type | `PopKeyStore` |
 | re-export | `ProtocolErrorCode` |
+| re-export | `ProtocolVersion` |
 | const | `PUBLIC_EVENT_TYPES` |
 | type | `PublicEventType` |
 | re-export | `PublicOperatorStatus` |
@@ -74,11 +80,13 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | function | `readInteractionRequiredDetails` |
 | function | `readOperationFailedDetails` |
 | type | `ReconnectPolicy` |
+| re-export | `Revision` |
 | type | `Scheduler` |
 | re-export | `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` |
 | re-export | `SDK_ACTIVATE_CONSENT_TTL_MS` |
 | re-export | `SDK_ACTIVATE_OCP_AUTH_BUDGET_MS` |
 | re-export | `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` |
+| const | `SDK_VERSION` |
 | re-export | `SnapshotCallSummary` |
 | re-export | `SnapshotMessage` |
 | re-export | `SnapshotSections` |
@@ -89,6 +97,8 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | type | `TransportFactory` |
 | type | `TransportPort` |
 | re-export | `WireJsonObject` |
+| re-export | `WireJsonValue` |
+| class | `WaitUntilTimeoutError` |
 
 ## Factories
 
@@ -96,6 +106,7 @@ Typing DX (imports, `OmniCallEventOf`, error readers): [TypeScript](./typescript
 | --- | --- |
 | `createOmniCallClient(options)` | Preferred public client |
 | `createAuthClient(options)` | Auth/lifecycle only (no product namespaces) |
+| `discoverOmniCallDesktop(options)` | Validates only the fixed loopback discovery endpoint |
 | `createBrowserWebSocketTransport` | Official browser `TransportPort` (default `transportFactory`) |
 | `createBrowserScheduler` / `createBrowserJitterSource` | Production timer/jitter defaults |
 | `createMemoryPopKeyStore` / `createIndexedDbPopKeyStore` | PoP persistence |
@@ -117,10 +128,10 @@ are **optional** in browsers (defaults above). Inject fakes in unit tests. See
 | `disconnect()` | `void` — **no** hangup / logout / activate |
 | `onStateChange(listener)` | unsubscribe `() => void` |
 | `onPairingRequired(listener)` | unsubscribe |
-| `waitUntil(predicate, timeoutMs?)` | `Promise<ConnectionState>` |
+| `waitUntil(predicate, timeoutMs \| { timeoutMs?, signal? })` | `Promise<ConnectionState>` (`WaitUntilTimeoutError` on timeout) |
 | `getSnapshot()` | `Promise<SnapshotMessage>` |
 | `getCachedSnapshot()` | cached snapshot or `undefined` |
-| `getRevision()` | `number \| undefined` |
+| `getRevision()` | latest-known concurrency token (`number \| undefined`) |
 | `subscribe(type, listener)` | unsubscribe — payload narrowed by `type` (`OmniCallEventOf`) |
 | `preauthDropCount()` | diagnostics counter |
 

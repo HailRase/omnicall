@@ -28,6 +28,8 @@ export const SDK_BROKER_DEFAULT_TIMEOUT_MS = 5_000;
 export type MainToRendererBrokerTransport = Readonly<{
   /** Returns false when the renderer target is unavailable. */
   sendRequest: (payload: SdkBrokerRequestIpcPayload) => boolean;
+  /** Best-effort cancellation for a request that will no longer be observed. */
+  sendCancel?: (brokerRequestId: string) => void;
 }>;
 
 export type MainToRendererBrokerOptions = Readonly<{
@@ -218,23 +220,6 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
     const brokerRequestId = this.createBrokerRequestId();
     const clientId = context?.clientId;
     const origin = context?.origin;
-    const sent = this.transport.sendRequest({
-      brokerRequestId,
-      command: message,
-      ...(clientId !== undefined && clientId.length > 0
-        ? { clientId }
-        : {}),
-      ...(origin !== undefined && origin.length > 0 ? { origin } : {}),
-    });
-
-    if (!sent) {
-      this.onLog?.("sdk_broker_send_failed", {
-        commandType: product.commandType,
-        reason: "renderer_unavailable",
-      });
-      return Promise.resolve({ ok: false, code: "not_ready" });
-    }
-
     return new Promise<BrokerRequestResult>((resolve) => {
       const timeoutMs = brokerTimeoutMsForCommand(
         product.commandType,
@@ -249,6 +234,22 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
         resolve,
         timer,
       });
+      const sent = this.transport.sendRequest({
+        brokerRequestId,
+        command: message,
+        ...(clientId !== undefined && clientId.length > 0
+          ? { clientId }
+          : {}),
+        ...(origin !== undefined && origin.length > 0 ? { origin } : {}),
+      });
+      if (!sent) {
+        this.onLog?.("sdk_broker_send_failed", {
+          commandType: product.commandType,
+          reason: "renderer_unavailable",
+        });
+        this.settlePending(brokerRequestId, { ok: false, code: "not_ready" });
+        return;
+      }
 
       this.onLog?.("sdk_broker_request_sent", {
         commandType: product.commandType,
@@ -268,6 +269,9 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
     }
     this.pending.delete(brokerRequestId);
     clearTimeout(entry.timer);
+    if (!result.ok) {
+      this.transport.sendCancel?.(brokerRequestId);
+    }
     entry.resolve(result);
     this.onLog?.("sdk_broker_request_settled", {
       ok: result.ok,

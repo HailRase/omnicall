@@ -289,6 +289,7 @@ export class LocalWsSessionRegistry {
   terminateAll(): void {
     for (const connection of [...this.connections.values()]) {
       clearSdkGatewayConnectionTimers(connection);
+      this.requestDedup.abandonOwnedByConnection(connection.id, "disconnect");
       try {
         connection.socket.terminate();
       } catch {
@@ -298,9 +299,10 @@ export class LocalWsSessionRegistry {
     this.connections.clear();
   }
 
-  async revokeClient(clientId: string): Promise<boolean> {
+  async revokeClient(clientId: string, origin: string): Promise<boolean> {
     return revokeLocalWsClient({
       clientId,
+      origin,
       pairingStore: this.pairingStore,
       connections: this.connections,
       getIdentity: this.getIdentity,
@@ -420,6 +422,7 @@ export class LocalWsSessionRegistry {
     connection: SdkGatewayConnection,
     reason: string,
   ): void {
+    this.requestDedup.abandonOwnedByConnection(connection.id, "disconnect");
     closeSdkGatewayConnection({
       connection,
       reason,
@@ -433,9 +436,22 @@ export class LocalWsSessionRegistry {
   private removeConnection(connection: SdkGatewayConnection): void {
     clearSdkGatewayConnectionTimers(connection);
     this.connections.delete(connection.id);
+    const abandoned = this.requestDedup.abandonOwnedByConnection(
+      connection.id,
+      "disconnect",
+    );
+    if (abandoned > 0) {
+      this.log("sdk_gateway_dedup_abandoned", {
+        abandoned,
+        connectionCount: this.connections.size,
+      });
+    }
     const clientId = connection.clientId;
     if (clientId !== null && clientId.length > 0) {
-      this.getProductSurface()?.onClientSessionEnded?.(clientId);
+      this.getProductSurface()?.onClientSessionEnded?.({
+        origin: connection.origin,
+        clientId,
+      });
     }
     this.onConnectionRemoved?.(connection);
   }

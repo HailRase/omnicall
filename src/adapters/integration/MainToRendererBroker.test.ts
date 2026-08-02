@@ -125,7 +125,7 @@ describe("MainToRendererBroker", () => {
 
   it("times out and clears pending timers", async () => {
     vi.useFakeTimers();
-    const { broker } = createLoopbackPair({ timeoutMs: 100, autoReply: false });
+    const { broker, sent } = createLoopbackPair({ timeoutMs: 100, autoReply: false });
     broker.setReady(true);
 
     const pending = broker.request(
@@ -136,6 +136,11 @@ describe("MainToRendererBroker", () => {
     await vi.advanceTimersByTimeAsync(100);
     await expect(pending).resolves.toEqual({ ok: false, code: "timeout" });
     expect(broker.getPendingCount()).toBe(0);
+    expect(broker.acceptReply({
+      brokerRequestId: sent[0]!.brokerRequestId,
+      ok: false,
+      code: "operation_failed",
+    })).toBe(false);
   });
 
   it("uses long hop timeout for account:activate-profile only", async () => {

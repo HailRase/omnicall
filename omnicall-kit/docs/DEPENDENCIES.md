@@ -52,9 +52,12 @@ JSON bytes.
 
 ## Publish posture
 
-- Packages versioned for registry release (**`0.1.0`** stable / Mode B).
+- Workspace / npm kit **`0.2.0`** (`latest`); protocol **`0.1.0`** (`latest`).
 - `publishConfig.access=public` (Free org interim; Teams → `restricted` optional later) and
   `publishConfig.provenance` may be false for local CLI (CI can enable).
 - First RC: `0.1.0-rc.0` on tag **`rc`** (2026-07-27).
-- First stable: **`0.1.0`** on tag **`latest`** (Mode B after DI-10 full close).
-- See `docs/guide/release-and-support.md`.
+- First stable: **`0.1.0`** on tag **`latest`** (Mode B after DI-10); kit later
+  patched to **`0.2.0`**.
+- `"license": "UNLICENSED"` — publish gate fail-closed until human license review
+  (`RELEASE_LICENSE_REVIEWED=1`); do not invent SPDX.
+- See `docs/guide/release-and-support.md` and `guides/RELEASE-PLAYBOOK.md`.

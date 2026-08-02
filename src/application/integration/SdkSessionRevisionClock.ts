@@ -1,9 +1,10 @@
 /**
- * Shared monotonic session revision for SDK read + mutation surfaces (DI-05/DI-06).
+ * Monotonic session revision storage (DI-05/DI-06).
+ * Public mutate validate/advance/serialize ownership: SdkSessionRevisionCoordinator (ADR-0027).
  *
  * Contract (ADR-0017 O-OWN-1 / PROTOCOL):
  * - Mutations require `expectedRevision === peek()`.
- * - Successful mutations call `advance()` and return that **new** value as `reply.revision`.
+ * - Successful mutations advance once; reply.revision is the **new** value.
  * - Clients use `reply.revision` (or a read's current revision) as the next `expectedRevision`.
  * - Reads return `peek()` without advancing so snapshot/ping do not break mutate chains.
  */

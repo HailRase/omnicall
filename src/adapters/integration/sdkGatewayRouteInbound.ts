@@ -46,12 +46,6 @@ export type SdkInboundRoute =
       readonly message: CommandMessage;
     }
   | {
-      readonly action: "command_window";
-      readonly requestId: string;
-      readonly commandType: "window:show" | "window:get-state" | "window:hide";
-      readonly expectedRevision?: number;
-    }
-  | {
       readonly action: "command_not_ready";
       readonly requestId: string;
       readonly commandType: CommandMessage["type"];
@@ -148,45 +142,17 @@ function routeCommand(
     message.type === "operator:change-status" ||
     message.type === "operator:finish-appeal" ||
     message.type === "account:logout" ||
-    message.type === "account:activate-profile"
+    message.type === "account:activate-profile" ||
+    message.type === "window:show" ||
+    message.type === "window:get-state" ||
+    message.type === "window:hide"
   ) {
+    // WU-02: window joins Application coordinator via broker (native op in main).
     return {
       action: "command_broker",
       requestId: message.requestId,
       commandType: message.type,
       message,
-    };
-  }
-
-  if (message.type === "window:show" || message.type === "window:get-state") {
-    return {
-      action: "command_window",
-      requestId: message.requestId,
-      commandType: message.type,
-    };
-  }
-
-  if (message.type === "window:hide") {
-    const expectedRevision =
-      typeof message.payload === "object" &&
-      message.payload !== null &&
-      "expectedRevision" in message.payload &&
-      typeof message.payload.expectedRevision === "number"
-        ? message.payload.expectedRevision
-        : undefined;
-    if (expectedRevision === undefined) {
-      return {
-        action: "command_deny",
-        requestId: message.requestId,
-        commandType: message.type,
-        code: "invalid_payload",
-      };
-    }
-    return {
-      action: "command_window",
-      requestId: message.requestId,
-      commandType: message.type,
-      expectedRevision,
     };
   }
 

@@ -20,7 +20,9 @@ import {
   guardCapability,
   guardReady,
   mapReplyFailure,
-  requireWireIdentity
+  observeReplyRevision,
+  requireWireIdentity,
+  type ObserveWireRevision
 } from './product-commands.js';
 import type { Scheduler } from './scheduler.js';
 
@@ -128,6 +130,7 @@ export function createOperatorCommandApi(deps: {
   readonly connection: ConnectionSession;
   readonly scheduler: Scheduler;
   readonly getGrantedCapabilities: () => readonly CapabilityId[];
+  readonly observeWireRevision?: ObserveWireRevision;
 }): OperatorCommandApi {
   const runOperatorCommand = async <T>(
     commandType: CommandType,
@@ -169,6 +172,7 @@ export function createOperatorCommandApi(deps: {
       commandType,
       body: buildBody(fields)
     });
+    observeReplyRevision(deps.observeWireRevision, result);
     if (!result.ok || !result.reply.ok) {
       return Promise.reject(mapReplyFailure(result));
     }

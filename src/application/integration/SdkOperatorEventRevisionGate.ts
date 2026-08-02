@@ -6,7 +6,7 @@
 import type { WireJsonObject } from "@softomnitel/omnicall-protocol";
 
 import type { SdkPublicEventDraft } from "./ExternalSdkEventMapper.js";
-import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import type { SdkSessionRevisionCoordinator } from "./SdkSessionRevisionCoordinator.js";
 
 export type SdkOperatorEventPublishResult = Readonly<{
   draft: SdkPublicEventDraft;
@@ -108,7 +108,17 @@ export class SdkOperatorEventRevisionGate {
    */
   preparePublish(
     draft: SdkPublicEventDraft,
-    clock: SdkSessionRevisionClock,
+    coordinator: SdkSessionRevisionCoordinator,
+  ): Promise<SdkOperatorEventPublishResult> {
+    return coordinator.runEventPublication((currentRevision, advance) =>
+      this.prepareUnderCoordinatorLock(draft, currentRevision, advance),
+    );
+  }
+
+  private prepareUnderCoordinatorLock(
+    draft: SdkPublicEventDraft,
+    currentRevision: number,
+    advance: () => number,
   ): SdkOperatorEventPublishResult {
     if (
       draft.type !== "operator:status-changed" &&
@@ -118,7 +128,7 @@ export class SdkOperatorEventRevisionGate {
     ) {
       return {
         draft,
-        revision: clock.peek(),
+        revision: currentRevision,
         advanced: false,
       };
     }
@@ -138,7 +148,7 @@ export class SdkOperatorEventRevisionGate {
           nextReservedReasonId,
         )
       ) {
-        clock.advance();
+        advance();
         advanced = true;
       }
       this.last = {
@@ -154,7 +164,7 @@ export class SdkOperatorEventRevisionGate {
         nextConnected !== undefined &&
         this.last.connected !== nextConnected
       ) {
-        clock.advance();
+        advance();
         advanced = true;
       }
       this.last = {
@@ -167,7 +177,7 @@ export class SdkOperatorEventRevisionGate {
         nextCampaignId !== undefined &&
         this.last.campaignId !== nextCampaignId
       ) {
-        clock.advance();
+        advance();
         advanced = true;
       }
       this.last = {
@@ -177,10 +187,10 @@ export class SdkOperatorEventRevisionGate {
     } else {
       const clearedId = readCampaignId(draft.payload);
       if (this.last.campaignId !== undefined) {
-        clock.advance();
+        advance();
         advanced = true;
       } else if (clearedId !== undefined) {
-        clock.advance();
+        advance();
         advanced = true;
       }
       this.last = {
@@ -191,7 +201,7 @@ export class SdkOperatorEventRevisionGate {
 
     return {
       draft,
-      revision: clock.peek(),
+      revision: advanced ? currentRevision + 1 : currentRevision,
       advanced,
     };
   }

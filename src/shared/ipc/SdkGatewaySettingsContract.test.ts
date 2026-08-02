@@ -63,6 +63,33 @@ const validOrigin = {
 };
 
 describe("SdkGatewaySettingsContract", () => {
+  it("parses revokeClient with Origin and rejects missing/wildcard Origin", () => {
+    expect(
+      parseSdkGatewaySettingsOperation({
+        op: "revokeClient",
+        clientId: "cli_1",
+        origin: "https://crm.example",
+      }),
+    ).toEqual({
+      op: "revokeClient",
+      clientId: "cli_1",
+      origin: "https://crm.example",
+    });
+    expect(
+      parseSdkGatewaySettingsOperation({
+        op: "revokeClient",
+        clientId: "cli_1",
+      }),
+    ).toBeNull();
+    expect(
+      parseSdkGatewaySettingsOperation({
+        op: "revokeClient",
+        clientId: "cli_1",
+        origin: "https://*.example",
+      }),
+    ).toBeNull();
+  });
+
   it("parses applyPolicy and rejects wildcard origins", () => {
     expect(
       parseSdkGatewaySettingsOperation({

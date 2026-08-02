@@ -8,9 +8,18 @@ import { setRendererLanguage } from "../../i18n/index.js";
 import { toast } from "../ui/sonner/index.js";
 import { NotificationViewport } from "./NotificationViewport.js";
 
-afterEach(() => {
-  toast.dismiss();
+function settleSonnerLifecycle(): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      window.requestAnimationFrame(() => resolve());
+    }, 0);
+  });
+}
+
+afterEach(async () => {
   cleanup();
+  toast.dismiss();
+  await settleSonnerLifecycle();
   setRendererLanguage("ru");
 });
 

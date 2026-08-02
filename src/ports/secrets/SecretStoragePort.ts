@@ -42,13 +42,21 @@ export const OCP_PROXY_API_KEY_SECRET_ID = "ocp-proxy-api-key" as const;
 export const SDK_PAIRING_SCOPE_KEY = "sdk-gateway" as const;
 
 /**
- * Index blob listing paired client IDs (JSON string array).
+ * Index blob listing paired bindings (JSON array of `{clientId,origin}`).
+ * Legacy plain `clientId` strings are accepted on read and rewritten on touch.
  * Corrupt loads are recovered by SdkGatewayPairingStore (purge + empty list).
  */
 export const SDK_PAIRED_CLIENTS_INDEX_SECRET_ID = "paired-clients-index" as const;
 
 /**
- * Prefix for per-client pairing binding blobs (`paired-client:<clientId>`).
- * Corrupt loads are purged; auth/findActive fail closed until re-pair.
+ * Legacy prefix for clientId-only pairing blobs (`paired-client:<clientId>`).
+ * Read-migrated to v2 on touch when stored Origin matches; never cross-Origin merge.
  */
 export const SDK_PAIRED_CLIENT_SECRET_ID_PREFIX = "paired-client:" as const;
+
+/**
+ * Composite Origin+clientId pairing blobs
+ * (`paired-client-v2:<originSha256Hex>.<encodeURIComponent(clientId)>`).
+ * Corrupt loads are purged; auth/findActive fail closed until re-pair.
+ */
+export const SDK_PAIRED_CLIENT_V2_SECRET_ID_PREFIX = "paired-client-v2:" as const;

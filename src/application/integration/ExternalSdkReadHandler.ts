@@ -18,32 +18,34 @@ import type {
 import { assembleSdkSnapshotProductSections } from "./ExternalSdkSnapshotAssembler.js";
 import type { SdkProductStateReader } from "./ExternalSdkProductState.js";
 import type { SdkCallOwnershipRegistry } from "./SdkCallOwnershipRegistry.js";
-import {
-  SdkSessionRevisionClock,
-} from "./SdkSessionRevisionClock.js";
+import type { SdkSessionRevisionCoordinator } from "./SdkSessionRevisionCoordinator.js";
+import type { SdkNativeWindowPort } from "@ports/integration/SdkNativeWindowPort.js";
 
 export type ExternalSdkReadHandlerOptions = Readonly<{
   readProductState: SdkProductStateReader;
-  revisionClock?: SdkSessionRevisionClock;
+  revisionCoordinator: SdkSessionRevisionCoordinator;
   ownership?: SdkCallOwnershipRegistry;
+  nativeWindowPort?: SdkNativeWindowPort;
 }>;
 
 /**
  * Focused handler for the single renderer composition broker path.
  */
 export class ExternalSdkReadHandler implements ExternalCommandHandler {
-  private readonly revisionClock: SdkSessionRevisionClock;
+  private readonly revisionCoordinator: SdkSessionRevisionCoordinator;
   private readonly readProductState: SdkProductStateReader;
   private readonly ownership: SdkCallOwnershipRegistry | undefined;
+  private readonly nativeWindowPort: SdkNativeWindowPort | undefined;
 
   constructor(options: ExternalSdkReadHandlerOptions) {
     this.readProductState = options.readProductState;
-    this.revisionClock = options.revisionClock ?? new SdkSessionRevisionClock();
+    this.revisionCoordinator = options.revisionCoordinator;
     this.ownership = options.ownership;
+    this.nativeWindowPort = options.nativeWindowPort;
   }
 
   getRevision(): number {
-    return this.revisionClock.peek();
+    return this.revisionCoordinator.peek();
   }
 
   handleCommand(
@@ -79,7 +81,7 @@ export class ExternalSdkReadHandler implements ExternalCommandHandler {
       return Promise.resolve(this.handlePing(message.payload));
     }
     if (message.type === "sdk:get-snapshot") {
-      return Promise.resolve(this.handleSnapshot());
+      return this.handleSnapshot();
     }
     return Promise.resolve({
       ok: false,
@@ -90,7 +92,7 @@ export class ExternalSdkReadHandler implements ExternalCommandHandler {
 
   private handlePing(payload: unknown): ExternalHandlerResult {
     // Reads must not advance — snapshot/ping revision is a valid next expectedRevision.
-    const revision = this.revisionClock.peek();
+    const revision = this.revisionCoordinator.peek();
     const nonce = readPingNonce(payload);
     if (nonce === undefined) {
       return { ok: true, result: {}, revision };
@@ -98,28 +100,37 @@ export class ExternalSdkReadHandler implements ExternalCommandHandler {
     return { ok: true, result: { nonce }, revision };
   }
 
-  private handleSnapshot(): ExternalHandlerResult {
-    const ownership = this.ownership;
-    const sections = assembleSdkSnapshotProductSections(
-      this.readProductState(),
-      ownership !== undefined
-        ? {
-            getOwnerClientId: (callId) => ownership.getOwnerClientId(callId),
-          }
-        : {},
-    );
-    const revision = this.revisionClock.peek();
-    const result: WireJsonObject = {
-      sections: {
-        account: sections.account,
-        registration: sections.registration,
-        calls: [...sections.calls],
-        ...(sections.operator !== undefined
-          ? { operator: sections.operator }
-          : {}),
-      },
-    };
-    return { ok: true, result, revision };
+  private handleSnapshot(): Promise<ExternalHandlerResult> {
+    return this.revisionCoordinator.observe(async (revision) => {
+      const ownership = this.ownership;
+      const sections = assembleSdkSnapshotProductSections(
+        this.readProductState(),
+        ownership !== undefined
+          ? {
+              getOwnerClientId: (callId) => ownership.getOwnerClientId(callId),
+            }
+          : {},
+      );
+      const native =
+        this.nativeWindowPort === undefined
+          ? { ok: true as const, visible: false }
+          : await this.nativeWindowPort.getState();
+      if (!native.ok) {
+        return { ok: false, code: native.code, retryable: false };
+      }
+      const result: WireJsonObject = {
+        sections: {
+          account: sections.account,
+          registration: sections.registration,
+          calls: [...sections.calls],
+          ...(sections.operator !== undefined
+            ? { operator: sections.operator }
+            : {}),
+        },
+        windowVisible: native.visible,
+      };
+      return { ok: true, result, revision };
+    });
   }
 }
 

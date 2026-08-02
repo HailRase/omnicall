@@ -6,7 +6,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   SAFE_REQUESTED_CAPABILITIES,
-  activateIfGranted
+  activateIfGranted,
+  originateDemoCall
 } from '../../../../examples/crm-pairing-lite/src/crm-app.js';
 import { sanitizeRequestedCapabilities } from '../internal/requested-capabilities.js';
 import {
@@ -62,6 +63,27 @@ describe('SDK-09 example smoke (fake peer)', () => {
     expect(result.skipped).toBe(true);
     expect(result.code).toBe('forbidden');
     expect(harness.countCommand('account:activate-profile')).toBe(0);
+    harness.client.disconnect();
+  });
+
+  it('call.control does not imply call.originate (local forbidden, zero frames)', async () => {
+    const harness = createFakePeerHarness({
+      grantedCapabilities: [
+        'session.read.redacted',
+        'window.show',
+        'session.logout',
+        'call.control',
+        'operator.status.write'
+      ]
+    });
+    await harness.reachReady();
+    const result = await originateDemoCall(harness.client, 'ext:regression_no_originate');
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('unreachable');
+    }
+    expect(result.code).toBe('forbidden');
+    expect(harness.countCommand('call:originate')).toBe(0);
     harness.client.disconnect();
   });
 

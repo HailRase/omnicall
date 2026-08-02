@@ -20,6 +20,7 @@ import {
 import type { ConnectionSession } from './connection-session.js';
 import type { DiagnosticsSink } from './diagnostics.js';
 import { createEventSubscriptionHub } from './event-subscription.js';
+import { createLatestKnownRevisionTracker } from './latest-known-revision.js';
 import {
   createOperatorCommandApi,
   type OperatorCommandApi
@@ -29,6 +30,7 @@ import {
   guardReady,
   mapPendingFailure,
   mapReplyFailure,
+  observeReplyRevision,
   requireWireIdentity
 } from './product-commands.js';
 import { parseProductInbound } from './product-inbound.js';
@@ -86,13 +88,17 @@ export function createProductOrchestrator(deps: {
   readonly snapshotWaitTimeoutMs?: number;
 }): ProductOrchestrator {
   const cache = createSnapshotCache();
+  const revisionTracker = createLatestKnownRevisionTracker({
+    getActiveIdentity: () => deps.connection.getWireIdentity()
+  });
   const waitTimeoutMs = deps.snapshotWaitTimeoutMs ?? 5_000;
   let resyncInFlight = false;
   let pendingAcquisitions: SnapshotAcquisition[] = [];
   const commandDeps = {
     connection: deps.connection,
     scheduler: deps.scheduler,
-    getGrantedCapabilities: deps.getGrantedCapabilities
+    getGrantedCapabilities: deps.getGrantedCapabilities,
+    observeWireRevision: revisionTracker.observe
   };
   const calls = createCallCommandApi(commandDeps);
   const windowApi = createWindowCommandApi(commandDeps);
@@ -108,6 +114,7 @@ export function createProductOrchestrator(deps: {
 
   const invalidate = (): void => {
     cache.clear();
+    revisionTracker.clear();
     hub.clearSequence();
     const error = invalidateErrorForState(deps.connection.getState());
     const waiters = pendingAcquisitions;
@@ -128,6 +135,30 @@ export function createProductOrchestrator(deps: {
       }
     }
     pendingAcquisitions = remaining;
+  };
+
+  const observeInboundRevision = (message: {
+    readonly revision: number;
+    readonly serverInstanceId: string;
+    readonly sessionEpoch: string;
+  }): void => {
+    revisionTracker.observe({
+      revision: message.revision,
+      serverInstanceId: message.serverInstanceId,
+      sessionEpoch: message.sessionEpoch
+    });
+  };
+
+  const matchesActiveIdentity = (message: {
+    readonly serverInstanceId: string;
+    readonly sessionEpoch: string;
+  }): boolean => {
+    const active = deps.connection.getWireIdentity();
+    return (
+      active !== undefined &&
+      active.serverInstanceId === message.serverInstanceId &&
+      active.sessionEpoch === message.sessionEpoch
+    );
   };
 
   const getSnapshotInternal = (): Promise<SnapshotMessage> => {
@@ -178,6 +209,7 @@ export function createProductOrchestrator(deps: {
           settleReject(acquisition, mapPendingFailure(result));
           return;
         }
+        observeReplyRevision(revisionTracker.observe, result);
         if (!result.reply.ok) {
           removeAcquisition(acquisition);
           settleReject(acquisition, mapReplyFailure(result));
@@ -233,11 +265,18 @@ export function createProductOrchestrator(deps: {
     if (inbound.kind === 'ignored') {
       return false;
     }
+    // A stale socket/server message must not affect cache, sequencing, resync,
+    // revision, or public listeners.
+    if (!matchesActiveIdentity(inbound.message)) {
+      return false;
+    }
     if (inbound.kind === 'snapshot') {
       cache.set(inbound.message);
+      observeInboundRevision(inbound.message);
       notifyMatchingWaiters(inbound.message);
       return true;
     }
+    observeInboundRevision(inbound.message);
     if (
       inbound.message.type === 'sdk:permission-changed' ||
       inbound.message.type === 'sdk:revoked'
@@ -259,7 +298,7 @@ export function createProductOrchestrator(deps: {
     onUnhandledMessage,
     invalidate,
     getCachedSnapshot: () => cache.get(),
-    getRevision: () => cache.getRevision(),
+    getRevision: () => revisionTracker.get(),
     getSnapshot: () => getSnapshotInternal(),
     subscribe: hub.subscribe,
     showWindow: windowApi.showWindow,

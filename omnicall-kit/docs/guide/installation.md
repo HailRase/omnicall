@@ -7,14 +7,15 @@
 | `@softomnitel/omnicall-protocol` | Runtime schemas + shared types |
 | `@softomnitel/omnicall-kit` | Browser / Node-capable client (`OmniCallClient`) |
 
-**Today:** incubating workspace under `omnicall-kit/` (`private: true`, `0.0.0`).  
-First public RC target: `@softomnitel/omnicall-kit@0.1.0-rc.0` / `@softomnitel/omnicall-protocol@0.1.0-rc.0` on
-npm dist-tag **`rc`** — see [release-and-support](./release-and-support.md).  
+**Workspace truth:** `@softomnitel/omnicall-kit@0.2.0` +
+`@softomnitel/omnicall-protocol@0.1.0` under `omnicall-kit/packages/*`.
+**npm (verified):** kit `latest` = **`0.2.0`**, protocol `latest` = **`0.1.0`**,
+`rc` = **`0.1.0-rc.0`** — see [release-and-support](./release-and-support.md).
 **Install the current stable:**
 
 ```bash
 npm install @softomnitel/omnicall-kit
-# or pin: npm install @softomnitel/omnicall-kit@0.1.0
+# or pin: npm install @softomnitel/omnicall-kit@0.2.0
 ```
 
 RC channel (optional): `npm install @softomnitel/omnicall-kit@rc`

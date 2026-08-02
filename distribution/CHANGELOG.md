@@ -7,6 +7,18 @@ Versioning: SemVer. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-08-03
+
+### Fixed
+
+- SDK host integration hardening: single session revision coordinator, safer
+  pairing/dedup isolation, fail-closed Origin checks, and cancel-safe activation.
+
+### Changed
+
+- Companion browser SDK `@softomnitel/omnicall-kit` **0.2.0** (discovery helper,
+  package-owned SDK version, typed waitUntil timeout/cancel).
+
 ## [1.3.0] - 2026-08-02
 
 ### Added

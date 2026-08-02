@@ -39,6 +39,7 @@ import type {
   SetPendingDisplaySourceResponse,
 } from "./DisplayCaptureContract.js";
 import type {
+  SdkBrokerCancelIpcPayload,
   SdkBrokerClientSessionEndedIpcPayload,
   SdkBrokerReadyIpcPayload,
   SdkBrokerReadyIpcResponse,
@@ -69,6 +70,10 @@ import type {
   OpenExternalApplicationWindowPayload,
   OpenExternalApplicationWindowResponse,
 } from "./OpenExternalApplicationWindowContract.js";
+import type {
+  SdkNativeWindowIpcPayload,
+  SdkNativeWindowIpcResponse,
+} from "./SdkNativeWindowContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -111,6 +116,13 @@ export type SoftphonePreloadApi = Readonly<{
   setShellTelephonyBusy: (
     payload: ShellTelephonyBusyPayload,
   ) => Promise<Readonly<{ ok: boolean; reason?: "invalid_payload" }>>;
+  /**
+   * WU-02: native SDK window show/hide/get-state after Application revision validate.
+   * Does not carry revision — coordinator owns the public clock.
+   */
+  invokeSdkNativeWindow: (
+    payload: SdkNativeWindowIpcPayload,
+  ) => Promise<SdkNativeWindowIpcResponse>;
   /** Main → renderer: SDK pairing / Origin trust needs operator decision. */
   onShellOperatorAttention: (
     handler: (payload: ShellOperatorAttentionPayload) => void,
@@ -133,6 +145,10 @@ export type SoftphonePreloadApi = Readonly<{
   /** DI-02: subscribe to main→renderer SDK broker product requests. */
   onSdkBrokerRequest: (
     handler: (payload: SdkBrokerRequestIpcPayload) => void,
+  ) => () => void;
+  /** Main → renderer: cancel a broker operation before its mutation commits. */
+  onSdkBrokerCancel?: (
+    handler: (payload: SdkBrokerCancelIpcPayload) => void,
   ) => () => void;
   /** DI-02: reply to a pending SDK broker request. */
   replySdkBrokerRequest: (

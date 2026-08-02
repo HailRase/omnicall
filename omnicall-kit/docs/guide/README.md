@@ -2,9 +2,10 @@
 
 Canonical developer documentation for `@softomnitel/omnicall-kit`.
 
-**Status (2026-07-28):** F-011 **implemented**; desktop DI-10 **closed**; npm
-`@softomnitel/omnicall-kit@0.1.4` / `@softomnitel/omnicall-protocol@0.1.0`
-(latest); RC `0.1.0-rc.0` on tag `rc`.
+**Status (2026-08-02):** F-011 **implemented**; desktop DI-10 **closed**; npm +
+workspace `@softomnitel/omnicall-kit@0.2.0` / `@softomnitel/omnicall-protocol@0.1.0`
+(`latest`); RC `0.1.0-rc.0` on tag `rc`. License **UNLICENSED** — publish
+fail-closed until human license review.
 
 Public contract truth: [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pairing-lite/).
@@ -40,9 +41,9 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 
 Every asynchronous command either resolves with its documented typed result or rejects
 with `OmniCallClientError`; it never resolves with a partial-error object. A successful
-`revision` is the Desktop revision after the command. It does **not** patch the
-snapshot cache: `getRevision()` still returns the last snapshot revision until
-`getSnapshot()` succeeds.
+`revision` is the Desktop revision after the command. It advances latest-known
+`getRevision()` but does **not** patch the snapshot cache — `getCachedSnapshot()`
+stays honest until a full snapshot arrives.
 
 | Command family | Successful reply | Host handling |
 | --- | --- | --- |
@@ -54,10 +55,10 @@ snapshot cache: `getRevision()` still returns the last snapshot revision until
 | `account.activateProfile()` | `{ activated: true, mode, profileLabel?, alreadyAuthenticated?, revision }` | `alreadyAuthenticated: true` means a successful no-op; never expect credentials in the reply. |
 | `window.show()` / `hide()` / `getState()` | `{ visible, revision }` | Use the returned factual visibility; `show()` and `getState()` do not take `expectedRevision`. |
 
-For a deliberate chain of mutations, carry the successful `result.revision` yourself;
-otherwise fetch a snapshot before the next mutation. After a public event, reconnect,
-or another tab's action, only a fresh snapshot is authoritative — events do not patch
-the SDK snapshot cache.
+For a deliberate chain of mutations, use `getRevision()` (or carry `result.revision`).
+After reconnect/revoke the tracker clears with the cache — fetch a snapshot before the
+next mutation. Events/replies update latest-known but do not patch the snapshot cache.
+Never auto-replay originate/answer/hangup after stale or reconnect.
 
 Do not parse raw WebSocket replies or `error.details` ad hoc. Use public SDK results and
 the typed error readers from [TypeScript](./typescript.md). For the complete reservation

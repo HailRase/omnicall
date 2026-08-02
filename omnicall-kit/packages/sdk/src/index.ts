@@ -15,7 +15,15 @@ export {
 } from './public/auth-client.js';
 
 export {
+  discoverOmniCallDesktop,
+  type OmniCallDiscoveryOptions
+} from './public/discovery.js';
+
+export { SDK_VERSION } from './public/sdk-version.js';
+
+export {
   OmniCallClientError,
+  WaitUntilTimeoutError,
   createOmniCallClient,
   isOmniCallClientError,
   isConflictError,
@@ -55,6 +63,15 @@ export {
   type SnapshotSections,
   type WireJsonObject
 } from './public/omnicall-client.js';
+
+export type {
+  ApplicationIdentity,
+  DiscoveryDocument,
+  PairingProfile,
+  ProtocolVersion,
+  Revision,
+  WireJsonValue
+} from '@softomnitel/omnicall-protocol';
 
 export {
   SDK_ACTIVATE_CLIENT_TIMEOUT_MS,

@@ -1,9 +1,7 @@
 /**
- * DI-10 packaged process smoke (Node WS client against live desktop gateway).
- * Does NOT replace browser E2E; records discovery / Origin / incompat cells only.
- *
- * Usage (desktop already running with OMNICALL_SDK_ALLOWED_ORIGINS set):
- *   node omnicall-kit-integration/scripts/di10-packaged-smoke.mjs
+ * ARCHIVE ONLY — do not run for F-011 / DI / WU gates.
+ * Historical DI-10 packaged process smoke (Node WS against desktop gateway).
+ * Current gate = unit + integration + preflight only.
  */
 
 import { once } from "node:events";
@@ -18,7 +16,7 @@ const DISCOVERY_PORT = 17341;
 const DISCOVERY_PATH = "/omnicall/v1/discovery";
 const WS_PATH = "/omnicall/v1/ws";
 const APPROVED_ORIGIN =
-  process.env["OMNICALL_SDK_SMOKE_ORIGIN"] ?? "https://di10-test.example";
+  process.env["OMNICALL_SDK_SMOKE_ORIGIN"] ?? "http://127.0.0.1:8765";
 const HOSTILE_ORIGIN = "https://hostile.example";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -52,17 +50,31 @@ function openWs(origin) {
 }
 
 async function waitOpenOrClose(ws, timeoutMs = 5_000) {
-  return await Promise.race([
-    once(ws, "open").then(() => "open"),
-    once(ws, "close").then(() => "close"),
-    once(ws, "unexpected-response").then(() => "rejected"),
-    once(ws, "error").then(() => "error"),
-    new Promise((resolve) => {
-      setTimeout(() => {
-        resolve("timeout");
-      }, timeoutMs);
-    }),
-  ]);
+  return await new Promise((resolve) => {
+    let settled = false;
+    const timeout = setTimeout(() => finish("timeout"), timeoutMs);
+    const finish = (outcome) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timeout);
+      ws.off("open", onOpen);
+      ws.off("close", onClose);
+      ws.off("unexpected-response", onRejected);
+      ws.off("error", onError);
+      resolve(outcome);
+    };
+    const onOpen = () => finish("open");
+    const onClose = () => finish("close");
+    const onRejected = () => finish("rejected");
+    const onError = () => finish("error");
+
+    ws.once("open", onOpen);
+    ws.once("close", onClose);
+    ws.once("unexpected-response", onRejected);
+    ws.once("error", onError);
+  });
 }
 
 async function main() {

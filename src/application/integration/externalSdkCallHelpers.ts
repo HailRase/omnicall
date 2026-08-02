@@ -18,7 +18,9 @@ export function sdkCallSuccess(
   return { ok: true, result, revision };
 }
 
-export function sdkCallStale(currentRevision: number): ExternalHandlerResult {
+export function sdkCallStale(
+  currentRevision: number,
+): Extract<ExternalHandlerResult, { ok: false }> {
   return {
     ok: false,
     code: "stale_state",
@@ -75,7 +77,7 @@ export function readStringField(payload: unknown, key: string): string | null {
 export function sdkFail(
   code: ProtocolErrorCode,
   details?: WireJsonObject,
-): ExternalHandlerResult {
+): Extract<ExternalHandlerResult, { ok: false }> {
   return {
     ok: false,
     code,

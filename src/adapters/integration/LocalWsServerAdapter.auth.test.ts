@@ -146,7 +146,7 @@ async function handshake(
 }
 
 describe("LocalWsServerAdapter DI-04 auth", () => {
-  it("rejects missing Origin at upgrade; unknown hostile Origins pass upgrade (DI-11 TOFU)", async () => {
+  it("rejects missing, malformed, and unconfigured Origins at upgrade", async () => {
     const adapter = await startAdapter();
     const port = boundPort(adapter);
 
@@ -176,14 +176,10 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
 
     await expectRejected();
     await expectRejected({ Origin: "null" });
-
-    const hostileEvil = openClient(port, "https://crm.example.evil");
-    await waitOpen(hostileEvil);
-    hostileEvil.close();
-
-    const hostileSub = openClient(port, "https://sub.crm.example");
-    await waitOpen(hostileSub);
-    hostileSub.close();
+    await expectRejected({ Origin: "https://hostile.example" });
+    await expectRejected({ Origin: "https://crm.example.evil" });
+    await expectRejected({ Origin: "https://sub.crm.example" });
+    await expectRejected({ Origin: "https://crm.example/" });
 
     const ok = openClient(port);
     await waitOpen(ok);
@@ -583,7 +579,10 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
     );
     await new Promise((r) => setTimeout(r, 50));
 
-    const revoked = await adapter.revokePairedClient("client_revoke_001");
+    const revoked = await adapter.revokePairedClient(
+      "client_revoke_001",
+      TEST_ORIGIN,
+    );
     expect(revoked).toBe(true);
     expect(sipSessionAlive.value).toBe(true);
     const afterRevoke = await adapter.listPairedClients();

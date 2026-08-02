@@ -285,7 +285,11 @@ Raw exceptions and upstream SIP/OCP messages never cross the boundary.
 - **Control is capability-gated for any paired client** (not ownership-gated).
 - Granular caps `call.answer|reject|hangup|hold|mute` or umbrella `call.control`
   (umbrella also covers DTMF).
-- `expectedRevision` required on mutations; duplicate `requestId` returns cached reply.
+- `expectedRevision` required on mutations; duplicate `requestId` returns cached reply
+  scoped by **Origin + clientId** (ADR-0027; unauthenticated scoped by connection).
+- SDK clients track **latest-known revision** from snapshots, successful replies,
+  public events, and `stale_state.currentRevision` (ADR-0027); snapshot cache stays
+  separate. Reconnect/revoke clears both. Never auto-replay mutations on revision advance.
 - Disconnect does not end calls.
 - Transfer / conference are not public SDK commands.
 
@@ -326,7 +330,7 @@ below with ADR-0014…0017. IDs match the P12 handoff.
 | O-SCHEMA-1 | Runtime schema library and canonical generation direction | ADR-0014 — Zod → inferred types | SDK-02, DI-01 |
 | O-DISC-1 | Exact discovery URL/path, response schema, and versioning | ADR-0015 | SDK-03, DI-03 |
 | O-DISC-2 | Discovery via tiny loopback HTTP helper vs WS-only bootstrap | ADR-0015 — HTTP helper | DI-03 |
-| O-BRW-1 | Confirmed Chrome/Edge/Firefox policy matrix for HTTPS→loopback WS | ADR-0015 + browser spike | SDK-05 E2E |
+| O-BRW-1 | Confirmed Chrome/Edge/Firefox policy matrix for HTTPS→loopback WS | ADR-0015 + browser spike | SDK-05 unit/integration |
 | O-BRW-2 | Private Network Access / permission-prompt UX keys | ADR-0015 → DI-09 keys reserved | DI-09 |
 | O-POP-1 | Proof-of-possession mechanism for paired clients | ADR-0016 — ECDSA P-256 | SDK-04, DI-04 |
 | O-POP-2 | Pairing ceremony / approve payload shape with desktop | ADR-0016 | DI-04, DI-09 |

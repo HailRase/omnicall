@@ -13,7 +13,9 @@ import {
   guardCapability,
   guardReady,
   mapReplyFailure,
-  requireWireIdentity
+  observeReplyRevision,
+  requireWireIdentity,
+  type ObserveWireRevision
 } from './product-commands.js';
 import type { Scheduler } from './scheduler.js';
 
@@ -105,6 +107,7 @@ async function runActivateProfile(
     readonly connection: ConnectionSession;
     readonly scheduler: Scheduler;
     readonly getGrantedCapabilities: () => readonly CapabilityId[];
+    readonly observeWireRevision?: ObserveWireRevision;
   },
   input: {
     readonly login: string;
@@ -142,6 +145,7 @@ async function runActivateProfile(
       input
     )
   });
+  observeReplyRevision(deps.observeWireRevision, result);
   if (!result.ok || !result.reply.ok) {
     return Promise.reject(mapReplyFailure(result));
   }
@@ -152,6 +156,7 @@ export function createAccountActivateCommandApi(deps: {
   readonly connection: ConnectionSession;
   readonly scheduler: Scheduler;
   readonly getGrantedCapabilities: () => readonly CapabilityId[];
+  readonly observeWireRevision?: ObserveWireRevision;
 }): AccountActivateCommandApi {
   return {
     activateProfile: (input) => runActivateProfile(deps, input)

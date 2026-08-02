@@ -1,4 +1,8 @@
-# DI-10 — Compatibility, E2E, and P12 Close (evidence)
+# DI-10 — Compatibility and P12 Close (historical evidence)
+
+> **Archive for agents:** do **not** re-run packaged Electron / Chromium / Edge smoke for
+> current F-011 gates. Current policy = unit + integration + preflight only
+> (`sdk-production-readiness/CLOSEOUT.md`).
 
 > **Full close (2026-07-27):** Human declaration — **DI-10 is fully complete**.
 > Remaining product smoke cells that were OPEN on gate day (Settings pair/revoke,

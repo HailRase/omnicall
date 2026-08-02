@@ -1,5 +1,5 @@
 /**
- * DI-05 / ADR-0013: window show + rate limit (bring-to-front mocked).
+ * DI-05 / ADR-0013 / WU-02: native window ops (no public revision clock).
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,6 +15,7 @@ import { bringBrowserWindowToFront } from "@adapters/platform/bringBrowserWindow
 type MockWindow = {
   isDestroyed: ReturnType<typeof vi.fn>;
   isVisible: ReturnType<typeof vi.fn>;
+  hide: ReturnType<typeof vi.fn>;
 };
 
 function createMockWindow(
@@ -23,6 +24,7 @@ function createMockWindow(
   return {
     isDestroyed: vi.fn(() => overrides.destroyed ?? false),
     isVisible: vi.fn(() => overrides.visible ?? true),
+    hide: vi.fn(),
   };
 }
 
@@ -30,6 +32,7 @@ describe("SdkWindowCommandHandler", () => {
   beforeEach(() => {
     vi.mocked(bringBrowserWindowToFront).mockClear();
   });
+
   it("returns not_ready when main window is missing", () => {
     const handler = new SdkWindowCommandHandler({
       getMainWindow: () => null,
@@ -45,7 +48,7 @@ describe("SdkWindowCommandHandler", () => {
     expect(handler.show()).toEqual({ ok: false, code: "not_ready" });
   });
 
-  it("shows successfully and increments revision", () => {
+  it("shows successfully without owning a revision clock", () => {
     const window = createMockWindow();
     let now = 1_000;
     const handler = new SdkWindowCommandHandler({
@@ -54,11 +57,11 @@ describe("SdkWindowCommandHandler", () => {
       minShowIntervalMs: 1_000,
     });
 
-    expect(handler.show()).toEqual({ ok: true, revision: 1, visible: true });
+    expect(handler.show()).toEqual({ ok: true, visible: true });
     expect(bringBrowserWindowToFront).toHaveBeenCalledTimes(1);
 
     now = 2_100;
-    expect(handler.show()).toEqual({ ok: true, revision: 2, visible: true });
+    expect(handler.show()).toEqual({ ok: true, visible: true });
     expect(bringBrowserWindowToFront).toHaveBeenCalledTimes(2);
   });
 
@@ -71,7 +74,7 @@ describe("SdkWindowCommandHandler", () => {
       minShowIntervalMs: 1_000,
     });
 
-    expect(handler.show()).toEqual({ ok: true, revision: 1, visible: true });
+    expect(handler.show()).toEqual({ ok: true, visible: true });
     now = 5_500;
     expect(handler.show()).toEqual({ ok: false, code: "rate_limited" });
     expect(bringBrowserWindowToFront).toHaveBeenCalledTimes(1);
@@ -86,52 +89,33 @@ describe("SdkWindowCommandHandler", () => {
     expect(handler.getState()).toEqual({
       ok: true,
       visible: false,
-      revision: 1,
     });
     expect(bringBrowserWindowToFront).not.toHaveBeenCalled();
   });
 
-  it("hides successfully when revision matches and telephony is idle", () => {
-    const hide = vi.fn();
-    const window = {
-      ...createMockWindow(),
-      hide,
-    };
+  it("hides successfully when telephony is idle", () => {
+    const window = createMockWindow();
     const onHidden = vi.fn();
     const handler = new SdkWindowCommandHandler({
       getMainWindow: () => window as unknown as Electron.BrowserWindow,
       onHidden,
     });
 
-    expect(handler.hide(1)).toEqual({
+    expect(handler.hide()).toEqual({
       ok: true,
-      revision: 1,
       visible: false,
     });
-    expect(hide).toHaveBeenCalledTimes(1);
+    expect(window.hide).toHaveBeenCalledTimes(1);
     expect(onHidden).toHaveBeenCalledTimes(1);
-    expect(handler.getRevision()).toBe(2);
-  });
-
-  it("returns conflict on hide revision mismatch", () => {
-    const window = createMockWindow();
-    const handler = new SdkWindowCommandHandler({
-      getMainWindow: () => window as unknown as Electron.BrowserWindow,
-    });
-    expect(handler.hide(99)).toEqual({ ok: false, code: "conflict" });
   });
 
   it("returns conflict on hide while telephony busy", () => {
-    const hide = vi.fn();
-    const window = {
-      ...createMockWindow(),
-      hide,
-    };
+    const window = createMockWindow();
     const handler = new SdkWindowCommandHandler({
       getMainWindow: () => window as unknown as Electron.BrowserWindow,
       isTelephonyBusy: () => true,
     });
-    expect(handler.hide(1)).toEqual({ ok: false, code: "conflict" });
-    expect(hide).not.toHaveBeenCalled();
+    expect(handler.hide()).toEqual({ ok: false, code: "conflict" });
+    expect(window.hide).not.toHaveBeenCalled();
   });
 });

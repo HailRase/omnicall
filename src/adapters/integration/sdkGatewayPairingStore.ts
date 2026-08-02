@@ -1,49 +1,42 @@
 /**
- * Secure paired-client persistence via SecretStoragePort (DI-04 / ADR-0011).
+ * Secure paired-client persistence via SecretStoragePort (DI-04 / ADR-0011 / ADR-0027).
  *
- * Corrupt / undecryptable blobs are purged and treated as missing so Settings
- * and gateway auth stay available; clients must re-pair (fail-closed for that
- * binding). SIP/account secrets are out of scope — they keep hard failures.
+ * Storage identity is Origin+clientId (v2 digest secret id). Legacy clientId-only
+ * blobs migrate on touch when stored Origin exactly matches; never cross-Origin merge.
+ * Corrupt / undecryptable blobs are purged (fail-closed for that binding).
  */
 
-import {
-  CAPABILITY_IDS,
-  PAIRING_PROFILES,
-  type CapabilityId,
-  type PairingProfile,
-} from "@softomnitel/omnicall-protocol";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import type { SecretStoragePort } from "@ports/secrets/SecretStoragePort.js";
 import {
   createSecretStorageScopeKey,
-  SDK_PAIRED_CLIENT_SECRET_ID_PREFIX,
   SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
   SDK_PAIRING_SCOPE_KEY,
 } from "@ports/secrets/SecretStoragePort.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
+import {
+  parsePairedClientIndexEntries,
+  parsePairedClientRecord,
+} from "./sdkGatewayPairingRecordParse.js";
+import {
+  buildLegacySdkPairedClientSecretId,
+  buildSdkPairedClientSecretId,
+  indexEntryKey,
+  type SdkPairedClientIndexEntry,
+} from "./sdkGatewayPairingSecretIds.js";
 import type {
   SdkPairedClientPublicMeta,
   SdkPairedClientRecord,
 } from "./sdkGatewayPairingTypes.js";
 
 const scopeKey = createSecretStorageScopeKey(SDK_PAIRING_SCOPE_KEY);
-const PROFILE_SET = new Set<string>(PAIRING_PROFILES);
-const CAPABILITY_SET = new Set<string>(CAPABILITY_IDS);
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
   featureId: "F-011",
 });
 
-function clientSecretId(clientId: string): string {
-  return `${SDK_PAIRED_CLIENT_SECRET_ID_PREFIX}${clientId}`;
-}
-
-/**
- * Load pairing secret; on storage failure purge the blob and return null.
- * Does not swallow SIP-scope errors — this helper is pairing-scope only.
- */
 async function loadPairingSecret(
   secrets: SecretStoragePort,
   secretId: string,
@@ -65,197 +58,6 @@ async function loadPairingSecret(
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function parseClientIds(raw: string | null): string[] {
-  if (raw === null || raw.length === 0) {
-    return [];
-  }
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter((id): id is string => typeof id === "string");
-  } catch {
-    return [];
-  }
-}
-
-function parseProfile(value: unknown): PairingProfile | null {
-  return typeof value === "string" && PROFILE_SET.has(value)
-    ? (value as PairingProfile)
-    : null;
-}
-
-function parseCapabilities(value: unknown): readonly CapabilityId[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const caps: CapabilityId[] = [];
-  for (const item of value) {
-    if (typeof item !== "string" || !CAPABILITY_SET.has(item)) {
-      return null;
-    }
-    caps.push(item as CapabilityId);
-  }
-  return caps;
-}
-
-function parseNullableString(value: unknown): string | null | undefined {
-  if (value === null) {
-    return null;
-  }
-  if (typeof value === "string") {
-    return value;
-  }
-  return undefined;
-}
-
-function parseRecord(raw: string | null): SdkPairedClientRecord | null {
-  if (raw === null || raw.length === 0) {
-    return null;
-  }
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) {
-      return null;
-    }
-    const profile = parseProfile(parsed["profile"]);
-    const caps = parseCapabilities(parsed["grantedCapabilities"]);
-    const expiresAt = parseNullableString(parsed["expiresAt"]);
-    const revokedAt = parseNullableString(parsed["revokedAt"]);
-    if (
-      typeof parsed["clientId"] !== "string" ||
-      typeof parsed["origin"] !== "string" ||
-      typeof parsed["publicKey"] !== "string" ||
-      parsed["keyAlgorithm"] !== "ECDSA-P256-SHA256" ||
-      profile === null ||
-      caps === null ||
-      typeof parsed["applicationName"] !== "string" ||
-      typeof parsed["applicationVersion"] !== "string" ||
-      typeof parsed["createdAt"] !== "string" ||
-      expiresAt === undefined ||
-      revokedAt === undefined
-    ) {
-      return null;
-    }
-    return {
-      clientId: parsed["clientId"],
-      origin: parsed["origin"],
-      publicKey: parsed["publicKey"],
-      keyAlgorithm: "ECDSA-P256-SHA256",
-      profile,
-      grantedCapabilities: caps,
-      applicationName: parsed["applicationName"],
-      applicationVersion: parsed["applicationVersion"],
-      createdAt: parsed["createdAt"],
-      expiresAt,
-      revokedAt,
-    };
-  } catch {
-    return null;
-  }
-}
-
-export class SdkGatewayPairingStore {
-  constructor(private readonly secrets: SecretStoragePort) {}
-
-  async get(clientId: string): Promise<SdkPairedClientRecord | null> {
-    return parseRecord(
-      await loadPairingSecret(this.secrets, clientSecretId(clientId)),
-    );
-  }
-
-  async listPublic(): Promise<readonly SdkPairedClientPublicMeta[]> {
-    const ids = parseClientIds(
-      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
-    );
-    const out: SdkPairedClientPublicMeta[] = [];
-    const staleIds: string[] = [];
-    for (const clientId of ids) {
-      const record = await this.get(clientId);
-      if (record === null || record.revokedAt !== null) {
-        // Drop missing / legacy soft-revoked / corrupt rows — must not linger in UI.
-        staleIds.push(clientId);
-        continue;
-      }
-      out.push(toPublicMeta(record));
-    }
-    for (const clientId of staleIds) {
-      await this.remove(clientId);
-    }
-    return out;
-  }
-
-  async save(record: SdkPairedClientRecord): Promise<void> {
-    await this.secrets.saveSecret(
-      scopeKey,
-      clientSecretId(record.clientId),
-      JSON.stringify(record),
-    );
-    const ids = parseClientIds(
-      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
-    );
-    if (!ids.includes(record.clientId)) {
-      ids.push(record.clientId);
-      await this.secrets.saveSecret(
-        scopeKey,
-        SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
-        JSON.stringify(ids),
-      );
-    }
-  }
-
-  /**
-   * Revoke = hard delete. Soft-revoked tombstones are noise; wire still emits sdk:revoked
-   * via session close before the record disappears.
-   */
-  async revoke(clientId: string): Promise<boolean> {
-    return this.remove(clientId);
-  }
-
-  async remove(clientId: string): Promise<boolean> {
-    const existing = await this.get(clientId);
-    const ids = parseClientIds(
-      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
-    );
-    const nextIds = ids.filter((id) => id !== clientId);
-    if (existing === null && nextIds.length === ids.length) {
-      return false;
-    }
-    await this.secrets.deleteSecret(scopeKey, clientSecretId(clientId));
-    if (nextIds.length !== ids.length) {
-      await this.secrets.saveSecret(
-        scopeKey,
-        SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
-        JSON.stringify(nextIds),
-      );
-    }
-    return existing !== null || nextIds.length !== ids.length;
-  }
-
-  async findActive(
-    clientId: string,
-    origin: string,
-    nowMs: number,
-  ): Promise<SdkPairedClientRecord | null> {
-    const record = await this.get(clientId);
-    if (record === null || record.origin !== origin) {
-      return null;
-    }
-    if (record.revokedAt !== null) {
-      return null;
-    }
-    if (record.expiresAt !== null && Date.parse(record.expiresAt) <= nowMs) {
-      return null;
-    }
-    return record;
-  }
-}
-
 function toPublicMeta(record: SdkPairedClientRecord): SdkPairedClientPublicMeta {
   return {
     clientId: record.clientId,
@@ -267,4 +69,273 @@ function toPublicMeta(record: SdkPairedClientRecord): SdkPairedClientPublicMeta 
     expiresAt: record.expiresAt,
     revoked: record.revokedAt !== null,
   };
+}
+
+export class SdkGatewayPairingStore {
+  constructor(private readonly secrets: SecretStoragePort) {}
+
+  async get(
+    clientId: string,
+    origin: string,
+  ): Promise<SdkPairedClientRecord | null> {
+    return this.loadBinding(clientId, origin, true);
+  }
+
+  async listPublic(): Promise<readonly SdkPairedClientPublicMeta[]> {
+    const entries = parsePairedClientIndexEntries(
+      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+    );
+    const out: SdkPairedClientPublicMeta[] = [];
+    const nextIndex: SdkPairedClientIndexEntry[] = [];
+    const seen = new Set<string>();
+
+    for (const entry of entries) {
+      const record = await this.resolveIndexEntry(entry);
+      if (record === null || record.revokedAt !== null) {
+        if (entry.origin.length > 0) {
+          await this.remove(entry.clientId, entry.origin);
+        } else if (record !== null) {
+          await this.remove(record.clientId, record.origin);
+        } else {
+          await this.purgeLegacyClientId(entry.clientId);
+        }
+        continue;
+      }
+      const key = indexEntryKey({
+        clientId: record.clientId,
+        origin: record.origin,
+      });
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      nextIndex.push({ clientId: record.clientId, origin: record.origin });
+      out.push(toPublicMeta(record));
+    }
+
+    await this.writeIndex(nextIndex);
+    return out;
+  }
+
+  async save(record: SdkPairedClientRecord): Promise<void> {
+    const compositeId = buildSdkPairedClientSecretId(
+      record.origin,
+      record.clientId,
+    );
+    await this.secrets.saveSecret(scopeKey, compositeId, JSON.stringify(record));
+    await this.upsertIndexEntry({
+      clientId: record.clientId,
+      origin: record.origin,
+    });
+    await this.deleteLegacyIfOriginMatches(record.clientId, record.origin);
+  }
+
+  /** Revoke = hard delete for Origin+clientId binding. */
+  async revoke(clientId: string, origin: string): Promise<boolean> {
+    return this.remove(clientId, origin);
+  }
+
+  async remove(clientId: string, origin: string): Promise<boolean> {
+    const existing = await this.loadBinding(clientId, origin, false);
+    const compositeId = buildSdkPairedClientSecretId(origin, clientId);
+    const legacyId = buildLegacySdkPairedClientSecretId(clientId);
+    const compositeRaw = await loadPairingSecret(this.secrets, compositeId);
+    const legacy = parsePairedClientRecord(
+      await loadPairingSecret(this.secrets, legacyId),
+    );
+    const legacyMatches =
+      legacy !== null &&
+      legacy.clientId === clientId &&
+      legacy.origin === origin;
+
+    const entries = parsePairedClientIndexEntries(
+      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+    );
+    const next = entries.filter((entry) => {
+      if (entry.clientId !== clientId) {
+        return true;
+      }
+      if (entry.origin === origin) {
+        return false;
+      }
+      if (entry.origin === "" && legacyMatches) {
+        return false;
+      }
+      return true;
+    });
+    const indexChanged = next.length !== entries.length;
+    const hadBlob = compositeRaw !== null || legacyMatches;
+
+    if (existing === null && !hadBlob && !indexChanged) {
+      return false;
+    }
+
+    if (compositeRaw !== null) {
+      await this.secrets.deleteSecret(scopeKey, compositeId);
+    }
+    if (legacyMatches) {
+      await this.secrets.deleteSecret(scopeKey, legacyId);
+    }
+    if (indexChanged) {
+      await this.writeIndex(next);
+    }
+    return true;
+  }
+
+  async findActive(
+    clientId: string,
+    origin: string,
+    nowMs: number,
+  ): Promise<SdkPairedClientRecord | null> {
+    const record = await this.get(clientId, origin);
+    if (record === null || record.origin !== origin) {
+      return null;
+    }
+    if (record.revokedAt !== null) {
+      return null;
+    }
+    if (record.expiresAt !== null && Date.parse(record.expiresAt) <= nowMs) {
+      return null;
+    }
+    return record;
+  }
+
+  /**
+   * Load v2 first; migrate legacy only when stored Origin exactly matches.
+   * Mismatched legacy blobs are left untouched (never cross-Origin overwrite).
+   */
+  private async loadBinding(
+    clientId: string,
+    origin: string,
+    migrate: boolean,
+  ): Promise<SdkPairedClientRecord | null> {
+    const compositeId = buildSdkPairedClientSecretId(origin, clientId);
+    const composite = parsePairedClientRecord(
+      await loadPairingSecret(this.secrets, compositeId),
+    );
+    if (composite !== null) {
+      if (composite.clientId !== clientId || composite.origin !== origin) {
+        await this.secrets.deleteSecret(scopeKey, compositeId);
+        return null;
+      }
+      if (migrate) {
+        await this.deleteLegacyIfOriginMatches(clientId, origin);
+      }
+      return composite;
+    }
+
+    const legacyId = buildLegacySdkPairedClientSecretId(clientId);
+    const legacy = parsePairedClientRecord(
+      await loadPairingSecret(this.secrets, legacyId),
+    );
+    if (legacy === null) {
+      return null;
+    }
+    if (legacy.clientId !== clientId) {
+      await this.secrets.deleteSecret(scopeKey, legacyId);
+      return null;
+    }
+    if (legacy.origin !== origin) {
+      return null;
+    }
+    if (!migrate) {
+      return legacy;
+    }
+    await this.secrets.saveSecret(
+      scopeKey,
+      compositeId,
+      JSON.stringify(legacy),
+    );
+    await this.upsertIndexEntry({ clientId, origin });
+    await this.secrets.deleteSecret(scopeKey, legacyId);
+    return legacy;
+  }
+
+  private async resolveIndexEntry(
+    entry: SdkPairedClientIndexEntry,
+  ): Promise<SdkPairedClientRecord | null> {
+    if (entry.origin.length > 0) {
+      return this.get(entry.clientId, entry.origin);
+    }
+    const legacyId = buildLegacySdkPairedClientSecretId(entry.clientId);
+    const legacy = parsePairedClientRecord(
+      await loadPairingSecret(this.secrets, legacyId),
+    );
+    if (legacy === null) {
+      return null;
+    }
+    return this.get(legacy.clientId, legacy.origin);
+  }
+
+  private async deleteLegacyIfOriginMatches(
+    clientId: string,
+    origin: string,
+  ): Promise<void> {
+    const legacyId = buildLegacySdkPairedClientSecretId(clientId);
+    const legacy = parsePairedClientRecord(
+      await loadPairingSecret(this.secrets, legacyId),
+    );
+    if (legacy === null) {
+      return;
+    }
+    if (legacy.origin !== origin || legacy.clientId !== clientId) {
+      return;
+    }
+    await this.secrets.deleteSecret(scopeKey, legacyId);
+  }
+
+  private async upsertIndexEntry(
+    entry: SdkPairedClientIndexEntry,
+  ): Promise<void> {
+    const entries = parsePairedClientIndexEntries(
+      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+    );
+    const key = indexEntryKey(entry);
+    const next: SdkPairedClientIndexEntry[] = [];
+    const seen = new Set<string>();
+    for (const row of entries) {
+      if (row.origin.length === 0) {
+        if (row.clientId === entry.clientId) {
+          continue;
+        }
+        const legacyKey = `\0${row.clientId}`;
+        if (seen.has(legacyKey)) {
+          continue;
+        }
+        seen.add(legacyKey);
+        next.push(row);
+        continue;
+      }
+      const rowKey = indexEntryKey(row);
+      if (seen.has(rowKey)) {
+        continue;
+      }
+      seen.add(rowKey);
+      next.push(row);
+    }
+    if (!seen.has(key)) {
+      next.push(entry);
+    }
+    await this.writeIndex(next);
+  }
+
+  private async writeIndex(
+    entries: readonly SdkPairedClientIndexEntry[],
+  ): Promise<void> {
+    await this.secrets.saveSecret(
+      scopeKey,
+      SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
+      JSON.stringify(entries),
+    );
+  }
+
+  /** Drop orphan legacy clientId blob/index row when resolve fails closed. */
+  private async purgeLegacyClientId(clientId: string): Promise<void> {
+    const legacyId = buildLegacySdkPairedClientSecretId(clientId);
+    try {
+      await this.secrets.deleteSecret(scopeKey, legacyId);
+    } catch {
+      // Best-effort; index rewrite drops the row.
+    }
+  }
 }

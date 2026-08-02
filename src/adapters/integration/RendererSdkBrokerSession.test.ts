@@ -5,6 +5,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { SdkBrokerProbeHandler } from "@application/integration/SdkBrokerProbeHandler.js";
+import type {
+  ExternalCommandContext,
+  ExternalCommandHandler,
+  ExternalHandlerResult,
+} from "@ports/integration/ExternalCommandHandler.js";
 
 import { RendererSdkBrokerSession } from "./RendererSdkBrokerSession.js";
 
@@ -80,6 +85,39 @@ describe("RendererSdkBrokerSession", () => {
       brokerRequestId: "invalid",
       ok: false,
       code: "invalid_message",
+    });
+  });
+
+  it("ignores a late renderer result after broker cancellation", async () => {
+    let complete!: (result: ExternalHandlerResult) => void;
+    let context: ExternalCommandContext | undefined;
+    const handler: ExternalCommandHandler = {
+      handleCommand: (_input, inputContext) => {
+        context = inputContext;
+        return new Promise<ExternalHandlerResult>((resolve) => {
+          complete = resolve;
+        });
+      },
+    };
+    const session = new RendererSdkBrokerSession({
+      handler,
+      serverInstanceId: "srv_test",
+      sessionEpoch: "epoch_test",
+    });
+    session.markActive();
+    const pending = session.handleRequest({
+      brokerRequestId: "brk_late_1",
+      command: readJson("valid/command/sdk-ping-unknown-key-stripped.json"),
+    });
+    await Promise.resolve();
+    expect(context?.signal?.aborted).toBe(false);
+    expect(session.cancelRequest("brk_late_1")).toBe(true);
+    complete({ ok: true, result: { accepted: true }, revision: 2 });
+
+    await expect(pending).resolves.toEqual({
+      brokerRequestId: "brk_late_1",
+      ok: false,
+      code: "operation_failed",
     });
   });
 });

@@ -6,7 +6,8 @@
 import { createAuthOrchestrator } from '../internal/auth-orchestrator.js';
 import {
   OmniCallClientError,
-  isOmniCallClientError
+  isOmniCallClientError,
+  WaitUntilTimeoutError
 } from '../internal/client-errors.js';
 import { isOriginBlockedError } from '../internal/origin-policy-errors.js';
 import { createBrowserWebSocketTransport } from '../internal/browser-websocket-transport.js';
@@ -27,9 +28,16 @@ import type {
   OmniCallClient,
   OmniCallClientOptions
 } from './omnicall-client-api.js';
+import { SDK_VERSION } from './sdk-version.js';
 
 export type { OmniCallEvent, OmniCallEventOf, PublicEventType };
-export { OmniCallClientError, isOmniCallClientError, isOriginBlockedError, PUBLIC_EVENT_TYPES };
+export {
+  OmniCallClientError,
+  WaitUntilTimeoutError,
+  isOmniCallClientError,
+  isOriginBlockedError,
+  PUBLIC_EVENT_TYPES
+};
 export type {
   ActivateProfileMode,
   ActivateProfileResult
@@ -121,7 +129,7 @@ export function createOmniCallClient(
     connection,
     origin: options.origin,
     application: options.application,
-    sdkVersion: options.sdkVersion,
+    sdkVersion: SDK_VERSION,
     requestedProfile: options.requestedProfile,
     requestedCapabilities: options.requestedCapabilities ?? [],
     keyStore: options.keyStore,
@@ -149,7 +157,13 @@ export function createOmniCallClient(
   productHolder.current = product;
 
   connection.onStateChange((state) => {
-    if (state === 'reconnecting' || state === 'revoked' || state === 'closed') {
+    if (
+      state === 'reconnecting' ||
+      state === 'revoked' ||
+      state === 'closed' ||
+      state === 'incompatible' ||
+      state === 'failed'
+    ) {
       product.invalidate();
     }
     if (state === 'reconnecting') {
@@ -193,23 +207,38 @@ export function createOmniCallClient(
         pairingListeners.delete(listener);
       };
     },
-    waitUntil: (predicate, timeoutMs = 5_000) =>
+    waitUntil: (predicate, options = 5_000) =>
       new Promise((resolve, reject) => {
+        const normalized =
+          typeof options === 'number' ? { timeoutMs: options } : options;
+        const timeoutMs = normalized.timeoutMs ?? 5_000;
+        if (normalized.signal?.aborted === true) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
         if (predicate(connection.getState())) {
           resolve(connection.getState());
           return;
         }
         const timer = scheduler.setTimeout(() => {
           unsubscribe();
-          reject(new Error('waitUntil timeout'));
+          normalized.signal?.removeEventListener('abort', onAbort);
+          reject(new WaitUntilTimeoutError(timeoutMs));
         }, timeoutMs);
+        const onAbort = (): void => {
+          timer.clear();
+          unsubscribe();
+          reject(new DOMException('Aborted', 'AbortError'));
+        };
         const unsubscribe = connection.onStateChange((next) => {
           if (predicate(next)) {
             timer.clear();
             unsubscribe();
+            normalized.signal?.removeEventListener('abort', onAbort);
             resolve(next);
           }
         });
+        normalized.signal?.addEventListener('abort', onAbort, { once: true });
       }),
     getConnectError: () => connection.getConnectError(),
     getSnapshot: () => product.getSnapshot(),

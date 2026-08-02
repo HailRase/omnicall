@@ -102,7 +102,7 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("routes window:show to main window path", () => {
+  it("routes window:show to broker path (WU-02 coordinator)", () => {
     const show = {
       ...getSnapshot,
       type: "window:show" as const,
@@ -115,9 +115,10 @@ describe("routeSdkInbound", () => {
         grantedCapabilities: ["window.show"],
       }),
     ).toEqual({
-      action: "command_window",
+      action: "command_broker",
       requestId: "req_test_001",
       commandType: "window:show",
+      message: show,
     });
   });
 
@@ -139,7 +140,7 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("routes window:hide as command_window when capability granted (ADR-0013)", () => {
+  it("routes window:hide to broker when capability granted (WU-02 / ADR-0013)", () => {
     const hide = {
       ...getSnapshot,
       type: "window:hide" as const,
@@ -152,10 +153,10 @@ describe("routeSdkInbound", () => {
         grantedCapabilities: ["window.hide"],
       }),
     ).toEqual({
-      action: "command_window",
+      action: "command_broker",
       requestId: "req_test_001",
       commandType: "window:hide",
-      expectedRevision: 12,
+      message: hide,
     });
   });
 

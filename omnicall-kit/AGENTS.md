@@ -81,10 +81,11 @@ Each public behavior requires:
 - deterministic unit tests with fake time and fake transport;
 - protocol fixture tests;
 - reconnect and cancellation tests where applicable;
-- negative tests for malformed and unauthorized messages;
-- browser tests for supported targets before release.
+- negative tests for malformed and unauthorized messages.
 
-No test may require a real SIP, OCP, or Electron instance except the explicit end-to-end gate.
+Gate evidence is unit + integration + `npm run preflight` only. Do **not** run or require
+packaged Electron / Chromium / Edge smoke, or a real SIP/OCP/Electron instance, for SDK WU
+close. Optional Playwright browser harness is never a gate blocker.
 
 ## Scope Protection
 

@@ -19,9 +19,12 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type {
   SdkGatewaySettingsPolicyPayload,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
-import { BrowserWindow, app } from "electron";
+import { app, BrowserWindow } from "electron";
 
-import { createSdkGatewayProductSurface } from "./createSdkGatewayProductSurface.js";
+import {
+  createSdkGatewayProductSurface,
+  registerSdkNativeWindowIpc,
+} from "./createSdkGatewayProductSurface.js";
 import { getSdkBroker } from "./registerSdkBrokerIpc.js";
 import {
   registerSdkGatewaySettingsIpc,
@@ -50,6 +53,14 @@ let originTrustStorageRoot: string | null = null;
 let shellWindowAttention: ShellWindowAttentionController | null = null;
 let telephonyBusyMirror: ShellTelephonyBusyMirror | null = null;
 let hideTrayController: SdkHideTrayController | null = null;
+let resolveMainWindow: () => BrowserWindow | null = () => null;
+
+/** Configure the one main softphone window before the gateway accepts IPC. */
+export function setSdkGatewayMainWindowResolver(
+  resolver: () => BrowserWindow | null,
+): void {
+  resolveMainWindow = resolver;
+}
 
 export function setShellWindowAttentionController(
   controller: ShellWindowAttentionController | null,
@@ -71,7 +82,7 @@ export function getShellTelephonyBusyMirror(): ShellTelephonyBusyMirror {
 export function getSdkHideTrayController(): SdkHideTrayController {
   if (hideTrayController === null) {
     hideTrayController = new SdkHideTrayController({
-      getMainWindow: () => BrowserWindow.getAllWindows()[0] ?? null,
+      getMainWindow: () => resolveMainWindow(),
       log: (event, fields) => {
         logger.info(event, {
           correlationId: createCorrelationId(),
@@ -182,10 +193,11 @@ export async function startSdkGateway(options: {
   });
 
   if (enabled) {
+    registerSdkNativeWindowIpc({ getMainWindow: () => resolveMainWindow() });
     gateway.setProductSurface(
       createSdkGatewayProductSurface({
         getBroker: () => getSdkBroker(),
-        getMainWindow: () => BrowserWindow.getAllWindows()[0] ?? null,
+        getMainWindow: () => resolveMainWindow(),
         telephonyBusy: getShellTelephonyBusyMirror(),
         hideTray: getSdkHideTrayController(),
       }),
@@ -273,11 +285,14 @@ export function denySdkPairingRequest(pairingRequestId: string): boolean {
   return gateway?.denyPairingRequest(pairingRequestId) ?? false;
 }
 
-export async function revokeSdkPairedClient(clientId: string): Promise<boolean> {
+export async function revokeSdkPairedClient(
+  clientId: string,
+  origin: string,
+): Promise<boolean> {
   if (gateway === null) {
     return false;
   }
-  return gateway.revokePairedClient(clientId);
+  return gateway.revokePairedClient(clientId, origin);
 }
 
 /** Test-only reset. */
@@ -289,6 +304,7 @@ export async function resetSdkGatewayRegistrationForTests(): Promise<void> {
   primaryInstance = true;
   lastDesktopVersion = "0.0.0";
   originTrustStorageRoot = null;
+  resolveMainWindow = () => null;
   unregisterSdkGatewayPublishEventIpcForTests();
   unregisterSdkGatewaySettingsIpcForTests();
 }

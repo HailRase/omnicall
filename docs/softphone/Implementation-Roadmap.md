@@ -539,7 +539,7 @@ Order:
 5. Implement read-only snapshots/events and `window:show`; validate SDK interoperability before mutations.
 6. Implement `ExternalCommandRouter` → focused handlers / Facade / Use Cases with `callType: 'sdk'`.
 7. Add call controls, optional OCP status/logout, and privileged saved-profile activation in gated work units — no raw credential flow in protocol v1.
-8. Add Settings → Integrations SDK controls, compatibility/security tests, and packaged Electron E2E.
+8. Add Settings → Integrations SDK controls and compatibility/security unit + integration tests.
 9. Document that legacy `window.Softphone` is **not ported**.
 
 Gate:

@@ -45,7 +45,6 @@ test('browser OmniCallClient operator getReasons + logout; disconnect does not l
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'browser-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-browser',
     requestedProfile: 'operator',
     requestedCapabilities: [
       'session.read.redacted',

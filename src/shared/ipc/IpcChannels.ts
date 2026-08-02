@@ -25,6 +25,11 @@ export const IPC_CHANNELS = {
   shellWindowRaise: "shell:window-raise",
   /** Renderer → main: telephony busy mirror for SDK window:hide deny (ADR-0013). */
   shellTelephonyBusy: "shell:telephony-busy",
+  /**
+   * Renderer → main: native SDK window show/hide/get-state after Application
+   * revision validate (WU-02 / ADR-0027). No revision in this channel.
+   */
+  sdkNativeWindow: "sdk:native-window",
   /** Main → renderer: operator must decide SDK pairing / Origin trust. */
   shellOperatorAttention: "shell:operator-attention",
   profilesGetStorageRoot: "profiles:get-storage-root",
@@ -39,6 +44,8 @@ export const IPC_CHANNELS = {
   mediaSetPendingDisplaySource: "media:set-pending-display-source",
   /** Main → renderer: push validated SDK broker product request (ADR-0009 / DI-02). */
   sdkBrokerRequest: "sdk-broker:request",
+  /** Main → renderer: cancel a timed-out or abandoned broker request. */
+  sdkBrokerCancel: "sdk-broker:cancel",
   /** Renderer → main: reply for a pending SDK broker request. */
   sdkBrokerReply: "sdk-broker:reply",
   /** Renderer → main: composition readiness for product broker traffic. */

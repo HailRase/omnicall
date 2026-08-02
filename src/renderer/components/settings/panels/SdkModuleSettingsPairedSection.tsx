@@ -19,7 +19,7 @@ import styles from "./SdkModuleSettingsCard.module.css";
 type Props = Readonly<{
   pairedClients: readonly SdkPairedClientProjection[];
   busy: boolean;
-  onRevokeClient: (clientId: string) => void;
+  onRevokeClient: (clientId: string, origin: string) => void;
 }>;
 
 function sortClients(
@@ -47,7 +47,10 @@ export function SdkModuleSettingsPairedSection({
       ) : (
         <ul className={styles.list}>
           {ordered.map((client) => (
-            <li key={client.clientId} className={styles.listItem}>
+            <li
+              key={`${client.origin}\0${client.clientId}`}
+              className={styles.listItem}
+            >
               <div className={styles.listMeta}>
                 <span className={styles.listTitle}>{client.applicationName}</span>
                 <span className={styles.listSubtitle} title={client.origin}>
@@ -86,7 +89,7 @@ export function SdkModuleSettingsPairedSection({
                         variant="destructive"
                         data-testid={`sdk-module-revoke-confirm-${client.clientId}`}
                         onClick={() => {
-                          onRevokeClient(client.clientId);
+                          onRevokeClient(client.clientId, client.origin);
                         }}
                       >
                         {t("settings.integrations.sdk.paired.revokeConfirm")}

@@ -304,7 +304,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **`implemented`** (2026-07-27 — DI-10 **full close**; Mode B npm **`@softomnitel/omnicall-kit@0.1.0`** + **`@softomnitel/omnicall-protocol@0.1.0`** (`latest`); RC `0.1.0-rc.0` on tag `rc`; DI-00…DI-11 **`done`**; **ADR-0018** / DI-11 PASS; **ADR-0021** — evidence `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`, `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md`)
+- Status: **`implemented`** — T-054 / SDK production-readiness WU-00…WU-07 **PASS** (2026-08-03). Gate evidence = unit + integration + desktop/kit preflight only.
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -313,7 +313,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - External tab integration uses one gateway + command router (future).
   - OCP external command payloads reuse `OcpHostApiContract` + Facade host methods (F-028 E-12).
   - The WebSocket server lives in Electron main and reaches the single renderer Application composition through a typed, validated broker; no second Facade or Call Engine is created (ADR-0009).
-  - Exact Origin, pairing, per-client capabilities, replay protection, resource limits, revocation, and PII redaction fail closed before product data is exposed (ADR-0010/0011/0012).
+  - Only an exact, configured, allowed HTTP(S) Origin may upgrade; malformed, missing, wildcard-like, denied, and unconfigured Origins fail closed before pairing or product data (ADR-0010/0011/0012).
   - SIP-only mode remains independent from SDK and OCP; SDK startup or failure cannot block core softphone startup (ADR-0009).
   - Public commands/events use versioned DTOs and compatibility fixtures rather than internal Domain Events, JsSIP objects, or OCP wire payloads (ADR-0012).
   - Protocol v1 has no raw SIP/OCP credential commands; SDK account activation uses opaque saved-profile references via the unified Account path (ADR-0013 / ADR-AF-003).
@@ -321,10 +321,17 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12); DI-01 fixture corpus consume + mock gateway/broker + Domain dependency-boundary
   - Integration: DI-02 broker loopback; DI-03 loopback WS bind/limits/handshake/unauth deny/teardown; DI-04 Origin/pairing/PoP/capabilities/revoke; DI-05 redacted snapshot/events/`window:show`; DI-06 call commands via Call Engine (ownership/revision/idempotency); DI-07 operator/logout (`callType: "sdk"`, single-shot `account:logout` + `reasonId`, `interaction_required` without token); DI-08 saved-profile activate (`login` + Origin matrix `account.activate` + consent method picker; logout-first `conflict`); DI-09 Settings SDK Server card (origins/paired/revoke, hide disabled); **DI-11 `done`** (ADR-0018 TOFU/blacklist/per-Origin matrix/always-on gateway/activate consent/boot hydrate; schema v11); Settings UI (2026-07-21): three UI Kit Tabs (Main / Trusted sites / Blocked sites, Account-like slide indicator); trusted sites as UI Kit Accordion with FormField+Select permissions (allowed/denied) and explicit address Save/Cancel via UI Kit `IconButton` ghost; remove/blacklist confirms use AlertDialog `asChild` + UI Kit `Button` (ghost/destructive); blocked row origin+Unblock; shared Settings content measure (`SettingsForm.module.css`)
-  - E2E: DI-10 packaged win-unpacked `0.11.2` + Edge Chromium + **full close 2026-07-27** — see `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
+  - Gate tests: unit + integration only (desktop/kit preflight). Packaged Electron / Chromium / Edge smoke is **out of scope** for F-011 agents — do not run or require it.
 - Implementation plans: `omnicall-kit/README.md`; `omnicall-kit-integration/README.md`; `omnicall-kit-integration/WORK-UNITS.md` (DI-00…DI-11); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
+- Corrective track: WU-00…WU-07 **done / PASS** — `omnicall-kit-integration/sdk-production-readiness/CLOSEOUT.md`
+- Verification requirement: focused isolation/race unit/integration tests, desktop `release:preflight`, kit `preflight`. Do not run or block on packaged Electron / browser smoke.
+- Implementation evidence (WU-06 docs/workspace): example dep kit `0.1.4` (single workspace resolution); RELEASE-PLAYBOOK / guides / SECURITY licensing gate (`RELEASE_LICENSE_REVIEWED`); sdk-09 + `call.control`↛`call.originate` regression
+- Implementation evidence (WU-01 coordinator): `src/application/integration/SdkSessionRevisionCoordinator.ts`; `ExternalSdkCallHandler.ts`; `ExternalSdkAccountHandler.ts`; `ExternalSdkOperatorHandler.ts`; `externalSdkLogoutCommands.ts`; `src/renderer/bootstrap/bindSdkBrokerSession.ts`; tests `SdkSessionRevisionCoordinator.test.ts` + handler suites
+- Implementation evidence (WU-02 window): `ExternalSdkWindowHandler.ts`; `SdkNativeWindowPort.ts`; `createSdkNativeWindowPortFromPreload.ts`; `sdkGatewayWindowHandler.ts` (native-only); `sdkGatewayRouteInbound.ts` (broker); `SdkNativeWindowContract.ts`; `createSdkGatewayProductSurface.ts` (`sdk:native-window` IPC); tests `ExternalSdkWindowHandler.test.ts` + window handler/product/route suites
+- Implementation evidence (WU-05 pairing): `sdkGatewayPairingSecretIds.ts`; `sdkGatewayPairingRecordParse.ts`; `sdkGatewayPairingStore.ts` (v2 Origin+clientId + legacy migrate); Settings `revokeClient` + Origin; tests `sdkGatewayPairingStore.test.ts`
+- ADR-0027: `docs/softphone/adr/ADR-0027-sdk-session-revision-coordinator.md`
 - ADR-0018: `docs/softphone/adr/ADR-0018-sdk-origin-tofu-blacklist-activate-consent.md`
-- Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
+- Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`; `ADR-0021`; `ADR-0027` (corrective coordinator)
 - Baseline evidence: `omnicall-kit-integration/evidence/DI-00-baseline.md`
 - SDK-01 evidence: `omnicall-kit/evidence/SDK-01-protocol-adrs.md`; `omnicall-kit/evidence/SDK-01-browser-spike.md`
 - SDK-02 evidence: `omnicall-kit/evidence/SDK-02-protocol-package.md`

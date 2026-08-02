@@ -41,7 +41,6 @@ test('browser OmniCallClient constructor is side-effect free then reads snapshot
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'browser-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-browser',
     requestedProfile: 'presentation',
     requestedCapabilities: ['session.read.redacted', 'window.show'],
     keyStore: createMemoryPopKeyStore(),

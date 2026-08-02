@@ -68,7 +68,7 @@ Mode A RC published; Mode B stable **`0.1.0`/`latest`** after DI-10 full close (
 | clean-install preflight | **PASS** — wiped workspace `node_modules`, `npm ci` (333 pkgs, 0 vulns), `preflight` PASS; **re-verified 2026-07-21** post High/Low remediation |
 | package API and tarball checks | **PASS** — `api:check` 47/169; `package:check` no fake peer / docs harness |
 | browser and SDK/desktop compatibility matrix | **PASS** — DI-10 full close 2026-07-27 — see DI-10 evidence + `docs/guide/compatibility-matrix.md` |
-| packaged Electron E2E | **PASS** — DI-10 full close 2026-07-27 — `../omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
+| unit/integration + preflight gate | **PASS** — DI-10 historical close 2026-07-27; current policy excludes packaged/browser smoke |
 | architecture review | Self-check **PASS** (see below) — formal `/arch-review` deferred to Mode B / F-011 close |
 | security review | Self-check **PASS** (see below) — formal security gate deferred to Mode B / remaining OPEN cells |
 | changelog, SBOM, provenance, rollback, revoke | **PASS** — real files + `release:check`; no registry publish |

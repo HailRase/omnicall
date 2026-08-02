@@ -7,6 +7,23 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-08-03
+
+### Fixed
+
+- **F-011** SDK production-readiness (ADR-0027): single Application revision
+  coordinator for call/account/operator/window; activation reservation without
+  long-held consent/auth lock; Origin+clientId pairing and
+  Origin+clientId+requestId dedup; fail-closed WebSocket Origin upgrade;
+  inbound session identity isolation; coherent snapshot under coordinator lock;
+  native SDK IPC sender authorization.
+
+### Changed
+
+- OmniCall Kit companion release **`@softomnitel/omnicall-kit@0.2.0`** (protocol
+  unchanged at `0.1.0`): package-owned `SDK_VERSION`, `discoverOmniCallDesktop`,
+  typed `waitUntil` timeout/`AbortSignal`, latest-known `getRevision()`.
+
 ## [1.3.0] - 2026-08-02
 
 ### Added

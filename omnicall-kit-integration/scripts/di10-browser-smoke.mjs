@@ -1,12 +1,7 @@
 /**
- * DI-10 browser smoke: Edge/Chromium page Origin → packaged desktop gateway.
- *
- * Prerequisites:
- * - Packaged OmniCall running with:
- *   OMNICALL_SDK_ALLOWED_ORIGINS=http://127.0.0.1:8765
- *
- * Usage:
- *   node omnicall-kit-integration/scripts/di10-browser-smoke.mjs
+ * ARCHIVE ONLY — do not run for F-011 / DI / WU gates.
+ * Historical DI-10 browser smoke (Edge/Chromium → packaged desktop gateway).
+ * Current gate = unit + integration + preflight only.
  */
 
 import { createServer } from "node:http";

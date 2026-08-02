@@ -22,6 +22,7 @@ Every desktop integration agent must read:
 6. [`SMOKE-CHECKLIST.md`](SMOKE-CHECKLIST.md)
 7. [`../omnicall-kit/docs/PROTOCOL.md`](../omnicall-kit/docs/PROTOCOL.md)
 8. [`../omnicall-kit/docs/SECURITY.md`](../omnicall-kit/docs/SECURITY.md)
+9. Corrective track (post P12): [`sdk-production-readiness/`](sdk-production-readiness/) — ADR-0027; WU-00 done; next WU-01
 
 Then read the repository onboarding and current status:
 
@@ -54,7 +55,7 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **`implemented`** (2026-07-27 — DI-00…DI-11 `done`; DI-10 **full close**; Mode B npm **`0.1.0`/`latest`**)
+- F-011: **`in-progress / gate fail`** — corrective WU-07 is open; 2026-08-03 DI-10 exposed hostile-Origin upgrade acceptance.
 - ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
 - SDK-02: `@softomnitel/omnicall-protocol` `done`; desktop consumes same fixtures (DI-01)
 - P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md` (**P12 closed** 2026-07-27)
@@ -75,9 +76,10 @@ Native window commands remain in main.
 - SDK Settings UX: **`done`** (DI-09) — origins/paired/revoke/grant/diagnostics; hide disabled;
   **listener enable toggle superseded by DI-11** (always-on gateway per ADR-0018 — `done`)
 - Read-only event/snapshot transport: implemented (DI-05 `done`)
-- DI-10 evidence: `evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; **full close** 2026-07-27)
+- DI-10 evidence: historical archive only — agents must not re-run packaged/browser smoke for gates.
 - DI-11 evidence: `evidence/DI-11-origin-tofu-blacklist-activate.md` (`done` — `/sdk-review` PASS 2026-07-21)
-- Next: optional npm Teams private; further SDK SemVer as needed (Mode B **`0.1.0`** shipped)
+- Corrective track: `sdk-production-readiness/CLOSEOUT.md` — WU-07 **PASS** (2026-08-03); unit + integration + preflight only.
+- Next (human): SemVer cut, license review, npm publish authorization.
 - DI-11 planning (decisions frozen): `evidence/DI-11-origin-tofu-blacklist-activate-planning.md`
 
-P12 / F-011 closed 2026-07-27 (DI-00…DI-11 reviewed; DI-10 full close).
+P12 / F-011 corrective track is **closed** (`implemented`). Agents must not run packaged Electron / Chromium / Edge smoke for F-011 gates.

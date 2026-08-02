@@ -42,7 +42,6 @@ const client = createOmniCallClient({
   url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
   origin: 'https://crm.example',
   application: { name: 'my-crm', version: '1.2.0' },
-  sdkVersion: '0.1.0-rc.0',
   requestedProfile: 'call_controller',
   requestedCapabilities: ['session.read.redacted', 'call.originate', 'call.control'],
   keyStore: createIndexedDbPopKeyStore({ installId: 'crm-install-1' })

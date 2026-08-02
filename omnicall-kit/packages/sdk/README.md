@@ -67,10 +67,11 @@ npm install @softomnitel/omnicall-kit
 закрытом npm registry:
 
 ```bash
-npm install @softomnitel/omnicall-kit@0.1.4
+npm install @softomnitel/omnicall-kit@0.2.0
 ```
 
 Пакет ESM-only. Импортируйте его через `import`, а не `require`.
+Версия пакета также экспортируется как константа `SDK_VERSION` (её не задают в options).
 
 ## Быстрый старт
 
@@ -90,19 +91,38 @@ const keyStore = createIndexedDbPopKeyStore({
 });
 ```
 
-### 2. Создайте клиент
+### 2. (Опционально) Discovery loopback endpoint
 
-`origin` — точный адрес CRM из браузера: схема, домен и порт. Например,
-`https://crm.example`. Desktop не принимает маски и части строк.
+Если URL gateway не зашит в конфиг CRM, можно прочитать trusted discovery Desktop
+на loopback и взять `wsUrl` из документа:
 
 ```ts
-import { createOmniCallClient } from '@softomnitel/omnicall-kit';
+import { discoverOmniCallDesktop } from '@softomnitel/omnicall-kit';
+
+const discovery = await discoverOmniCallDesktop({ fetch: globalThis.fetch.bind(globalThis) });
+// discovery.wsUrl — адрес для createOmniCallClient({ url })
+```
+
+Discovery ходит только на фиксированный loopback endpoint Desktop. Redirects и
+битый документ отклоняются (`discovery_unreachable` / validation error).
+
+### 3. Создайте клиент
+
+`origin` — точный адрес CRM из браузера: схема, домен и порт. Например,
+`https://crm.example`. Desktop не принимает маски, поддомены и частичные строки.
+
+Не передавайте `sdkVersion` в options: handshake-версия всегда берётся из
+`SDK_VERSION` пакета.
+
+```ts
+import { createOmniCallClient, SDK_VERSION } from '@softomnitel/omnicall-kit';
+
+console.info('OmniCall Kit', SDK_VERSION);
 
 const client = createOmniCallClient({
-  url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
+  url: 'ws://127.0.0.1:17341/omnicall/v1/ws', // или discovery.wsUrl
   origin: window.location.origin,
   application: { name: 'my-crm', version: '1.0.0' },
-  sdkVersion: '0.1.4',
   requestedProfile: 'call_controller',
   requestedCapabilities: [
     'session.read.redacted',
@@ -121,7 +141,7 @@ const client = createOmniCallClient({
 `window.hide` нельзя запросить при pairing: оператор выдаёт их отдельно в
 настройках Desktop.
 
-### 3. Покажите оператору, что pairing ожидает подтверждения
+### 4. Покажите оператору, что pairing ожидает подтверждения
 
 ```ts
 client.onPairingRequired((info) => {
@@ -138,20 +158,35 @@ client.onStateChange((state) => {
 Подписки возвращают функцию отписки. Вызовите её при размонтировании компонента
 или закрытии вкладки.
 
-### 4. Подключитесь и получите состояние
+### 5. Подключитесь и получите состояние
 
 `connect()` начинает сетевое подключение и возвращает `Promise`. `Promise`
 означает результат, который появится позже. `await` ждёт этот результат, не
 блокируя браузер.
 
 ```ts
+import { WaitUntilTimeoutError } from '@softomnitel/omnicall-kit';
+
 await client.connect();
-await client.waitUntil((state) => state === 'ready', 60_000);
+try {
+  await client.waitUntil((state) => state === 'ready', {
+    timeoutMs: 60_000
+    // signal: abortController.signal — опциональная отмена
+  });
+} catch (error: unknown) {
+  if (error instanceof WaitUntilTimeoutError) {
+    console.error('Не дождались ready', error.timeoutMs);
+  }
+  throw error;
+}
 
 const snapshot = await client.getSnapshot();
 console.log('Версия состояния:', snapshot.revision);
 console.log('Звонки:', snapshot.sections.calls);
 ```
+
+Короткий вызов `waitUntil(predicate, 60_000)` по-прежнему поддерживается.
+Таймаут всегда даёт typed `WaitUntilTimeoutError`, не обычный `Error`.
 
 Если состояние стало `pairing_required`, оператор должен подтвердить CRM в
 OmniCall Desktop. Не создавайте второй клиент и не повторяйте `connect()` в
@@ -204,22 +239,23 @@ const result = await client.calls.originate({
 console.log(result.callId, result.revision);
 ```
 
-`getRevision()` читает только revision кэшированного snapshot. Успешная мутация
-возвращает новый `result.revision`, но не патчит этот кэш. Для следующей команды
-либо сохраните `result.revision` как локальную последовательность мутаций, либо
-сначала вызовите `getSnapshot()`; после события, reconnect или действий другой
-вкладки выбирайте только свежий snapshot.
+`getRevision()` возвращает **latest-known** concurrency token: его обновляют
+полные snapshot, успешные reply с `revision`, публичные события с `revision` и
+`stale_state.currentRevision` (монотонный max в рамках активной
+serverInstanceId/sessionEpoch). `getCachedSnapshot()` остаётся честным кэшем
+снимка и **не** патчится reply/events. После `stale_state` запросите snapshot и
+повторите мутацию только намеренно.
 
 Не повторяйте автоматически `originate`, `hangup`, `logout` или
-`activateProfile` после reconnect. Эти действия могут сработать дважды.
+`activateProfile` после reconnect / stale. Эти действия могут сработать дважды.
 
 ## Форматы успешных ответов
 
 Асинхронная команда либо завершается типизированным успешным результатом, либо
 отклоняет `Promise` с `OmniCallClientError`. Ошибка никогда не приходит как
 частично успешный объект. Поле `revision` в успешном результате — версия Desktop
-после команды. Это **не** обновляет `getRevision()`: кэш snapshot меняет только
-`getSnapshot()`, а события его не патчат.
+после команды; оно также обновляет latest-known `getRevision()`. Кэш snapshot
+меняют только полные snapshot-сообщения — reply/events его не патчат.
 
 | Команда | Успешный ответ | Как обрабатывать |
 | --- | --- | --- |
@@ -328,7 +364,6 @@ function createOmniCallClient(options: OmniCallClientOptions): OmniCallClient;
 | `url` | `string` | Да | WebSocket URL SDK gateway Desktop. |
 | `origin` | `string` | Да | Точный Origin CRM. |
 | `application` | `ApplicationIdentity` | Да | Имя и версия вашего приложения. |
-| `sdkVersion` | `string` | Да | Версия SDK, совместимая с Desktop. |
 | `requestedProfile` | `PairingProfile` | Да | `presentation`, `operator` или `call_controller`. |
 | `requestedCapabilities` | `readonly CapabilityId[]` | Нет | Запрашиваемые неприоритетные права. |
 | `keyStore` | `PopKeyStore` | Да | Хранилище идентичности pairing. |
@@ -373,19 +408,40 @@ function createOmniCallClient(options: OmniCallClientOptions): OmniCallClient;
 
 Возвращает текущее состояние из таблицы выше. Не выполняет сетевой запрос.
 
-#### `client.waitUntil(predicate, timeoutMs?)`
+#### `client.waitUntil(predicate, options?)`
 
 ```ts
-(predicate: (state: ConnectionState) => boolean, timeoutMs?: number)
-  => Promise<ConnectionState>
+(
+  predicate: (state: ConnectionState) => boolean,
+  options?: number | { timeoutMs?: number; signal?: AbortSignal }
+) => Promise<ConnectionState>
 ```
 
-Ждёт состояние, подходящее условию. `timeoutMs` не обязателен. При превышении
-времени Promise отклоняется.
+Ждёт состояние, подходящее условию. Второй аргумент — либо `timeoutMs` (число),
+либо объект `{ timeoutMs, signal }`. По умолчанию таймаут 5000 ms. При таймауте
+Promise отклоняется typed `WaitUntilTimeoutError`. `AbortSignal` отменяет ожидание.
 
 ```ts
 await client.waitUntil((state) => state === 'ready', 60_000);
+await client.waitUntil((state) => state === 'ready', {
+  timeoutMs: 60_000,
+  signal: controller.signal
+});
 ```
+
+### `discoverOmniCallDesktop(options)` и `SDK_VERSION`
+
+```ts
+function discoverOmniCallDesktop(options: {
+  fetch: typeof fetch;
+  signal?: AbortSignal;
+}): Promise<DiscoveryDocument>;
+
+const SDK_VERSION: '0.2.0';
+```
+
+`discoverOmniCallDesktop` валидирует только trusted loopback discovery Desktop.
+`SDK_VERSION` — версия npm-пакета / handshake; не передавайте её вручную в options.
 
 #### `client.onStateChange(listener)` и `client.onPairingRequired(listener)`
 
@@ -422,8 +478,9 @@ const canDial = client.getGrantedCapabilities().includes('call.originate');
 ```
 
 `getSnapshot()` запрашивает свежий снимок. `getCachedSnapshot()` не обращается в
-сеть. `getRevision()` возвращает номер кэшированного снимка. Используйте свежий
-snapshot перед мутацией.
+сеть. `getRevision()` возвращает latest-known concurrency token (`undefined`
+только до первого наблюдения или после invalidate). Перед мутацией можно взять
+`getRevision()`; после gap/reconnect предпочтите свежий snapshot.
 
 #### `client.subscribe(type, listener)`
 
@@ -932,6 +989,17 @@ SDK не совместим с legacy `window.Softphone` и не предост�
 Переносите интеграцию на `createOmniCallClient()`, snapshot, публичные события и
 namespaces клиента.
 
+### С `0.1.x` на `0.2.0`
+
+1. Обновите pin: `npm install @softomnitel/omnicall-kit@0.2.0`.
+2. Удалите любой ручной `sdkVersion` из options клиента — его больше нет в публичном API.
+3. Для цепочек мутаций используйте `result.revision` или `client.getRevision()`;
+   не ждите, что `getCachedSnapshot()` обновится от reply/events.
+4. При необходимости ловите `WaitUntilTimeoutError` и/или передавайте `{ timeoutMs, signal }`
+   в `waitUntil`.
+5. Опционально используйте `discoverOmniCallDesktop` вместо захардкоженного URL.
+6. Нужен OmniCall Desktop **≥ 1.3.1** для coordinator/dedup/pairing/Origin hardening.
+
 При `incompatible_version` остановите функции телефонии и предложите обновить
 пакет или Desktop. Добавление необязательных полей совместимо. Удаление,
 переименование или изменение смысла API требует новой major-версии. Не опирайтесь
@@ -943,9 +1011,12 @@ namespaces клиента.
 2. Игнорируйте неизвестные необязательные поля во входящих объектах.
 3. Не стройте логику на недокументированных wire-ключах.
 4. При `incompatible_version` остановите telephony UI и запросите обновление.
+5. Один стабильный `installId` PoP на установку CRM; multi-tab делит тот же `clientId`.
 
 ## Лицензия
 
 В `package.json` указано `UNLICENSED`. Это не open-source лицензия: не
 предполагайте право на свободное распространение или изменение вне согласованного
-контура. Уточните условия у владельца пакета.
+контура. Уточните условия у владельца пакета. Публикация npm fail-closed без
+человеческого license review (`RELEASE_LICENSE_REVIEWED=1`); агенты не выбирают
+SPDX за владельца.

@@ -8,6 +8,7 @@
  *
  * Requires:
  *   - RELEASE_CONFIRM=1
+ *   - RELEASE_LICENSE_REVIEWED=1 (human legal review; packages are UNLICENSED)
  *   - npm auth with write access to @softomnitel
  *   - packages flipped to private:false and versioned (changeset version)
  *   - publishConfig.access public (Free org) or restricted (Teams)
@@ -74,6 +75,16 @@ for (const pkg of packages) {
   const pkgJson = JSON.parse(fs.readFileSync(path.join(root, pkg.dir, 'package.json'), 'utf8'));
   if (pkgJson.private === true) {
     console.error(`${pkg.name}: private:true — flip to false before publish`);
+    process.exit(1);
+  }
+  if (typeof pkgJson.license !== 'string' || pkgJson.license.length === 0) {
+    console.error(`${pkg.name}: missing license field`);
+    process.exit(1);
+  }
+  if (pkgJson.license === 'UNLICENSED' && process.env.RELEASE_LICENSE_REVIEWED !== '1') {
+    console.error(
+      `${pkg.name}: license UNLICENSED — set RELEASE_LICENSE_REVIEWED=1 only after human legal/license review (do not invent SPDX)`
+    );
     process.exit(1);
   }
   const pkgAccess = pkgJson.publishConfig?.access;

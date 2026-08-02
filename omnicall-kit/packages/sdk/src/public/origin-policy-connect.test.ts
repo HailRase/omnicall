@@ -42,7 +42,6 @@ function createHarness() {
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'fixture-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-test',
     requestedProfile: 'presentation',
     requestedCapabilities: ['session.read.redacted', 'window.show'],
     keyStore: createMemoryPopKeyStore(),

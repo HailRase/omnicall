@@ -72,9 +72,13 @@ Two product risks:
    - Capability is **privileged**: never in pairing profile defaults; never requested via
      client `sanitizeRequestedCapabilities`. Desktop elevates it only when the Origin
      matrix enables `window.hide` (same elevation pattern as `account.activate`).
-   - Command requires `payload.expectedRevision` (schema). Mismatch → `conflict`.
-   - Native hide runs in **main** (`BrowserWindow.hide`) after capability + telephony busy
-     checks. Success emits `window:visibility-changed` with `visible: false`.
+   - Command requires `payload.expectedRevision` (schema). Mismatch → `stale_state`
+     (+ current revision) via Application `SdkSessionRevisionCoordinator` (WU-02 /
+     ADR-0027). Active-call / telephony-busy denial remains `conflict` (business).
+   - Native hide runs in **main** (`BrowserWindow.hide`) after Application revision
+     validate + telephony busy checks (broker → short native IPC under aggregate lock).
+     Success emits `window:visibility-changed` with `visible: false` and **post-success**
+     `reply.revision`.
    - **Recovery (mandatory):** while the softphone is SDK-hidden, main keeps a **minimal
      system tray** with a Show action that restores via the shared
      `bringBrowserWindowToFront` helper. Authorized `window:show`, second-instance focus,
@@ -88,8 +92,10 @@ Two product risks:
    main does not import Call Engine). Denial code: `conflict`. Focus-stealing show
    operations remain rate-limited (1s for SDK `window:show`).
 
-4. **Ownership:** native window mutations execute in **main** after capability/policy checks
-   (ADR-0009). They do not go through Call Engine.
+4. **Ownership:** revision validate/advance for window commands is Application-owned
+   (`SdkSessionRevisionCoordinator`, ADR-0027). Native BrowserWindow mutations still execute
+   in **main** after capability/policy checks (ADR-0009) via short typed IPC. They do not
+   go through Call Engine.
 
 ### B. SDK sign-in relationship to ADR-AF-003
 

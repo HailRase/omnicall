@@ -9,7 +9,7 @@
 | Packages | `@softomnitel/omnicall-protocol`, `@softomnitel/omnicall-kit` |
 | Interim publish posture | **`public`** while on Free (do not publish `restricted` yet) |
 | Later private | Switch `publishConfig.access` → `restricted` after Teams upgrade |
-| Registry | RC on dist-tag `rc` first; `latest` blocked until DI-10 |
+| Registry | kit `latest`=`0.2.0`, protocol `latest`=`0.1.0`; RC `0.1.0-rc.0` |
 
 ## Free plan (now)
 

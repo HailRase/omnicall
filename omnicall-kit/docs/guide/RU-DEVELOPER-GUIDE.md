@@ -9,7 +9,7 @@
 | Поле | Значение |
 | --- | --- |
 | npm | `@softomnitel/omnicall-kit` (+ транзитивно `@softomnitel/omnicall-protocol`) |
-| Stable | `0.1.0` (`latest`) |
+| Stable | kit `0.2.0` / protocol `0.1.0` (`latest`) |
 | RC | `0.1.0-rc.0` (`rc`) |
 | Feature Registry | F-011 — **implemented** (DI-10 closed) |
 | Браузеры | Chromium / Edge (Chromium). Firefox/Safari — не заявлены |
@@ -56,7 +56,6 @@ const client = createOmniCallClient({
   url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
   origin: 'https://crm.example', // exact Origin
   application: { name: 'my-crm', version: '1.2.0' },
-  sdkVersion: '0.1.0',
   requestedProfile: 'call_controller',
   requestedCapabilities: [
     'session.read.redacted',
@@ -151,7 +150,7 @@ Shared desk (ADR-0021): любой авторизованный paired-клие�
 
 ```bash
 npm install @softomnitel/omnicall-kit
-# pin: npm install @softomnitel/omnicall-kit@0.1.0
+# pin: npm install @softomnitel/omnicall-kit@0.2.0
 # RC:  npm install @softomnitel/omnicall-kit@rc
 ```
 
@@ -192,7 +191,6 @@ import {
 | `url` | Loopback WS endpoint |
 | `origin` | Exact Origin страницы CRM |
 | `application` | `{ name, version }` |
-| `sdkVersion` | Версия SDK-строки на wire |
 | `requestedProfile` | `presentation` \| `operator` \| `call_controller` |
 | `requestedCapabilities?` | Non-privileged only; sanitize + strip privileged |
 | `keyStore` | `PopKeyStore` (IndexedDB / memory) |
@@ -321,17 +319,17 @@ Snapshot — источник UI state после `ready` и после кажд
 | --- | --- |
 | `getSnapshot()` | Свежий snapshot с desktop |
 | `getCachedSnapshot()` | Последний кэш или `undefined` |
-| `getRevision()` | Текущий cached revision или `undefined` |
+| `getRevision()` | Latest-known concurrency token или `undefined` до первого наблюдения / после invalidate |
 | Mutation `expectedRevision` | Обязателен; иначе риск `stale_state` |
 
 Правила:
 
 1. Перед мутацией: `client.getRevision() ?? (await client.getSnapshot()).revision`.
-2. После успеха: `result.revision` — новый revision Desktop, но `getRevision()` всё
-   ещё возвращает revision последнего snapshot. Для цепочки мутаций храните
-   `result.revision` сами либо вызовите `getSnapshot()`.
-3. После `stale_state`: новый snapshot; **не** слепой retry со старым числом.
-4. Events **не** патчат snapshot cache — при gap SDK сам тянет snapshot.
+2. После успеха: `result.revision` обновляет latest-known `getRevision()`; кэш snapshot
+   не патчится. Для UI state после gap/reconnect берите свежий snapshot.
+3. После `stale_state`: tracker получает `currentRevision`; запросите snapshot и
+   **намеренно** повторите мутацию — без auto-replay.
+4. Events обновляют latest-known, но **не** патчат snapshot cache — при gap SDK тянет snapshot.
 5. Desktop coarse-advances revision на смене coarse operator status, reasonId, connected, reservation booking — не на каждом talking↔hold внутри `unknown`.
 
 <details>
@@ -684,7 +682,7 @@ Grant `window.hide` → `hide({ expectedRevision })` только когда tel
 4. Всегда обновляйте revision из последнего успешного результата или fresh snapshot.
 5. Логируйте только `code` / `requestId` / command type — не payload.
 6. Privileged flows — только через `getGrantedCapabilities()` feature-detect.
-7. В тестах: `createMemoryPopKeyStore` + fake transport/scheduler; browser E2E отдельно.
+7. В тестах: `createMemoryPopKeyStore` + fake transport/scheduler (unit/integration).
 8. На HTTPS CRM заранее объясняйте пользователю LNA / Local Network permission.
 9. Не оборачивайте `TransportPort` собственной reconnect-логикой.
 10. Pin версию `@softomnitel/omnicall-kit`; читайте [upgrade-deprecation.md](./upgrade-deprecation.md).
@@ -722,7 +720,7 @@ EN: [security-anti-patterns.md](./security-anti-patterns.md).
 
 ## Чеклист перед продом
 
-- [ ] Установлен `@softomnitel/omnicall-kit@0.1.0` (или осознанный pin/`rc`)
+- [ ] Установлен `@softomnitel/omnicall-kit@0.2.0` (или осознанный pin/`rc`)
 - [ ] OmniCall Desktop запущен; SDK gateway / Integrations включены
 - [ ] Origin CRM exact match; TOFU Allow проверен; blacklist path понятен
 - [ ] Pairing UX: инструкция при `pairing_required`; revoke → clear + re-pair

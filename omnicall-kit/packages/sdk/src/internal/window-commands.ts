@@ -9,8 +9,10 @@ import {
   guardCapability,
   guardReady,
   mapReplyFailure,
+  observeReplyRevision,
   readWindowState,
-  requireWireIdentity
+  requireWireIdentity,
+  type ObserveWireRevision
 } from './product-commands.js';
 import {
   buildWindowGetStateBody,
@@ -36,6 +38,7 @@ export function createWindowCommandApi(deps: {
   readonly connection: ConnectionSession;
   readonly scheduler: Scheduler;
   readonly getGrantedCapabilities: () => readonly CapabilityId[];
+  readonly observeWireRevision?: ObserveWireRevision;
 }): WindowCommandApi {
   const runShowOrGetState = async (
     commandType: 'window:show' | 'window:get-state'
@@ -71,6 +74,7 @@ export function createWindowCommandApi(deps: {
       commandType,
       body
     });
+    observeReplyRevision(deps.observeWireRevision, result);
     if (!result.ok || !result.reply.ok) {
       return Promise.reject(mapReplyFailure(result));
     }
@@ -107,6 +111,7 @@ export function createWindowCommandApi(deps: {
         expectedRevision: input.expectedRevision
       })
     });
+    observeReplyRevision(deps.observeWireRevision, result);
     if (!result.ok || !result.reply.ok) {
       return Promise.reject(mapReplyFailure(result));
     }

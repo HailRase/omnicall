@@ -39,6 +39,41 @@ export function requireWireIdentity(
   return identity;
 }
 
+export type ObserveWireRevision = (input: {
+  readonly revision: number;
+  readonly serverInstanceId: string;
+  readonly sessionEpoch: string;
+}) => void;
+
+/**
+ * Observe revision from a validated command reply (success or stale_state current).
+ * Does not mutate snapshot cache and never retries mutations.
+ */
+export function observeReplyRevision(
+  observe: ObserveWireRevision | undefined,
+  result: PendingRequestResult
+): void {
+  if (observe === undefined || !result.ok) {
+    return;
+  }
+  const reply = result.reply;
+  if (reply.ok) {
+    observe({
+      revision: reply.revision,
+      serverInstanceId: reply.serverInstanceId,
+      sessionEpoch: reply.sessionEpoch
+    });
+    return;
+  }
+  if (reply.error.currentRevision !== undefined) {
+    observe({
+      revision: reply.error.currentRevision,
+      serverInstanceId: reply.serverInstanceId,
+      sessionEpoch: reply.sessionEpoch
+    });
+  }
+}
+
 export function mapPendingFailure(result: {
   readonly ok: false;
   readonly errorCode: ProtocolErrorCode;

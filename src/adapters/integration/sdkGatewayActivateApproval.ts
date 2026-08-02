@@ -10,11 +10,15 @@ import {
   buildCommandFailureReply,
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
-import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import type {
+  SdkDedupPrincipal,
+  SdkRequestDedupCache,
+} from "./sdkGatewayRequestDedup.js";
 
 function sendActivateForbidden(input: {
   readonly connection: SdkGatewayConnection;
   readonly requestDedup: SdkRequestDedupCache;
+  readonly dedupPrincipal: SdkDedupPrincipal;
   readonly now: () => Date;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   readonly log: (
@@ -34,7 +38,7 @@ function sendActivateForbidden(input: {
     details: { [input.detailKey]: true },
   });
   input.requestDedup.complete(
-    input.command.requestId,
+    input.dedupPrincipal,
     reply,
     input.now().getTime(),
   );
@@ -53,6 +57,7 @@ function sendActivateForbidden(input: {
 export function denyActivateWhenOriginPolicyForbids(input: {
   readonly connection: SdkGatewayConnection;
   readonly requestDedup: SdkRequestDedupCache;
+  readonly dedupPrincipal: SdkDedupPrincipal;
   readonly now: () => Date;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   readonly log: (

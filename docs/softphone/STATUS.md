@@ -2,10 +2,10 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-08-02
-**Version:** `1.3.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
+**Updated:** 2026-08-03
+**Version:** `1.3.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit@0.2.0` + `@softomnitel/omnicall-protocol@0.1.0`)
 **Feedback channels:** ADR-0026 Feedback Channel Law — anti-dual; ephemeral outcomes → `notify` (incl. SDK/OCP/EA/ES save + screen-share confirm); Account errors → persistent Alert + journaled critical; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
-**Tests:** `main` @ `1.3.0` — release preflight 3066 passed / 1 skipped (2026-08-02)
+**Tests:** `1.3.1` cut — release preflight green (2026-08-03)
 **Settings nav:** Integrations = always-open cluster (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
 **Settings schema:** `UserSettings` **v19** = v18 (EA/ringtone/always-on-top) + nested `notificationPreferences` (F-034); migrates 3…18 upward (no downgrade)
 **OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
@@ -16,6 +16,19 @@
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `1.1.0`.
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
+
+## Closed — F-011 Host Integration / SDK production-readiness
+
+| Field | Value |
+| --- | --- |
+| Feature | **F-011** Host Integration Contract + corrective WU-00…WU-07 |
+| Status | **implemented** (WU-07 PASS 2026-08-03) |
+| Task | **T-054** **done** |
+| Plan | `omnicall-kit-integration/sdk-production-readiness/` · `CLOSEOUT.md` |
+| Handoff | `handoffs/P12-External-Host-API-Master-Handoff.md` |
+| ADR | ADR-0027 (+ ADR-0009…0018 historical) |
+| Gate | unit + integration + desktop/kit preflight only — agents must not run packaged Electron / Chromium / Edge smoke |
+| Release | Desktop **`1.3.1`** + kit **`0.2.0`** (2026-08-03) |
 
 ## Closed — F-034 Notification Center
 
@@ -126,7 +139,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 **Recently closed (TASK-QUEUE):** **T-053 / F-034** Notification Center WU-00…WU-10 (`implemented`; WU-09 OS deferred; 2026-08-02); **F-032/F-033** merged to local `main` from `feature/external-applications` (2026-08-02); **F-031/F-032** additive automatic trigger `post_call_processing` (2026-07-31); **F-014/F-028 / LF-058** OCP transport recovery UX harden (2026-07-30); **T-052 / F-031** External Services (`implemented`; 2026-07-30).
 
-**Prepared / next transport auth:** **F-011 / P12** — **`implemented`** / **closed**. Mode B cut **`0.1.0`** locally (npm `latest` **pending OTP**); RC `0.1.0-rc.0` on `rc`. DI-00…DI-11 **`done`**. Next: send OTP/automation token to finish `npm publish --tag latest`.
+**F-011 / P12 corrective track:** **T-054 / WU-07 PASS** (2026-08-03). F-011 **`implemented`**. Shipped Desktop **`1.3.1`** + kit **`0.2.0`**. Gate = unit + integration + preflight only.
 
 ## RAT (Real Adapter Track)
 
@@ -148,9 +161,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **1.3.0** (2026-08-02) — F-034 Notification Center, F-033 ringtone, F-032 External Applications, always-on-top, post-call trigger |
-| Previous | **1.2.0**, **1.1.2**, **1.1.1** / **1.1.0** tag CI failed; **1.0.0**, **0.15.0**…**0.11.2** |
-| Next cut | PATCH hotfix as needed; WU-09 OS banners deferred; npm `latest` OTP for `@softomnitel/omnicall-kit` if still pending |
+| Shipped | **1.3.1** (2026-08-03) — F-011 SDK production-readiness + kit **`0.2.0`** |
+| Previous | **1.3.0** (F-034/F-033/F-032), **1.2.0**, **1.1.2**… |
+| Next cut | PATCH hotfix as needed; WU-09 OS banners deferred |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (public: installers + manifest) |
 | Manifest (live) | `omnicall-releases/main/update-manifest.json` |

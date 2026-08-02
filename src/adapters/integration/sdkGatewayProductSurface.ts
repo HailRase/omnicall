@@ -1,6 +1,7 @@
 /**
  * Injectable DI-05 product surface for the loopback gateway.
  * Broker queries + native window ops — no Domain/Facades in adapters.
+ * Public revision for window joins Application coordinator via broker (WU-02).
  */
 
 import type {
@@ -9,16 +10,9 @@ import type {
 } from "@softomnitel/omnicall-protocol";
 import type { BrokerRequestResult } from "@ports/integration/MainToRendererBrokerPort.js";
 
-export type SdkWindowShowResult =
-  | { readonly ok: true; readonly revision: number; readonly visible: true }
-  | { readonly ok: false; readonly code: ProtocolErrorCode };
-
-export type SdkWindowHideResult =
-  | { readonly ok: true; readonly revision: number; readonly visible: false }
-  | { readonly ok: false; readonly code: ProtocolErrorCode };
-
-export type SdkWindowStateResult =
-  | { readonly ok: true; readonly visible: boolean; readonly revision: number }
+/** Native-only result — no revision field (Application owns the public clock). */
+export type SdkNativeWindowSurfaceResult =
+  | { readonly ok: true; readonly visible: boolean }
   | { readonly ok: false; readonly code: ProtocolErrorCode };
 
 export type SdkProductCommandContext = Readonly<{
@@ -32,14 +26,17 @@ export type SdkGatewayProductSurface = Readonly<{
     command: WireMessage,
     context?: SdkProductCommandContext,
   ) => Promise<BrokerRequestResult>;
-  showWindow: () => SdkWindowShowResult;
-  hideWindow: (expectedRevision: number) => SdkWindowHideResult;
-  getWindowState: () => SdkWindowStateResult;
+  /** Native show (no revision). Used by renderer→main IPC after coordinator validate. */
+  showWindow: () => SdkNativeWindowSurfaceResult;
+  /** Native hide (no revision / no expectedRevision). Busy → conflict. */
+  hideWindow: () => SdkNativeWindowSurfaceResult;
+  /** Native get-state (no revision). */
+  getWindowState: () => SdkNativeWindowSurfaceResult;
   /** Fan-out already-validated public event drafts from renderer. */
   onPublishPublicEvent?: (draft: unknown) => void;
   /**
-   * Authenticated client socket closed/revoked — abandon pending logout only.
+   * Authenticated client socket closed/revoked — abort only owned pending work.
    * Must not tear SIP or account sessions (ADR-0017 O-OWN-1).
    */
-  onClientSessionEnded?: (clientId: string) => void;
+  onClientSessionEnded?: (identity: Readonly<{ origin: string; clientId: string }>) => void;
 }>;

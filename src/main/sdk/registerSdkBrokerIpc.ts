@@ -3,7 +3,7 @@
  * Does not import Domain or Facades.
  */
 
-import { BrowserWindow, ipcMain, type WebContents } from "electron";
+import { ipcMain } from "electron";
 import { MainToRendererBroker } from "@adapters/integration/MainToRendererBroker.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -22,41 +22,41 @@ const logger = createConsoleLogger({
 });
 
 let broker: MainToRendererBroker | null = null;
-/** Preferred softphone webContents that last claimed broker readiness. */
-let targetWebContentsId: number | null = null;
+type SdkBrokerNavigationDetails = Readonly<{
+  isMainFrame: boolean;
+  isSameDocument: boolean;
+}>;
+
+type SdkBrokerWebContents = Readonly<{
+  id: number;
+  isDestroyed: () => boolean;
+  send: (channel: string, payload: unknown) => void;
+  on: (
+    event: "did-start-navigation",
+    listener: (details: SdkBrokerNavigationDetails) => void,
+  ) => unknown;
+  once: (event: "destroyed", listener: () => void) => unknown;
+}>;
+
+type SdkBrokerMainWindow = Readonly<{
+  isDestroyed: () => boolean;
+  webContents: SdkBrokerWebContents;
+}>;
+
+let getMainWindow: (() => SdkBrokerMainWindow | null) | null = null;
 /** webContents ids that already have a reload listener. */
 const reloadHookWebContentsIds = new Set<number>();
 
-function findWebContentsById(id: number): WebContents | null {
-  for (const window of BrowserWindow.getAllWindows()) {
-    if (window.isDestroyed()) {
-      continue;
-    }
-    const { webContents } = window;
-    if (!webContents.isDestroyed() && webContents.id === id) {
-      return webContents;
-    }
+function resolveTargetWebContents(): SdkBrokerWebContents | null {
+  const mainWindow = getMainWindow?.();
+  if (mainWindow === null || mainWindow === undefined || mainWindow.isDestroyed()) {
+    return null;
   }
-  return null;
+  return mainWindow.webContents.isDestroyed() ? null : mainWindow.webContents;
 }
 
-function resolveTargetWebContents(): WebContents | null {
-  if (targetWebContentsId !== null) {
-    const preferred = findWebContentsById(targetWebContentsId);
-    if (preferred !== null) {
-      return preferred;
-    }
-  }
-  for (const window of BrowserWindow.getAllWindows()) {
-    if (window.isDestroyed()) {
-      continue;
-    }
-    const { webContents } = window;
-    if (!webContents.isDestroyed()) {
-      return webContents;
-    }
-  }
-  return null;
+function isAuthorizedMainSender(sender: Readonly<{ id: number }>): boolean {
+  return resolveTargetWebContents()?.id === sender.id;
 }
 
 function sendRequest(payload: SdkBrokerRequestIpcPayload): boolean {
@@ -68,7 +68,15 @@ function sendRequest(payload: SdkBrokerRequestIpcPayload): boolean {
   return true;
 }
 
-function installReloadHook(webContents: WebContents): void {
+function sendCancel(brokerRequestId: string): void {
+  const webContents = resolveTargetWebContents();
+  if (webContents === null || webContents.isDestroyed()) {
+    return;
+  }
+  webContents.send(IPC_CHANNELS.sdkBrokerCancel, { brokerRequestId });
+}
+
+function installReloadHook(webContents: SdkBrokerWebContents): void {
   const webContentsId = webContents.id;
   if (reloadHookWebContentsIds.has(webContentsId)) {
     return;
@@ -82,10 +90,7 @@ function installReloadHook(webContents: WebContents): void {
     if (broker === null) {
       return;
     }
-    if (
-      targetWebContentsId !== null &&
-      webContentsId !== targetWebContentsId
-    ) {
+    if (!isAuthorizedMainSender(webContents)) {
       return;
     }
     if (
@@ -109,8 +114,7 @@ function installReloadHook(webContents: WebContents): void {
 
   webContents.once("destroyed", () => {
     reloadHookWebContentsIds.delete(webContentsId);
-    if (targetWebContentsId === webContentsId) {
-      targetWebContentsId = null;
+    if (isAuthorizedMainSender(webContents)) {
       broker?.notifyRendererReload();
     }
   });
@@ -120,13 +124,16 @@ function installReloadHook(webContents: WebContents): void {
  * Create the singleton main-side broker and register IPC handlers.
  * Call once during main bootstrap. Safe if SDK is unused — inert until ready.
  */
-export function registerSdkBrokerIpc(): MainToRendererBroker {
+export function registerSdkBrokerIpc(input: {
+  readonly getMainWindow: () => SdkBrokerMainWindow | null;
+}): MainToRendererBroker {
+  getMainWindow = input.getMainWindow;
   if (broker !== null) {
     return broker;
   }
 
   broker = new MainToRendererBroker({
-    transport: { sendRequest },
+    transport: { sendRequest, sendCancel },
     onLog: (event, fields) => {
       logger.info(event, {
         correlationId: createCorrelationId(),
@@ -149,14 +156,15 @@ export function registerSdkBrokerIpc(): MainToRendererBroker {
       });
       return { ok: false as const };
     }
-
-    targetWebContentsId = event.sender.id;
+    if (!isAuthorizedMainSender(event.sender)) {
+      return { ok: false as const };
+    }
     installReloadHook(event.sender);
     broker.setReady(parsed.ready);
     return { ok: true as const };
   });
 
-  ipcMain.handle(IPC_CHANNELS.sdkBrokerReply, (_event, payload: unknown) => {
+  ipcMain.handle(IPC_CHANNELS.sdkBrokerReply, (event, payload: unknown) => {
     if (broker === null) {
       return { ok: false as const };
     }
@@ -167,6 +175,9 @@ export function registerSdkBrokerIpc(): MainToRendererBroker {
         operation: "sdk_broker_reply",
         result: "invalid_payload",
       });
+      return { ok: false as const };
+    }
+    if (!isAuthorizedMainSender(event.sender)) {
       return { ok: false as const };
     }
 
@@ -202,7 +213,7 @@ export function getSdkBroker(): MainToRendererBroker | null {
 export function resetSdkBrokerRegistrationForTests(): void {
   broker?.shutdown();
   broker = null;
-  targetWebContentsId = null;
+  getMainWindow = null;
   reloadHookWebContentsIds.clear();
   ipcMain.removeHandler(IPC_CHANNELS.sdkBrokerSetReady);
   ipcMain.removeHandler(IPC_CHANNELS.sdkBrokerReply);

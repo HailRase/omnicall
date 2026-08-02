@@ -25,7 +25,9 @@ compatible. Removals / renames remain breaking. Optional client options
 (`transportFactory?`, `scheduler?`, `jitter?`) and optional protocol fields
 (`reservedTarget` / `reservedReasonId`) are compatible.
 
-Stable npm `latest` is **`0.1.0`** (Mode B, 2026-07-27). Prefer pinning for production CRMs.
+Stable npm `latest` for the kit is **`0.2.0`** (protocol `latest` remains **`0.1.0`**).
+Prefer pinning for production CRMs. Corrective SemVer for ADR-0027: see
+[release-and-support](./release-and-support.md) and `guides/RELEASE-PLAYBOOK.md`.
 
 
 ## Rollback / revoke (ops)

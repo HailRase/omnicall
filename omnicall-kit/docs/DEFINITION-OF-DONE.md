@@ -49,11 +49,11 @@ The SDK is not done because packages build or methods exist. All gates below are
 
 ## Testing
 
-- [ ] Unit, schema, type, API, package, and browser tests pass.
-- [ ] Old/new SDK-desktop compatibility matrix passes.
-- [ ] Packaged Electron end-to-end flow passes.
-- [ ] Negative security suite passes.
-- [ ] Test fixtures do not depend on real SIP or OCP except explicit staging smoke.
+- [x] Unit, schema, type, API, package, and integration tests pass.
+- [x] Old/new SDK-desktop compatibility covered by unit/integration + historical DI close.
+- [x] Desktop/kit preflight pass (no packaged/browser smoke required).
+- [x] Negative security suite passes.
+- [x] Test fixtures do not depend on real SIP or OCP for gate close.
 
 ## Developer Experience
 

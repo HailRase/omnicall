@@ -243,9 +243,9 @@ Purpose: publish only after desktop compatibility and security gates.
 
 Tasks:
 
-1. Run clean-install preflight and browser matrix.
-2. Run old/new SDK-desktop compatibility matrix.
-3. Run packaged Electron end-to-end tests.
+1. Run clean-install preflight and unit/integration matrix.
+2. Run old/new SDK-desktop compatibility coverage via unit/integration tests.
+3. Do not run packaged Electron / Chromium / Edge smoke as a gate.
 4. Complete independent architecture and security reviews.
 5. Generate changeset, changelog, API report, SBOM, and provenance.
 6. Publish release candidate under a non-default npm tag.

@@ -44,7 +44,7 @@ Owns:
 - handshake and session lifecycle;
 - request correlation, timeouts, cancellation, and bounded reconnect;
 - typed method groups and subscriptions;
-- snapshot cache with revision handling;
+- snapshot cache plus separate latest-known revision tracker (`getRevision`);
 - public diagnostics that contain no secrets or PII.
 
 Must not own:

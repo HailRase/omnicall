@@ -25,7 +25,6 @@ const client = createOmniCallClient({
   url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
   origin: 'https://crm.example', // exact Origin; must be allowed (or first-contact TOFU — ADR-0018)
   application: { name: 'my-crm', version: '1.2.0' },
-  sdkVersion: '0.0.0',
   requestedProfile: 'call_controller',
   // Non-privileged only. Privileged ids are stripped — do not request them.
   requestedCapabilities: [

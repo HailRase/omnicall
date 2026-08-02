@@ -96,10 +96,15 @@ DI-03 transport must not invent crypto or capability grants; DI-04 implements AD
 - Rollback: revoke all clients / stop gateway via env kill-switch (`OMNICALL_SDK_GATEWAY=0`)
   per ADR-0018 (not a consumer Settings listener toggle).
 - **Corrupt pairing blobs (2026-07-27):** if `SecretStoragePort.loadSecret` fails for the
-  SDK pairing scope (`sdk-gateway` index or `paired-client:*`), the pairing store **purges**
-  the bad blob and treats the binding as missing (empty list / `findActive` → null). Settings
-  IPC must not throw unhandled `secret_load_failed` for this scope. SIP/account secrets keep
-  hard failures. Recovery for operators: re-pair the browser client (no silent re-trust).
+  SDK pairing scope (`sdk-gateway` index or `paired-client:*` / `paired-client-v2:*`), the
+  pairing store **purges** the bad blob and treats the binding as missing (empty list /
+  `findActive` → null). Settings IPC must not throw unhandled `secret_load_failed` for this
+  scope. SIP/account secrets keep hard failures. Recovery for operators: re-pair the browser
+  client (no silent re-trust).
+- **Pairing storage identity (ADR-0027 / WU-05, 2026-08-02):** persist under **Origin+clientId**
+  (`paired-client-v2:<originSha256>.<encodedClientId>`). Legacy `paired-client:<clientId>`
+  migrates on touch only when stored Origin exactly matches; never cross-Origin merge/overwrite.
+  Settings revoke requires Origin+clientId.
 
 ## Architecture Checks
 

@@ -161,7 +161,10 @@ describe("SdkModuleSettingsCard", () => {
 
     await user.click(screen.getByTestId("sdk-module-revoke-cli_1"));
     await user.click(screen.getByTestId("sdk-module-revoke-confirm-cli_1"));
-    expect(props.onRevokeClient).toHaveBeenCalledWith("cli_1");
+    expect(props.onRevokeClient).toHaveBeenCalledWith(
+      "cli_1",
+      "https://crm.example",
+    );
   });
 
   it("supports accordion edit/save and destructive confirms for trusted sites", async () => {

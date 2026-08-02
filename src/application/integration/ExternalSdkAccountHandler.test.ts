@@ -9,9 +9,12 @@ import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
 import { ExternalSdkAccountHandler } from "./ExternalSdkAccountHandler.js";
-import type { ExternalSdkAccountPort } from "./ExternalSdkAccountPort.js";
+import type {
+  ExternalSdkAccountPort,
+  SdkActivateProfileOutcome,
+} from "./ExternalSdkAccountPort.js";
 import type { SdkActivateConsentPort } from "./SdkActivateConsentPort.js";
-import { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import { SdkSessionRevisionCoordinator } from "./SdkSessionRevisionCoordinator.js";
 
 const BASE = {
   protocolVersion: 1,
@@ -62,13 +65,13 @@ function createHandler(
     onActivateConsentDenied?: (origin: string) => void;
   } = {},
 ) {
-  const revisionClock = new SdkSessionRevisionClock();
+  const revisionCoordinator = new SdkSessionRevisionCoordinator();
   const handler = new ExternalSdkAccountHandler({
     accountPort: port,
-    revisionClock,
+    revisionCoordinator,
     ...extras,
   });
-  return { handler, revisionClock, port };
+  return { handler, revisionClock: revisionCoordinator, revisionCoordinator, port };
 }
 
 describe("ExternalSdkAccountHandler", () => {
@@ -517,5 +520,98 @@ describe("ExternalSdkAccountHandler", () => {
       retryable: false,
       details: { account_not_found: true },
     });
+  });
+
+  it("cancels an activation when its exact client disconnects during consent", async () => {
+    let resolveConsent!: (decision: { decision: "allow"; mode: "sip_only" }) => void;
+    const activateSavedProfileByLogin = vi.fn(() =>
+      Promise.resolve(ok({ mode: "sip_only" as const })),
+    );
+    const { handler, revisionCoordinator } = createHandler(
+      createPort({ activateSavedProfileByLogin }),
+      {
+        consentPort: {
+          requestConsent: () =>
+            new Promise((resolve) => {
+              resolveConsent = resolve;
+            }),
+        },
+      },
+    );
+    const pending = handler.handleCommand(
+      {
+        ...BASE,
+        type: "account:activate-profile",
+        requestId: "req_act_disconnect_consent_001",
+        payload: { login: LOGIN, expectedRevision: revisionCoordinator.peek() },
+      },
+      { clientId: CLIENT, origin: ORIGIN },
+    );
+    await vi.waitFor(() => {
+      expect(resolveConsent).toBeTypeOf("function");
+    });
+    expect(handler.abortClientSession(ORIGIN, CLIENT)).toBe(1);
+    resolveConsent({ decision: "allow", mode: "sip_only" });
+
+    await expect(pending).resolves.toMatchObject({
+      ok: false,
+      code: "operation_failed",
+    });
+    expect(activateSavedProfileByLogin).not.toHaveBeenCalled();
+    expect(revisionCoordinator.peek()).toBe(1);
+  });
+
+  it("rejects late authentication success after disconnect without advancing revision", async () => {
+    let resolveAuth!: (
+      value: ReturnType<typeof ok<SdkActivateProfileOutcome>>,
+    ) => void;
+    const cancelInFlightActivateSignIn = vi.fn();
+    const { handler, revisionCoordinator } = createHandler(
+      createPort({
+        activateSavedProfileByLogin: () =>
+          new Promise((resolve) => {
+            resolveAuth = resolve;
+          }),
+        cancelInFlightActivateSignIn,
+      }),
+    );
+    const pending = handler.handleCommand(
+      {
+        ...BASE,
+        type: "account:activate-profile",
+        requestId: "req_act_disconnect_auth_001",
+        payload: { login: LOGIN, expectedRevision: revisionCoordinator.peek() },
+      },
+      { clientId: CLIENT, origin: ORIGIN },
+    );
+    await vi.waitFor(() => {
+      expect(resolveAuth).toBeTypeOf("function");
+    });
+    expect(handler.abortClientSession(ORIGIN, CLIENT)).toBe(1);
+
+    await expect(pending).resolves.toMatchObject({
+      ok: false,
+      code: "operation_failed",
+    });
+    resolveAuth(ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }));
+    await Promise.resolve();
+    expect(cancelInFlightActivateSignIn).toHaveBeenCalledWith("sip_only");
+    expect(revisionCoordinator.peek()).toBe(1);
+  });
+
+  it("does not cancel a completed activation after its revision commit", async () => {
+    const { handler, revisionCoordinator } = createHandler();
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "account:activate-profile",
+        requestId: "req_act_committed_001",
+        payload: { login: LOGIN, expectedRevision: revisionCoordinator.peek() },
+      },
+      { clientId: CLIENT, origin: ORIGIN },
+    );
+    expect(result.ok).toBe(true);
+    expect(handler.abortClientSession(ORIGIN, CLIENT)).toBe(0);
+    expect(revisionCoordinator.peek()).toBe(2);
   });
 });

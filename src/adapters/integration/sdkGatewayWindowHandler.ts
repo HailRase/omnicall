@@ -1,19 +1,21 @@
 /**
- * Native window show / hide / get-state for SDK gateway (DI-05 / ADR-0009/0013).
+ * Native window show / hide / get-state for SDK gateway (DI-05 / ADR-0009/0013 / WU-02).
+ *
+ * Main executes BrowserWindow only. Public aggregate revision lives in Application
+ * `SdkSessionRevisionCoordinator` (broker path) — this handler must not own a clock.
  *
  * Uses shared bring-to-front (ADR-0013). Rate-limited focus-stealing for
- * `window:show` remains mandatory and lives here (not shared with telephony).
- * Hide is privileged + telephony-busy gated; tray recovery is owned by callers.
+ * `window:show` remains here. Hide is telephony-busy gated; tray recovery via callers.
  */
 
 import type { BrowserWindow } from "electron";
 
 import { bringBrowserWindowToFront } from "@adapters/platform/bringBrowserWindowToFront.js";
-import type {
-  SdkWindowHideResult,
-  SdkWindowShowResult,
-  SdkWindowStateResult,
-} from "./sdkGatewayProductSurface.js";
+import type { ProtocolErrorCode } from "@softomnitel/omnicall-protocol";
+
+export type SdkNativeWindowOpResult =
+  | { readonly ok: true; readonly visible: boolean }
+  | { readonly ok: false; readonly code: ProtocolErrorCode };
 
 export type SdkWindowHandlerOptions = Readonly<{
   getMainWindow: () => BrowserWindow | null;
@@ -33,6 +35,9 @@ export type SdkWindowHandlerOptions = Readonly<{
 
 const DEFAULT_MIN_SHOW_INTERVAL_MS = 1_000;
 
+/**
+ * Native-only executor. Revision validate/advance is Application-owned (WU-02).
+ */
 export class SdkWindowCommandHandler {
   private readonly getMainWindow: () => BrowserWindow | null;
   private readonly minShowIntervalMs: number;
@@ -41,7 +46,6 @@ export class SdkWindowCommandHandler {
   private readonly onHidden: (() => void) | undefined;
   private readonly onShown: (() => void) | undefined;
   private lastShowMs = 0;
-  private revision = 1;
 
   constructor(options: SdkWindowHandlerOptions) {
     this.getMainWindow = options.getMainWindow;
@@ -53,7 +57,7 @@ export class SdkWindowCommandHandler {
     this.onShown = options.onShown;
   }
 
-  show(): SdkWindowShowResult {
+  show(): SdkNativeWindowOpResult {
     const window = this.resolveWindow();
     if (window === null) {
       return { ok: false, code: "not_ready" };
@@ -67,42 +71,29 @@ export class SdkWindowCommandHandler {
     }
     bringBrowserWindowToFront(window);
     this.lastShowMs = now;
-    const revision = this.revision;
-    this.revision += 1;
     this.onShown?.();
-    return { ok: true, revision, visible: true };
+    return { ok: true, visible: true };
   }
 
-  hide(expectedRevision: number): SdkWindowHideResult {
+  hide(): SdkNativeWindowOpResult {
     const window = this.resolveWindow();
     if (window === null) {
       return { ok: false, code: "not_ready" };
-    }
-    if (expectedRevision !== this.revision) {
-      return { ok: false, code: "conflict" };
     }
     if (this.isTelephonyBusy()) {
       return { ok: false, code: "conflict" };
     }
     window.hide();
-    const revision = this.revision;
-    this.revision += 1;
     this.onHidden?.();
-    return { ok: true, revision, visible: false };
+    return { ok: true, visible: false };
   }
 
-  getState(): SdkWindowStateResult {
+  getState(): SdkNativeWindowOpResult {
     const window = this.resolveWindow();
     if (window === null) {
       return { ok: false, code: "not_ready" };
     }
-    const revision = this.revision;
-    return { ok: true, visible: window.isVisible(), revision };
-  }
-
-  /** Current visibility revision (for tests / diagnostics). */
-  getRevision(): number {
-    return this.revision;
+    return { ok: true, visible: window.isVisible() };
   }
 
   private resolveWindow(): BrowserWindow | null {

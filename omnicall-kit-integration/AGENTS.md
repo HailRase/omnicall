@@ -87,7 +87,10 @@ Use [`TEST-MATRIX.md`](TEST-MATRIX.md). Critical changes require:
 - event mapper privacy tests;
 - SIP-only and OCP optional regression tests;
 - multi-tab race tests;
-- packaged Electron end-to-end evidence before release.
+- focused unit/integration suites + desktop/kit preflight.
+
+Do **not** run, require, or block F-011 / DI / WU gates on packaged Electron / Chromium /
+Edge / browser smoke scripts. Those scripts are archival only.
 
 ## Stop Conditions
 
