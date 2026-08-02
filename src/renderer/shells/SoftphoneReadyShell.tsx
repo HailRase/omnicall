@@ -33,6 +33,7 @@ import { usePreferencesTransferActions } from "../hooks/usePreferencesTransferAc
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
 import { useSdkSettingsPanel } from "../hooks/useSdkSettingsPanel.js";
 import { useExternalServicesPanel } from "../hooks/useExternalServicesPanel.js";
+import { useExternalApplicationsPanel } from "../hooks/useExternalApplicationsPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
 import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -324,6 +325,13 @@ function SoftphoneShellLayoutRoute({
       overlayShell.settingsSection === "integrations-external-services",
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
   });
+  const externalApplicationsPanel = useExternalApplicationsPanel({
+    facade,
+    sectionActive:
+      overlayShell.settingsOpen &&
+      overlayShell.settingsSection === "integrations-external-applications",
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+  });
   useShellWindowAttentionFromCalls({
     incomingCallProjection: callBindings.incomingCallProjection,
     callProjection: callBindings.callProjection,
@@ -436,6 +444,7 @@ function SoftphoneShellLayoutRoute({
   const windowControls = useShellWindowControls({
     isShuttingDown,
     settingsOpen: settingsChromeActive,
+    onPinnedPersist: settingsActions.onWindowAlwaysOnTopChange,
   });
 
   return (
@@ -667,6 +676,10 @@ function SoftphoneShellLayoutRoute({
               onAutoAnswerDuringActiveSessionChange={
                 settingsActions.onAutoAnswerDuringActiveSessionToggle
               }
+              incomingRingtoneId={settingsActions.userSettings.incomingRingtoneId}
+              onIncomingRingtoneIdChange={settingsActions.onIncomingRingtoneIdChange}
+              onPreviewIncomingRingtone={settingsActions.onPreviewIncomingRingtone}
+              onStopIncomingRingtonePreview={settingsActions.onStopIncomingRingtonePreview}
               currentVersion={appUpdate.snapshot.currentVersion}
               latestVersion={appUpdate.snapshot.latestVersion}
               updateStatusMessage={appUpdate.statusMessage}
@@ -791,6 +804,7 @@ function SoftphoneShellLayoutRoute({
                   dialogs: externalServicesPanel.dialogs,
                   variablesDialog: externalServicesPanel.variablesDialog,
                 },
+                externalApplications: externalApplicationsPanel,
               }}
               account={{
                 form: accountActions.form,

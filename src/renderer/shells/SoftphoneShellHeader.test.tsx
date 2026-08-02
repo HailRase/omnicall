@@ -51,10 +51,12 @@ const windowControls = {
   isShuttingDown: false,
   maximizeEnabled: false,
   isMaximized: false,
+  isPinned: false,
   onMinimize: vi.fn(),
   onClose: vi.fn(),
   onRestart: vi.fn(),
   onToggleMaximize: vi.fn(),
+  onTogglePin: vi.fn(),
 };
 
 describe("SoftphoneShellHeader", () => {

@@ -16,10 +16,12 @@ const storyWindowControls: ShellWindowControlsViewModel = {
   isShuttingDown: false,
   maximizeEnabled: true,
   isMaximized: false,
+  isPinned: false,
   onMinimize: () => undefined,
   onClose: () => undefined,
   onRestart: () => undefined,
   onToggleMaximize: () => undefined,
+  onTogglePin: () => undefined,
 };
 
 const meta = {
@@ -69,6 +71,10 @@ const autoAnswerDefaults = {
   onAutoAnswerTimeoutChange: () => undefined,
   autoAnswerDuringActiveSessionEnabled: true,
   onAutoAnswerDuringActiveSessionChange: () => undefined,
+  incomingRingtoneId: "classic" as const,
+  onIncomingRingtoneIdChange: () => undefined,
+  onPreviewIncomingRingtone: () => undefined,
+  onStopIncomingRingtonePreview: () => undefined,
 } as const;
 
 const appUpdateDefaults = {

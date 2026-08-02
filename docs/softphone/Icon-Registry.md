@@ -19,6 +19,8 @@
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
 | `shell.window.maximize` | Fill work area in settings (layout-owned, not OS maximize) | `Square` | — | `ShellWindowControls` | active |
 | `shell.window.restore` | Restore settings size from work-area fill | `SquareStack` | — | `ShellWindowControls` | active |
+| `shell.window.pin` | Pin softphone always-on-top | `Pin` | — | `ShellWindowControls` | active |
+| `shell.window.unpin` | Unpin softphone always-on-top | `PinOff` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
 | `shell.contacts` | Open contacts list | `Users` | — | `Dialpad` | active |
@@ -29,6 +31,8 @@
 | `account.profile.delete` | Delete saved SIP profile | `Trash2` | — | `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
 | `settings.sessions` | Settings sessions section | `Layers` | `LayersIcon` | `SettingsSidebar` | active |
+| `settings.sessions.ringtone.preview` | Start incoming ringtone preview | `Volume2` | `VolumeIcon` | `SettingsRingtoneSection` | active |
+| `settings.sessions.ringtone.previewStop` | Stop incoming ringtone preview | `VolumeX` | — | `SettingsRingtoneSection` | active |
 | `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
@@ -36,10 +40,14 @@
 | `settings.integrations` | Settings Integrations cluster (collapsed rail icon; expanded section label) | `Plug` | — | `SettingsSidebar` | active |
 | `settings.integrations.ocp` | Settings OCP Module row in Integrations cluster | `Server` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-services` | Settings External Services row in Integrations cluster | `Webhook` | — | `SettingsSidebar` | active |
+| `settings.integrations.external-applications` | Settings External Applications row in Integrations cluster | `AppWindow` | — | `SettingsSidebar` | active |
+| `settings.integrations.external-applications.open` | Open now for External Applications URL bar | `ExternalLink` | — | `ExternalApplicationsEditor` | active |
+| `settings.integrations.external-applications.history` | External Applications open history sidebar entry | `Activity` | — | `ExternalApplicationsSidebar` | active |
 | `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
-| `settings.integrations.external-services.add` | New collection or quick-add request in External Services sidebar | `Plus` | — | `ExternalServicesSidebar` | active |
+| `settings.integrations.external-services.add` | New collection / quick-add in External Services; Add in External Applications sidebar | `Plus` | — | `ExternalServicesSidebar`, `ExternalApplicationsSidebar` | active |
 | `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |
 | `settings.integrations.external-services.panelCollapse` | Collapse Response/History pane | `Minimize2` | — | `ExternalServicesResponsePane` | active |
+| `settings.integrations.external-services.variableHelp` | Explain a template variable in Variables catalog | `CircleHelp` | `CircleHelpIcon` | `ExternalServicesSystemVariablesHelp` | active |
 | `settings.integrations.sdk` | Settings OmniCall Kit child under Integrations | `Blocks` | — | `SettingsSidebar` | active |
 | `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |

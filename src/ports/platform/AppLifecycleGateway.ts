@@ -17,6 +17,16 @@ export interface AppLifecycleGateway {
   toggleMaximizeWindow(): Promise<ShellWindowControlResponse>;
   getWindowMaximized(): Promise<Readonly<{ ok: true; maximized: boolean } | { ok: false }>>;
   onWindowMaximizedChanged(handler: (maximized: boolean) => void): () => void;
+  setWindowAlwaysOnTop(
+    alwaysOnTop: boolean,
+  ): Promise<Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false }>>;
+  toggleWindowAlwaysOnTop(): Promise<
+    Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false }>
+  >;
+  getWindowAlwaysOnTop(): Promise<
+    Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false }>
+  >;
+  onWindowAlwaysOnTopChanged(handler: (alwaysOnTop: boolean) => void): () => void;
   onBeforeClose(handler: (payload: AppShutdownPayload) => void): () => void;
   acknowledgeShutdown(
     correlationId: AppShutdownPayload["correlationId"],

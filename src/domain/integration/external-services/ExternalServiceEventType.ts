@@ -15,6 +15,7 @@ export const EXTERNAL_SERVICE_AUTOMATIC_EVENT_TYPES = [
   "campaign_accepted",
   "campaign_rejected",
   "acd_context_appeared",
+  "post_call_processing",
 ] as const;
 
 export type ExternalServiceAutomaticEventType =

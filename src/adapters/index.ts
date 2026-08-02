@@ -40,6 +40,8 @@ export { MockExternalUrlGateway } from "./mock/MockExternalUrlGateway.js";
 export { PreloadPlatformInfoGateway } from "./platform/PreloadPlatformInfoGateway.js";
 export { PreloadExternalUrlGateway } from "./platform/PreloadExternalUrlGateway.js";
 export { PreloadOutboundHttpAdapter } from "./platform/PreloadOutboundHttpAdapter.js";
+export { PreloadExternalApplicationWindowGateway } from "./platform/PreloadExternalApplicationWindowGateway.js";
+export { MockExternalApplicationWindowGateway } from "./mock/MockExternalApplicationWindowGateway.js";
 export { PreloadContactCsvFileGateway } from "./platform/PreloadContactCsvFileGateway.js";
 export { MockContactCsvFileGateway } from "./mock/MockContactCsvFileGateway.js";
 export { PreloadShellWindowGateway } from "./platform/PreloadShellWindowGateway.js";

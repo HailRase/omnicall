@@ -54,6 +54,9 @@ type UseSettingsActionsResult = Readonly<{
   onAutoAnswerEnabledToggle: (enabled: boolean) => void;
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   onAutoAnswerDuringActiveSessionToggle: (enabled: boolean) => void;
+  onIncomingRingtoneIdChange: (ringtoneId: UserSettings["incomingRingtoneId"]) => void;
+  onPreviewIncomingRingtone: (ringtoneId: UserSettings["incomingRingtoneId"]) => void;
+  onStopIncomingRingtonePreview: () => void;
   onSipAutoReregisterToggle: (enabled: boolean) => void;
   onSipReregisterIntervalChange: (intervalSec: number) => void;
   onSipAutoReconnectToggle: (enabled: boolean) => void;
@@ -89,6 +92,7 @@ type UseSettingsActionsResult = Readonly<{
   onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
   onConferenceNumberSubstringChange: (value: string | null) => void;
   onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
+  onWindowAlwaysOnTopChange: (alwaysOnTop: boolean) => void;
   applyUserSettingsSnapshot: (settings: UserSettings) => void;
 }>;
 
@@ -102,6 +106,10 @@ function syncNativeTheme(theme: AppTheme): void {
   void window.softphone.setNativeTheme({ theme });
 }
 
+function syncWindowAlwaysOnTop(alwaysOnTop: boolean): void {
+  void window.softphone?.setWindowAlwaysOnTop({ alwaysOnTop });
+}
+
 function applyLoadedUserSettings(
   settings: UserSettings,
   applyMultiCallSettings: (settings: MultiCallSettings) => void,
@@ -109,6 +117,7 @@ function applyLoadedUserSettings(
   setRendererLanguage(settings.language);
   applyAppTheme(settings.theme);
   syncNativeTheme(settings.theme);
+  syncWindowAlwaysOnTop(settings.windowAlwaysOnTop);
   applyMultiCallSettings({
     multiSessionsEnabled: settings.multiSessionsEnabled,
     autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure,
@@ -316,6 +325,33 @@ export function useSettingsActions(
     },
     [persistUserSettings, userSettings],
   );
+
+  const onIncomingRingtoneIdChange = useCallback(
+    (ringtoneId: UserSettings["incomingRingtoneId"]): void => {
+      persistUserSettings({
+        ...userSettings,
+        incomingRingtoneId: ringtoneId,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onPreviewIncomingRingtone = useCallback(
+    (ringtoneId: UserSettings["incomingRingtoneId"]): void => {
+      if (facade === null) {
+        return;
+      }
+      void facade.previewIncomingRingtone(ringtoneId);
+    },
+    [facade],
+  );
+
+  const onStopIncomingRingtonePreview = useCallback((): void => {
+    if (facade === null) {
+      return;
+    }
+    void facade.stopIncomingRingtonePreview();
+  }, [facade]);
 
   const onSipAutoReregisterToggle = useCallback(
     (enabled: boolean): void => {
@@ -612,6 +648,19 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onWindowAlwaysOnTopChange = useCallback(
+    (alwaysOnTop: boolean): void => {
+      if (userSettings.windowAlwaysOnTop === alwaysOnTop) {
+        return;
+      }
+      persistUserSettings({
+        ...userSettings,
+        windowAlwaysOnTop: alwaysOnTop,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   const applyUserSettingsSnapshot = useCallback(
     (settings: UserSettings): void => {
       setUserSettings(settings);
@@ -638,6 +687,9 @@ export function useSettingsActions(
     onAutoAnswerEnabledToggle,
     onAutoAnswerTimeoutChange,
     onAutoAnswerDuringActiveSessionToggle,
+    onIncomingRingtoneIdChange,
+    onPreviewIncomingRingtone,
+    onStopIncomingRingtonePreview,
     onSipAutoReregisterToggle,
     onSipReregisterIntervalChange,
     onSipAutoReconnectToggle,
@@ -673,6 +725,7 @@ export function useSettingsActions(
     onAutoFullscreenOnConferenceChange,
     onConferenceNumberSubstringChange,
     onEnableLocalVideoAfterConnectChange,
+    onWindowAlwaysOnTopChange,
     applyUserSettingsSnapshot,
   };
 }

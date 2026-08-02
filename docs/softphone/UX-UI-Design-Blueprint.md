@@ -67,13 +67,15 @@ Required window behavior:
 
 - predictable startup size
 - minimum usable size
-- optional always-on-top setting
+- always-on-top pin control in shell window controls (centered; Pin / PinOff;
+  persists `UserSettings.windowAlwaysOnTop`; survives ADR-0013 raise pulse and
+  SDK `window:hide` → `window:show`)
 - tray presence
 - minimize to tray
 - restore from tray
 - close behavior with active-call warning
 - incoming / outgoing call window focus policy (raise above other apps via shared
-  main `bringBrowserWindowToFront`; ADR-0013)
+  main `bringBrowserWindowToFront`; ADR-0013; restores prior pin)
 - SDK Origin-trust / pairing / activate-consent operator attention raise (same helper)
 - reconnect overlay visible after restore
 

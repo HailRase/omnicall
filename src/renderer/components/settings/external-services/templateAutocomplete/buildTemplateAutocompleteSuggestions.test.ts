@@ -9,13 +9,23 @@ describe("buildTemplateAutocompleteSuggestions", () => {
     const items = buildTemplateAutocompleteSuggestions(["base_url", " call_id ", "api_token", ""]);
     expect(items.some((item) => item.name === "call_id" && item.kind === "system")).toBe(true);
     expect(items.filter((item) => item.name === "call_id")).toHaveLength(1);
+    expect(items.find((item) => item.name === "call_id")).toMatchObject({
+      kind: "system",
+      availability: "call",
+    });
+    expect(items.find((item) => item.name === "queue_name")).toMatchObject({
+      kind: "system",
+      availability: "campaign_acd",
+    });
     expect(items.find((item) => item.name === "base_url")).toEqual({
       name: "base_url",
       kind: "collection",
+      availability: "authored",
     });
     expect(items.find((item) => item.name === "api_token")).toEqual({
       name: "api_token",
       kind: "collection",
+      availability: "authored",
     });
   });
 });

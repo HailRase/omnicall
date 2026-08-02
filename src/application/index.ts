@@ -293,6 +293,12 @@ export {
   type SdkOriginTrustEntry,
   type SdkOriginTrustState,
   type UserSettings,
+  type IncomingRingtoneId,
+  DEFAULT_INCOMING_RINGTONE_ID,
+  INCOMING_RINGTONE_IDS,
+  listIncomingRingtoneIds,
+  parseIncomingRingtoneId,
+  resolveIncomingRingtoneId,
 } from "@domain/index.js";
 export {
   persistSdkIntegrationSettings,
@@ -562,6 +568,12 @@ export {
   type ExternalServicesJournalPanelVm,
 } from "./projections/integration/deriveExternalServicesJournalPanel.js";
 export {
+  deriveExternalApplicationsJournalPanel,
+  toExternalApplicationsJournalEntryVm,
+  type ExternalApplicationsJournalEntryVm,
+  type ExternalApplicationsJournalPanelVm,
+} from "./projections/integration/deriveExternalApplicationsJournalPanel.js";
+export {
   createExternalServiceCollection,
   renameExternalServiceCollection,
   toggleExternalServiceCollection,
@@ -597,12 +609,16 @@ export {
   inspectExternalServiceCollectionVariableRows,
   isExternalServiceSystemVariableName,
   listExternalServiceVariableCatalogByGroup,
+  listExternalServiceCatalogEntriesForEvent,
   normalizeExternalServiceCollectionVariables,
+  resolveExternalServiceEventVariableGroups,
+  resolveExternalServiceSystemVariableAvailability,
 } from "@domain/index.js";
 export type {
   ExternalServiceCollectionVariableRowInspection,
   ExternalServiceCollectionVariableRowIssue,
   ExternalServiceCollectionVariablesNormalizeError,
+  ExternalServiceVariableAvailabilityId,
   ExternalServiceVariableCatalogEntry,
   ExternalServiceVariableCatalogGroupId,
   NormalizeExternalServiceCollectionVariablesResult,

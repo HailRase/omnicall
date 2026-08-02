@@ -1,4 +1,4 @@
-import type { CallId } from "@domain/index.js";
+import type { CallId, IncomingRingtoneId } from "@domain/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
@@ -10,6 +10,20 @@ import type { Result } from "@shared/result/index.js";
  */
 export type AttachRemoteAudioCommand = Readonly<{
   callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
+export type ConfigureIncomingRingtoneCommand = Readonly<{
+  ringtoneId: IncomingRingtoneId;
+  correlationId: CorrelationId;
+}>;
+
+export type PreviewIncomingRingtoneCommand = Readonly<{
+  ringtoneId: IncomingRingtoneId;
+  correlationId: CorrelationId;
+}>;
+
+export type StopIncomingRingtonePreviewCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
@@ -79,6 +93,15 @@ export interface MediaGateway {
   ): Promise<Result<RemoteAudioAttachOutcome, PlatformError>>;
   bindCallVideoSurfaces(
     command: BindCallVideoSurfacesCommand,
+  ): Promise<Result<void, PlatformError>>;
+  configureIncomingRingtone(
+    command: ConfigureIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>>;
+  previewIncomingRingtone(
+    command: PreviewIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>>;
+  stopIncomingRingtonePreview(
+    command: StopIncomingRingtonePreviewCommand,
   ): Promise<Result<void, PlatformError>>;
   playRingbackTone(
     command: PlayRingbackToneCommand,

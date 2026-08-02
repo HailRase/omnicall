@@ -106,6 +106,7 @@ import type { DomainEvent } from "@domain/shared/DomainEvent.js";
 import type { ExternalServicesComposition } from "@application/services/integration/external-services/ExternalServicesComposition.js";
 import type { ExternalServicesProductSnapshot } from "@application/services/integration/external-services/ExternalServicesProductSnapshot.js";
 import type { ExternalServiceExecutionResult } from "@application/services/integration/external-services/ExternalServiceExecutionResult.js";
+import type { ExternalApplicationsComposition } from "@application/services/integration/external-applications/ExternalApplicationsComposition.js";
 import type { RunExternalServiceRequestNowInput } from "@application/use-cases/integration/RunExternalServiceRequestNowUseCase.js";
 import type {
   QueryExternalServicesInput,
@@ -115,8 +116,15 @@ import type {
   SaveExternalServicesSettingsInput,
   SaveExternalServicesSettingsOutcome,
 } from "@application/use-cases/integration/SaveExternalServicesSettingsUseCase.js";
+import type {
+  SaveExternalApplicationsSettingsInput,
+  SaveExternalApplicationsSettingsOutcome,
+} from "@application/use-cases/integration/SaveExternalApplicationsSettingsUseCase.js";
+import type { OpenExternalApplicationNowInput } from "@application/use-cases/integration/OpenExternalApplicationNowUseCase.js";
 import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import type {
+  ExternalApplicationsSettings,
+  ExternalApplicationId,
   ExternalServicesSettings,
   ExternalServiceCollection,
   ExternalServiceCollectionId,
@@ -124,6 +132,8 @@ import type {
   SettingsAccountKey,
   UserSettings,
 } from "@domain/index.js";
+import type { ExternalApplicationsJournalEntryVm } from "../projections/integration/deriveExternalApplicationsJournalPanel.js";
+import { toExternalApplicationsJournalEntryVm } from "../projections/integration/deriveExternalApplicationsJournalPanel.js";
 import {
   buildOcpConnectLoginOptions,
   createAccountSessionActivatedEvent,
@@ -324,6 +334,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   ocpReasonsCache?: OcpReasonsCachePort;
   ocpNotificationPresenter?: OcpNotificationPresenter;
   externalServicesComposition?: ExternalServicesComposition;
+  externalApplicationsComposition?: ExternalApplicationsComposition;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -881,6 +892,7 @@ export class AccountBootstrapFacade {
     if (event.type === "AccountSessionActivated") {
       this.accountSessionActive = true;
       void this.activateExternalServicesRuntime(event.profileKey);
+      void this.activateExternalApplicationsRuntime(event.profileKey);
       return;
     }
 
@@ -912,6 +924,7 @@ export class AccountBootstrapFacade {
       this.sipTransportConnected = false;
       this.accountSessionActive = false;
       this.deps.externalServicesComposition?.invalidateLifecycle();
+      this.deps.externalApplicationsComposition?.invalidateLifecycle();
       return;
     }
 
@@ -940,6 +953,31 @@ export class AccountBootstrapFacade {
         featureId: "F-031",
         boundedContext: "Integration",
         operation: "activate_external_services_profile",
+        result: "failed",
+        code: error instanceof Error ? error.name : "unknown",
+      });
+    }
+  }
+
+  private async activateExternalApplicationsRuntime(
+    profileKeyRaw: unknown,
+  ): Promise<void> {
+    const composition = this.deps.externalApplicationsComposition;
+    if (composition === undefined) {
+      return;
+    }
+    try {
+      const accountKey =
+        typeof profileKeyRaw === "string" && profileKeyRaw.length > 0
+          ? createSettingsAccountKey(profileKeyRaw)
+          : await this.resolveSettingsAccountKey();
+      const settings = await this.loadUserSettingsForAccountKey(accountKey);
+      composition.activateProfile(accountKey, settings.externalApplications);
+    } catch (error: unknown) {
+      this.deps.logger.warn("external_applications_profile_activation_failed", {
+        featureId: "F-032",
+        boundedContext: "Integration",
+        operation: "activate_external_applications_profile",
         result: "failed",
         code: error instanceof Error ? error.name : "unknown",
       });
@@ -1014,6 +1052,7 @@ export class AccountBootstrapFacade {
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
     await this.purgeLegacyOcpAuthToken();
     await this.applyHeadsetUserSettings(userSettings);
+    await this.applyIncomingRingtoneSettings(userSettings);
 
     const phoneStatus = await this.deps.settingsRepository.getPhoneStatus();
     const existingAccount = await this.deps.settingsRepository.getSipAccount();
@@ -1498,8 +1537,12 @@ export class AccountBootstrapFacade {
     }
 
     await this.applyHeadsetUserSettings(importResult.value.settings);
+    await this.applyIncomingRingtoneSettings(importResult.value.settings);
     this.deps.externalServicesComposition?.replaceActiveSettings(
       importResult.value.settings.externalServices,
+    );
+    this.deps.externalApplicationsComposition?.replaceActiveSettings(
+      importResult.value.settings.externalApplications,
     );
 
     return ok({
@@ -2553,6 +2596,7 @@ export class AccountBootstrapFacade {
     this.sipRecoveryOrchestration.applyRecoverySettings(settings);
     await this.callEngine.refreshAutoAnswerSchedules();
     await this.applyHeadsetUserSettings(settings);
+    await this.applyIncomingRingtoneSettings(settings);
   }
 
   private async saveUserSettingsInternal(
@@ -2572,6 +2616,10 @@ export class AccountBootstrapFacade {
       this.deps.externalServicesComposition?.replaceActiveSettings(
         validated.value.externalServices,
       );
+      this.deps.externalApplicationsComposition?.replaceActiveSettings(
+        validated.value.externalApplications,
+      );
+      await this.applyIncomingRingtoneSettings(validated.value);
     }
     return validated.value;
   }
@@ -2754,6 +2802,37 @@ export class AccountBootstrapFacade {
 
   async applyHeadsetUserSettings(settings: UserSettings): Promise<void> {
     await this.headsetIntegration.applySettings(settings);
+  }
+
+  async applyIncomingRingtoneSettings(settings: UserSettings): Promise<void> {
+    const result = await this.deps.mediaGateway.configureIncomingRingtone({
+      ringtoneId: settings.incomingRingtoneId,
+      correlationId: createCorrelationId(),
+    });
+    if (!result.ok) {
+      this.deps.logger.warn("incoming_ringtone_configure_failed", {
+        featureId: "F-033",
+        boundedContext: "Media",
+        operation: "configure_incoming_ringtone",
+        ringtoneId: settings.incomingRingtoneId,
+        result: result.error.code,
+      });
+    }
+  }
+
+  async previewIncomingRingtone(
+    ringtoneId: UserSettings["incomingRingtoneId"],
+  ): Promise<Result<void, PlatformError>> {
+    return this.deps.mediaGateway.previewIncomingRingtone({
+      ringtoneId,
+      correlationId: createCorrelationId(),
+    });
+  }
+
+  async stopIncomingRingtonePreview(): Promise<Result<void, PlatformError>> {
+    return this.deps.mediaGateway.stopIncomingRingtonePreview({
+      correlationId: createCorrelationId(),
+    });
   }
 
   async persistHeadsetPreferredDeviceId(deviceId: string): Promise<void> {
@@ -4430,6 +4509,7 @@ export class AccountBootstrapFacade {
 
   dispose(): void {
     this.deps.externalServicesComposition?.dispose();
+    this.deps.externalApplicationsComposition?.dispose();
     this.sipRecoveryOrchestration.dispose();
     this.ocpIntegration.dispose();
   }
@@ -4442,6 +4522,13 @@ export class AccountBootstrapFacade {
     snapshot: ExternalServicesProductSnapshot,
   ): void {
     this.deps.externalServicesComposition?.handleCommittedEvent(event, snapshot);
+  }
+
+  handleExternalApplicationsCommittedEvent(
+    event: DomainEvent,
+    snapshot: ExternalServicesProductSnapshot,
+  ): void {
+    this.deps.externalApplicationsComposition?.handleCommittedEvent(event, snapshot);
   }
 
   getExternalServicesWaitingJobs() {
@@ -4531,6 +4618,99 @@ export class AccountBootstrapFacade {
 
   getExternalServicesCompositionForTests(): ExternalServicesComposition | null {
     return this.deps.externalServicesComposition ?? null;
+  }
+
+  async saveExternalApplicationsSettings(
+    externalApplications: ExternalApplicationsSettings,
+    expectedSettingsRevision?: number,
+  ): Promise<Result<SaveExternalApplicationsSettingsOutcome, PlatformError>> {
+    const composition = this.deps.externalApplicationsComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Applications runtime is unavailable.",
+          { reason: "external_applications_unavailable" },
+        ),
+      );
+    }
+    try {
+      const profileKey = await this.resolveSettingsAccountKey();
+      const input: SaveExternalApplicationsSettingsInput = {
+        profileKey,
+        externalApplications,
+        ...(expectedSettingsRevision !== undefined
+          ? { expectedSettingsRevision }
+          : {}),
+      };
+      return await composition.saveExternalApplicationsSettings(input);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async openExternalApplicationNow(
+    applicationId: ExternalApplicationId,
+    manualFacts: Readonly<{
+      userLogin?: string;
+      focusedCallContext?: OpenExternalApplicationNowInput["focusedCallContext"];
+    }> = {},
+  ): Promise<Result<{ jobId: string }, PlatformError>> {
+    const composition = this.deps.externalApplicationsComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Applications runtime is unavailable.",
+          { reason: "external_applications_unavailable" },
+        ),
+      );
+    }
+    try {
+      const profileKey = await this.resolveSettingsAccountKey();
+      const input: OpenExternalApplicationNowInput = {
+        profileKey,
+        applicationId,
+        ...(manualFacts.userLogin !== undefined
+          ? { userLogin: manualFacts.userLogin }
+          : {}),
+        ...(manualFacts.focusedCallContext !== undefined
+          ? { focusedCallContext: manualFacts.focusedCallContext }
+          : {}),
+      };
+      return composition.openExternalApplicationNow(input);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async queryExternalApplicationsJournal(
+    journalLimit?: number,
+  ): Promise<Result<ReadonlyArray<ExternalApplicationsJournalEntryVm>, PlatformError>> {
+    const composition = this.deps.externalApplicationsComposition;
+    if (composition === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "External Applications runtime is unavailable.",
+          { reason: "external_applications_unavailable" },
+        ),
+      );
+    }
+    try {
+      const profileKey = await this.resolveSettingsAccountKey();
+      const entries = await composition.listJournal(
+        profileKey,
+        journalLimit ?? 100,
+      );
+      return ok(entries.map(toExternalApplicationsJournalEntryVm));
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  getExternalApplicationsCompositionForTests(): ExternalApplicationsComposition | null {
+    return this.deps.externalApplicationsComposition ?? null;
   }
 
   notifyPeerConnectionAvailable(

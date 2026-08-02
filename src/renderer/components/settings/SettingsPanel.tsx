@@ -4,6 +4,7 @@ import type {
   AudioCodecId,
   CodecPreferenceMutationMessageKey,
   CodecPreferences,
+  IncomingRingtoneId,
   NotificationPlacement,
   NotificationStacking,
   SessionViewMode,
@@ -45,6 +46,7 @@ import styles from "./SettingsPanel.module.css";
 import type { OcpModuleSettingsCardProps } from "./panels/OcpModuleSettingsCard.js";
 import type { SdkModuleSettingsCardProps } from "./panels/SdkModuleSettingsCard.js";
 import type { ExternalServicesPanelProps } from "./external-services/ExternalServicesPanel.js";
+import type { ExternalApplicationsPanelProps } from "./external-applications/ExternalApplicationsPanel.js";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
@@ -74,6 +76,10 @@ export type SettingsPanelProps = Readonly<{
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   autoAnswerDuringActiveSessionEnabled: boolean;
   onAutoAnswerDuringActiveSessionChange: (enabled: boolean) => void;
+  incomingRingtoneId: IncomingRingtoneId;
+  onIncomingRingtoneIdChange: (ringtoneId: IncomingRingtoneId) => void;
+  onPreviewIncomingRingtone: (ringtoneId: IncomingRingtoneId) => void;
+  onStopIncomingRingtonePreview: () => void;
   currentVersion: string;
   latestVersion: string | undefined;
   updateStatusMessage: string;
@@ -148,6 +154,7 @@ export type SettingsPanelProps = Readonly<{
     ocp: OcpModuleSettingsCardProps;
     sdk: SdkModuleSettingsCardProps;
     externalServices: ExternalServicesPanelProps;
+    externalApplications: ExternalApplicationsPanelProps;
   }>;
   account: Readonly<{
     form: SipAccountInput;
@@ -234,6 +241,10 @@ export function SettingsPanel({
   onAutoAnswerTimeoutChange,
   autoAnswerDuringActiveSessionEnabled,
   onAutoAnswerDuringActiveSessionChange,
+  incomingRingtoneId,
+  onIncomingRingtoneIdChange,
+  onPreviewIncomingRingtone,
+  onStopIncomingRingtonePreview,
   currentVersion,
   latestVersion,
   updateStatusMessage,
@@ -399,6 +410,10 @@ export function SettingsPanel({
           onAutoAnswerTimeoutChange={onAutoAnswerTimeoutChange}
           autoAnswerDuringActiveSessionEnabled={autoAnswerDuringActiveSessionEnabled}
           onAutoAnswerDuringActiveSessionChange={onAutoAnswerDuringActiveSessionChange}
+          incomingRingtoneId={incomingRingtoneId}
+          onIncomingRingtoneIdChange={onIncomingRingtoneIdChange}
+          onPreviewIncomingRingtone={onPreviewIncomingRingtone}
+          onStopIncomingRingtonePreview={onStopIncomingRingtonePreview}
         />
       );
       break;
@@ -495,6 +510,7 @@ export function SettingsPanel({
       break;
     case "integrations":
     case "integrations-external-services":
+    case "integrations-external-applications":
     case "integrations-sdk":
       sectionContent = (
         <SettingsIntegrationsPanel
@@ -502,6 +518,7 @@ export function SettingsPanel({
           ocp={integrations.ocp}
           sdk={integrations.sdk}
           externalServices={integrations.externalServices}
+          externalApplications={integrations.externalApplications}
         />
       );
       break;

@@ -18,9 +18,10 @@
 | `campaign_accepted` | `OperatorCampaignCleared` with `reasonCode: "accepted"` | `src/domain/integration/ocp/events/OperatorCampaignCleared.ts` | Join cached offer fields by `campaignId`; emit, then clear cache. |
 | `campaign_rejected` | `OperatorCampaignCleared` with `reasonCode: "rejected"` | same | Join cached offer fields by `campaignId`; emit, then clear cache. |
 | `acd_context_appeared` | `CallOcpContextResolved` | `src/domain/integration/ocp/events/CallOcpContextResolved.ts` | Emit once per call/context fingerprint when queue/context becomes available. |
-| `manual_run` | `RunExternalServiceRequestNowUseCase` | new Application use case | Build from active profile plus current focused call when one exists. |
+| `post_call_processing` | `OperatorStatusChanged` with `newStatus: POST_CALL_PROCESSING` | `src/domain/integration/ocp/events/OperatorStatusChanged.ts` | Operator-level (no call-focus gate); fires only on transition into post-call processing from a live OCP session. Call variables stay unset (same class as campaign triggers). |
+| `manual_run` | `RunExternalServiceRequestNowUseCase` | new Application use case | Build from active profile identity (`user_login`: SIP username, else OCP `authenticatedLogin`) plus current focused call when one exists (parties enriched from the call-context tracker when available). |
 
-`CallFailed`, hold/resume, registration, OCP session/status, SDK, and transfer facts do not map to v1 trigger codes.
+`CallFailed`, hold/resume, registration, OCP login/logout/session, other OCP status transitions, SDK, and transfer facts do not map to automatic trigger codes.
 
 ## Call context tracker
 
@@ -46,6 +47,7 @@ WU-11 must add an Application-defined `CallFocusProjection` reduced into the ren
 - Each normalized call trigger records `focusedAtEvent: boolean`; later async queue work never re-evaluates focus.
 - ACD context requires its `callId` to equal focused call ID.
 - Campaign events have no call ID in existing typed events and are Operator events, not call lifecycle events; they fire without a call-focus gate. If F-028 later adds a typed call association, adopting it requires a separate compatibility decision.
+- `post_call_processing` is an Operator status edge (not a call lifecycle event); it fires without a call-focus gate. Call party variables are not attached unless a future design enriches `OperatorStatusChanged` or retains last-call context.
 
 Focus transition policy:
 
@@ -73,7 +75,7 @@ Always available:
 | --- | --- |
 | `timestamp` | event occurrence time normalized to ISO-8601 UTC |
 | `event_type` | stable external code |
-| `user_login` | active profile/account identity, or missing |
+| `user_login` | active profile identity: SIP `sipUsername` when present, otherwise OCP `authenticatedLogin`; missing → literal `undefined` |
 
 Call variables:
 
@@ -109,13 +111,46 @@ Do not expose `mainAcallId`, `acallId`, raw OCP payloads, OCP auth material, or 
 
 ### Discoverability (product UI)
 
-- Domain SSoT: `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`).
-- Request editor Variables tab renders that catalog with localized descriptions and Insert into URL/Body.
-- Collection workspace always shows a compact custom-variables preview (hint, example, `{{token}}` column).
+- Domain SSoT (names/groups): `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`, `resolveExternalServiceSystemVariableAvailability`).
+- Domain SSoT (event → groups): `src/domain/integration/external-services/template/resolveExternalServiceEventVariableGroups.ts` — must match `mapDomainEventToExternalServiceTrigger` + Variables-tab when-hints (no call facts on `post_call_processing` / campaign-only events).
+- Request editor Variables tab renders that catalog with localized labels, clickable `?` help popups (operator-facing `variables.help.*`), **group when-available subtitles** (`always` / `call` / `campaign` / `acd`), compact context hint (`Outside its context → undefined`), and Insert into URL/Body.
+- Triggers tab / External Applications Events: each event row has `?` (`ExternalServicesTriggerVariableHelp`) listing the same group titles, when-hints, and `{{token}}`s from `resolveExternalServiceEventVariableGroups` + catalog (authored vars always noted).
+- `{{` autocomplete shows `System|Collection · {when}` (authored collection keys → Always; dual-listed `queue_name` → Campaign / ACD).
+- Collection workspace always shows a compact custom-variables preview (hint, example, `{{token}}` column); collection vars are always available.
 - Collection variables dialog: example syntax, live inspection via `inspectExternalServiceCollectionVariableRows`, save blocked on duplicate/empty-key-with-value; soft warning for system-name collisions.
 - Normalize/save path: `normalizeExternalServiceCollectionVariables` (Domain) used by `replaceExternalServiceCollectionVariables`.
-- URL bar hint + collection-variables dialog explain `{{name}}` syntax and system-name precedence.
-- Keep UI catalog names in sync with `buildExternalServiceVariables` and campaign/ACD mappers; extend Domain catalog first when adding variables.
+- Keep UI catalog names in sync with `buildExternalServiceVariables` and campaign/ACD mappers; extend Domain catalog first when adding variables; update event→group matrix in the same change.
+
+### Availability labels (UI contract)
+
+| Catalog group | When label (compact) | Filled on |
+| --- | --- | --- |
+| `always` | Always | Every trigger / manual run |
+| `call` | Call | Focused call lifecycle (+ ACD merge into call tracker); **not** `post_call_processing` or campaign-only events |
+| `campaign` | Campaign | `campaign_offered` / `accepted` / `rejected` |
+| `acd` | ACD | `acd_context_appeared` |
+| authored (collection / EA) | Always | Every run (user constants) |
+| `queue_name` (dual) | Campaign / ACD | Campaign or ACD additive maps |
+
+### Event → system groups (runtime + Triggers `?` help)
+
+| Event code | Groups |
+| --- | --- |
+| `incoming_ringing`, `outgoing_connecting`, `call_answered`, `call_ended`, `call_rejected`, `call_missed` | `always` + `call` |
+| `campaign_offered`, `campaign_accepted`, `campaign_rejected` | `always` + `campaign` |
+| `acd_context_appeared` | `always` + `call` + `acd` |
+| `post_call_processing` | `always` only |
+| `manual_run` | `always` + `call` (call facts only when focused call exists) |
+
+Missing / out-of-context tokens still resolve to the literal `undefined` (template algorithm unchanged).
+
+### Manual Run now / Open now
+
+- Same template algorithm as automatic triggers; event code is `manual_run`.
+- Always group resolves: `timestamp` = click time, `event_type` = `manual_run`, `user_login` from active profile identity (SIP username preferred, else OCP authenticated login).
+- Call group resolves only when a focused call id is supplied (parties filled from the automation tracker when that call was previously tracked).
+- Campaign/ACD groups stay `undefined` on manual run (no synthetic campaign/ACD injection in v1).
+- Operators should not hardcode always-group values for Send/Open now; out-of-context call/campaign/acd tokens may still show `undefined` by design.
 
 ## Collection variables (authored)
 

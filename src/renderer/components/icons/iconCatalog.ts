@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { translateCurrent, type TranslationKey } from "../../i18n/index.js";
 import {
   Activity,
+  AppWindow,
   AudioLines,
   Bell,
   BellOff,
@@ -14,11 +15,13 @@ import {
   CircleAlert,
   CircleCheck,
   CircleDashed,
+  CircleHelp,
   CircleX,
   Coffee,
   Delete,
   Download,
   Eraser,
+  ExternalLink,
   Eye,
   EyeOff,
   Gauge,
@@ -40,6 +43,8 @@ import {
   PhoneOff,
   PhoneOutgoing,
   Pencil,
+  Pin,
+  PinOff,
   Play,
   Plus,
   RefreshCcw,
@@ -56,6 +61,8 @@ import {
   Users,
   Video,
   VideoOff,
+  Volume2,
+  VolumeX,
   MonitorUp,
   Maximize2,
   Minimize2,
@@ -73,6 +80,7 @@ import {
   ChevronRightIcon,
   CircleCheckIcon,
   CircleDashedIcon,
+  CircleHelpIcon,
   CoffeeIcon,
   DeleteIcon,
   HourglassIcon,
@@ -93,6 +101,7 @@ import {
   SettingsIcon,
   SlidersHorizontalIcon,
   UserIcon,
+  VolumeIcon,
   XIcon,
 } from "lucide-animated";
 
@@ -107,6 +116,8 @@ export type IconSemanticId =
   | "shell.window.minimize"
   | "shell.window.maximize"
   | "shell.window.restore"
+  | "shell.window.pin"
+  | "shell.window.unpin"
   | "shell.window.close"
   | "shell.nav.back"
   | "shell.contacts"
@@ -117,6 +128,8 @@ export type IconSemanticId =
   | "account.profile.delete"
   | "settings.general"
   | "settings.sessions"
+  | "settings.sessions.ringtone.preview"
+  | "settings.sessions.ringtone.previewStop"
   | "settings.system-state"
   | "settings.codecs"
   | "settings.video"
@@ -124,10 +137,14 @@ export type IconSemanticId =
   | "settings.integrations"
   | "settings.integrations.ocp"
   | "settings.integrations.external-services"
+  | "settings.integrations.external-applications"
+  | "settings.integrations.external-applications.open"
+  | "settings.integrations.external-applications.history"
   | "settings.integrations.external-services.send"
   | "settings.integrations.external-services.add"
   | "settings.integrations.external-services.panelExpand"
   | "settings.integrations.external-services.panelCollapse"
+  | "settings.integrations.external-services.variableHelp"
   | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
@@ -231,6 +248,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 16,
     usage: ["ShellWindowControls: control-window-maximize (restore)"],
   },
+  "shell.window.pin": {
+    static: Pin,
+    defaultLabelKey: "icons.shell.window.pin",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-pin"],
+  },
+  "shell.window.unpin": {
+    static: PinOff,
+    defaultLabelKey: "icons.shell.window.unpin",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-pin (active)"],
+  },
   "shell.window.close": {
     static: X,
     defaultLabelKey: "icons.shell.window.close",
@@ -298,6 +327,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-sessions"],
   },
+  "settings.sessions.ringtone.preview": {
+    static: Volume2,
+    animated: VolumeIcon,
+    defaultLabelKey: "icons.settings.sessions.ringtone.preview",
+    defaultSize: 20,
+    usage: ["SettingsRingtoneSection"],
+  },
+  "settings.sessions.ringtone.previewStop": {
+    static: VolumeX,
+    defaultLabelKey: "icons.settings.sessions.ringtone.previewStop",
+    defaultSize: 20,
+    usage: ["SettingsRingtoneSection"],
+  },
   "settings.system-state": {
     static: Gauge,
     defaultLabelKey: "settings.nav.systemState",
@@ -341,6 +383,24 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-external-services"],
   },
+  "settings.integrations.external-applications": {
+    static: AppWindow,
+    defaultLabelKey: "icons.settings.integrations.externalApplications",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-external-applications"],
+  },
+  "settings.integrations.external-applications.open": {
+    static: ExternalLink,
+    defaultLabelKey: "icons.settings.integrations.externalApplications.open",
+    defaultSize: 14,
+    usage: ["ExternalApplicationsEditor: external-applications-open-now"],
+  },
+  "settings.integrations.external-applications.history": {
+    static: Activity,
+    defaultLabelKey: "icons.settings.integrations.externalApplications.history",
+    defaultSize: 14,
+    usage: ["ExternalApplicationsSidebar: external-applications-history-nav"],
+  },
   "settings.integrations.external-services.send": {
     static: Send,
     defaultLabelKey: "icons.settings.integrations.externalServices.send",
@@ -354,6 +414,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: [
       "ExternalServicesSidebar: external-services-create-collection",
       "ExternalServicesSidebar: quick-add request",
+      "ExternalApplicationsSidebar: external-applications-add",
     ],
   },
   "settings.integrations.external-services.panelExpand": {
@@ -367,6 +428,13 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.externalServices.panelCollapse",
     defaultSize: 14,
     usage: ["ExternalServicesResponsePane: collapse"],
+  },
+  "settings.integrations.external-services.variableHelp": {
+    static: CircleHelp,
+    animated: CircleHelpIcon,
+    defaultLabelKey: "icons.settings.integrations.externalServices.variableHelp",
+    defaultSize: 14,
+    usage: ["ExternalServicesSystemVariablesHelp: variable help"],
   },
   "settings.integrations.sdk": {
     static: Blocks,

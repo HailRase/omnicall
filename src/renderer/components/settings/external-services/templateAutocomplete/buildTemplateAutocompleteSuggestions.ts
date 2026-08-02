@@ -1,24 +1,37 @@
 /**
  * - Purpose: build and filter External Services template autocomplete suggestions.
  * - Inputs: system catalog names, collection variable keys, open-session prefix.
- * - Outputs: ordered unique suggestions with source kind for popup grouping.
+ * - Outputs: ordered unique suggestions with source kind and availability.
  */
 
-import { EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES } from "@application/index.js";
+import {
+  EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES,
+  resolveExternalServiceSystemVariableAvailability,
+  type ExternalServiceVariableAvailabilityId,
+} from "@application/index.js";
 
 export type TemplateAutocompleteSuggestionKind = "system" | "collection";
+
+export type TemplateAutocompleteAvailability =
+  | ExternalServiceVariableAvailabilityId
+  | "authored";
 
 export type TemplateAutocompleteSuggestion = Readonly<{
   name: string;
   kind: TemplateAutocompleteSuggestionKind;
+  availability: TemplateAutocompleteAvailability;
 }>;
 
 export function buildTemplateAutocompleteSuggestions(
   collectionVariableKeys: ReadonlyArray<string>,
 ): ReadonlyArray<TemplateAutocompleteSuggestion> {
-  const system = EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES.map(
-    (name): TemplateAutocompleteSuggestion => ({ name, kind: "system" }),
-  );
+  const system = EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES.flatMap((name) => {
+    const availability = resolveExternalServiceSystemVariableAvailability(name);
+    if (availability === null) {
+      return [];
+    }
+    return [{ name, kind: "system" as const, availability }];
+  });
   const seen = new Set<string>(EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES);
   const collection: TemplateAutocompleteSuggestion[] = [];
   for (const key of collectionVariableKeys) {
@@ -27,7 +40,7 @@ export function buildTemplateAutocompleteSuggestions(
       continue;
     }
     seen.add(trimmed);
-    collection.push({ name: trimmed, kind: "collection" });
+    collection.push({ name: trimmed, kind: "collection", availability: "authored" });
   }
   return [...system, ...collection];
 }

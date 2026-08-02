@@ -10,6 +10,7 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseShellWindowAlwaysOnTopPayload } from "@shared/ipc/ShellWindowAlwaysOnTopContract.js";
 import { parseShellWindowRaisePayload } from "@shared/ipc/ShellWindowRaiseContract.js";
 import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
@@ -30,6 +31,7 @@ import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
 import { registerPreferencesFileIpc } from "./settings/registerPreferencesFileIpc.js";
 import { registerExternalServicesHttpIpc } from "./integration/registerExternalServicesHttpIpc.js";
 import { registerExternalServicesCollectionFileIpc } from "./integration/registerExternalServicesCollectionFileIpc.js";
+import { registerExternalApplicationWindowIpc } from "./externalApplications/registerExternalApplicationWindowIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
@@ -144,6 +146,14 @@ function createMainWindow(): BrowserWindow {
     }
     mainWindow.webContents.send(IPC_CHANNELS.shellWindowMaximizedChanged, {
       maximized,
+    });
+  });
+  shellWindowController.onAlwaysOnTopChange((alwaysOnTop) => {
+    if (mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.webContents.send(IPC_CHANNELS.shellWindowAlwaysOnTopChanged, {
+      alwaysOnTop,
     });
   });
 
@@ -461,6 +471,34 @@ function registerIpcHandlers(): void {
     };
   });
 
+  ipcMain.handle(IPC_CHANNELS.shellWindowSetAlwaysOnTop, (_event, payload: unknown) => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    const parsed = parseShellWindowAlwaysOnTopPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" };
+    }
+    return shellWindowController.setAlwaysOnTop(parsed.alwaysOnTop);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowToggleAlwaysOnTop, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    return shellWindowController.toggleAlwaysOnTop();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowGetAlwaysOnTop, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    return {
+      ok: true as const,
+      alwaysOnTop: shellWindowController.isAlwaysOnTop(),
+    };
+  });
+
   ipcMain.handle(IPC_CHANNELS.shellWindowClose, () => {
     const mainWindow = BrowserWindow.getAllWindows()[0];
     if (mainWindow === undefined || mainWindow.isDestroyed()) {
@@ -607,6 +645,7 @@ void app.whenReady().then(() => {
   registerPreferencesFileIpc();
   registerExternalServicesHttpIpc();
   registerExternalServicesCollectionFileIpc();
+  registerExternalApplicationWindowIpc();
   registerSdkBrokerIpc();
   setupHidPermissions();
   registerDisplayCaptureIpc();

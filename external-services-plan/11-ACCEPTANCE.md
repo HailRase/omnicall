@@ -19,7 +19,7 @@
 
 ## Triggers and variables
 
-- [x] All ten automatic stable codes and `manual_run` are implemented exactly.
+- [x] All eleven automatic stable codes (including `post_call_processing`) and `manual_run` are implemented exactly.
 - [x] Missed and rejected are independent switches/facts.
 - [x] Hold/mute/register/OCP session/SDK/transfer-specific triggers do not exist.
 - [x] Every call trigger, including ringing, is evaluated against focused call at event time.
@@ -30,8 +30,8 @@
 - [x] Missing variable becomes literal `undefined`.
 - [x] Required base, call, campaign, and safe ACD variables map from typed facts.
 - [x] No raw OCP wire IDs/secrets are exposed.
-- [x] Request editor Variables tab lists the Domain system catalog with Insert into URL/Body and explains syntax, missing→`undefined`, and system precedence over collection keys.
-- [x] URL / Params value / Headers value / Body fields open template autocomplete on `{{` (system + collection; case-sensitive prefix filter; Enter/click inserts `{{name}}`; single `{` does not open).
+- [x] Request editor Variables tab lists the Domain system catalog with Insert into URL/Body and explains syntax, missing→`undefined`, system precedence over collection keys, and when-available group subtitles (`always` / `call` / `campaign` / `acd`).
+- [x] URL / Params value / Headers value / Body fields open template autocomplete on `{{` (system + collection; each option shows kind · when; case-sensitive prefix filter; Enter/click inserts `{{name}}`; single `{` does not open).
 - [x] Selected collection workspace shows a compact custom-variables preview (hint, example, `{{token}}` column).
 - [x] Collection variables dialog blocks duplicate keys and empty-key-with-value; soft-warns on system-name collisions.
 
@@ -50,6 +50,7 @@
 ## Manual Run
 
 - [x] Run now uses the same queue/transport/journal path and `manual_run`.
+- [x] Manual Run now resolves always-group `user_login` from active profile (SIP username, else OCP authenticated login) and optional focused-call facts.
 - [x] Disabled definitions can run manually when they still exist.
 - [x] Result always shows duration and status when available.
 - [x] 2xx is success; non-2xx is error while body remains visible.

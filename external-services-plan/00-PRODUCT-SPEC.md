@@ -56,8 +56,9 @@ Each request independently enables any number of:
 - `campaign_accepted`
 - `campaign_rejected`
 - `acd_context_appeared`
+- `post_call_processing`
 
-Manual execution uses `manual_run`. Hold, mute, SIP registration, OCP login/logout/status, SDK pairing, and dedicated transfer triggers are excluded.
+Manual execution uses `manual_run`. Hold, mute, SIP registration, OCP login/logout, other OCP status transitions, SDK pairing, and dedicated transfer triggers are excluded. `post_call_processing` is the sole operator-status edge (OCP `POST_CALL_PROCESSING` transition only).
 
 ## Focus policy
 
@@ -76,7 +77,7 @@ Base catalog:
 - `timestamp` as ISO-8601 UTC
 - `call_direction` as `inbound` or `outbound`
 - `event_type` using the stable codes above
-- `user_login`
+- `user_login` (active profile: SIP username, else OCP login; always group — including manual Run now)
 - `hangup_reason`
 
 Campaign/ACD fields are additive only when already present in typed Domain/Application projections. Collection variables include user-defined entries such as `base_url` (shared constants for the collection; edited via collection Variables dialog / preview). Every occurrence of `{{name}}` is replaced; an absent variable becomes the literal `undefined`. Duplicate collection keys and empty-key-with-value rows are rejected on save; colliding system names are soft-warned and overridden at run time. The request editor Variables tab must list the Domain system catalog so operators can discover names such as `call_id` / `user_login` without developer docs.
@@ -93,7 +94,7 @@ Campaign/ACD fields are additive only when already present in typed Domain/Appli
 ## Journal
 
 - Journal retains the latest 100 completed attempts in FIFO order.
-- Each record includes time, profile, collection/request identity, event code, outcome, status when available, duration, redacted headers, truncated response body, and structured error.
+- Each record includes time, profile, collection/request identity, event code, outcome, status when available, duration, redacted headers, truncated request body when sent, truncated response body, and structured error.
 - Header values named `Authorization`, `Cookie`, or `X-Api-Key`, case-insensitively, persist and display as `***`.
 - Full PII masking is not a v1 requirement.
 

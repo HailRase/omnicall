@@ -63,6 +63,12 @@ import type {
   ExternalServicesCollectionSaveExportDialogPayload,
   ExternalServicesCollectionSaveExportDialogResponse,
 } from "./ExternalServicesCollectionFileContract.js";
+import type {
+  ApplyExternalApplicationCallEndedPayload,
+  ApplyExternalApplicationCallEndedResponse,
+  OpenExternalApplicationWindowPayload,
+  OpenExternalApplicationWindowResponse,
+} from "./OpenExternalApplicationWindowContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -84,6 +90,18 @@ export type SoftphonePreloadApi = Readonly<{
     Readonly<{ ok: true; maximized: boolean } | { ok: false; reason?: string }>
   >;
   onWindowMaximizedChanged: (handler: (maximized: boolean) => void) => () => void;
+  setWindowAlwaysOnTop: (
+    payload: Readonly<{ alwaysOnTop: boolean }>,
+  ) => Promise<
+    Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false; reason?: string }>
+  >;
+  toggleWindowAlwaysOnTop: () => Promise<
+    Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false; reason?: string }>
+  >;
+  getWindowAlwaysOnTop: () => Promise<
+    Readonly<{ ok: true; alwaysOnTop: boolean } | { ok: false; reason?: string }>
+  >;
+  onWindowAlwaysOnTopChanged: (handler: (alwaysOnTop: boolean) => void) => () => void;
   applyShellWindowLayout: (payload: ShellWindowLayoutPayload) => Promise<void>;
   /** ADR-0013: raise softphone above other apps (telephony / consent). */
   raiseShellWindow: (
@@ -148,6 +166,14 @@ export type SoftphonePreloadApi = Readonly<{
   saveExternalServicesCollectionExportDialog: (
     payload: ExternalServicesCollectionSaveExportDialogPayload,
   ) => Promise<ExternalServicesCollectionSaveExportDialogResponse>;
+  /** F-032: open or focus an External Application screen-pop window. */
+  openExternalApplicationWindow: (
+    payload: OpenExternalApplicationWindowPayload,
+  ) => Promise<OpenExternalApplicationWindowResponse>;
+  /** F-032: apply leave/minimize/close for windows tied to a call. */
+  applyExternalApplicationCallEnded: (
+    payload: ApplyExternalApplicationCallEndedPayload,
+  ) => Promise<ApplyExternalApplicationCallEndedResponse>;
 }>;
 
 declare global {
