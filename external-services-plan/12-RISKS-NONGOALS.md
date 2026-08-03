@@ -20,6 +20,7 @@
 | ACD typed event carries wire IDs | Privacy expansion | Expose only queue/phase/event safe subset; tests prove wire IDs absent |
 | F-030 secret-free wording becomes inaccurate | User misunderstands exports | Document that user-authored External Services values are portable while SIP/OCP/SDK secrets remain excluded |
 | Journal write fails after successful HTTP | Misclassified result | Return/classify transport independently; structured journal failure log |
+| Corrupt journal blanks Settings UI | Operator cannot edit collections | Query isolates journal failures (`journalStatus: error`); settings refresh uses `journalLimit: 0`; History-local Retry; no silent wipe |
 | Main/preload contract broadens attack surface | Renderer privilege escalation | Narrow typed validated IPC, no raw IPC/path/Node exposure, disposer and byte limits |
 | Settings schema downgrade | Older app rejects profile | Standard fail-closed v12 behavior and migration docs; no silent downgrade |
 | UI scope becomes Postman clone | Delay/maintenance burden | Adopt Postman-like **layout skeleton** only (sidebar tree + URL bar + tabs + Response/History); keep flat focused v1 editor, existing UI Kit; no scripts/auth/chaining/nested folders |

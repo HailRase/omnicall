@@ -1,9 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -28,8 +25,6 @@ export type ExternalServicesNameDialogScope = "collection" | "request";
 
 export type ExternalServicesCollectionsDialogsProps = Readonly<{
   busy: boolean;
-  errorMessage: string | null;
-  statusMessage: string | null;
   nameDialog: Readonly<{
     open: boolean;
     mode: ExternalServicesNameDialogMode;
@@ -42,7 +37,6 @@ export type ExternalServicesCollectionsDialogsProps = Readonly<{
     collectionName: string;
   }>;
   discardDialogOpen: boolean;
-  onRetry: () => void;
   onNameDialogOpenChange: (open: boolean) => void;
   onNameDialogValueChange: (value: string) => void;
   onNameDialogSubmit: () => void;
@@ -54,18 +48,15 @@ export type ExternalServicesCollectionsDialogsProps = Readonly<{
 
 /**
  * - Purpose: host External Services create/rename/delete/discard dialogs.
- * - Inputs: dialog state, busy/error/status messages, confirm callbacks.
+ * - Inputs: dialog state, busy flag, confirm callbacks.
  * - Outputs: accessible dialog intents without Domain access.
  * @uiMeta f=F-031
  */
 export function ExternalServicesCollectionsDialogs({
   busy,
-  errorMessage,
-  statusMessage,
   nameDialog,
   deleteDialog,
   discardDialogOpen,
-  onRetry,
   onNameDialogOpenChange,
   onNameDialogValueChange,
   onNameDialogSubmit,
@@ -78,19 +69,6 @@ export function ExternalServicesCollectionsDialogs({
 
   return (
     <>
-      {errorMessage !== null ? (
-        <Alert variant="destructive">
-          <AlertTitle>{errorMessage}</AlertTitle>
-          <AlertDescription>
-            <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-              {t("settings.integrations.externalServices.actions.retry")}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
-      {statusMessage !== null ? <p role="status">{statusMessage}</p> : null}
-
       <NameDialog
         open={nameDialog.open}
         mode={nameDialog.mode}

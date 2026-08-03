@@ -29,6 +29,9 @@ export type ExternalServicesCollectionView = Readonly<{
   requests: ReadonlyArray<ExternalServiceRequest>;
 }>;
 
+/** Journal slice status — settings query stays ok when journal fails or is skipped. */
+export type ExternalServicesJournalQueryStatus = "ready" | "skipped" | "error";
+
 export type QueryExternalServicesOutcome = Readonly<{
   profileKey: SettingsAccountKey;
   settings: ExternalServicesSettings;
@@ -37,6 +40,7 @@ export type QueryExternalServicesOutcome = Readonly<{
   collections: ReadonlyArray<ExternalServicesCollectionView>;
   enabledCollectionCount: number;
   journal: ReadonlyArray<ExternalServiceJournalEntry>;
+  journalStatus: ExternalServicesJournalQueryStatus;
 }>;
 
 export type QueryExternalServicesUseCaseDeps = Readonly<{
@@ -61,10 +65,7 @@ export class QueryExternalServicesUseCase {
         : (await this.deps.settingsRepository.getUserSettings(input.profileKey))
             .externalServices;
       const journalLimit = normalizeJournalLimit(input.journalLimit);
-      const journal = await this.deps.journalRepository.list(
-        input.profileKey,
-        journalLimit,
-      );
+      const journalSlice = await this.loadJournalSlice(input.profileKey, journalLimit);
       return ok({
         profileKey: input.profileKey,
         settings,
@@ -80,7 +81,8 @@ export class QueryExternalServicesUseCase {
         enabledCollectionCount: settings.collections.filter(
           (collection) => collection.enabled,
         ).length,
-        journal,
+        journal: journalSlice.journal,
+        journalStatus: journalSlice.journalStatus,
       });
     } catch (error: unknown) {
       return err(
@@ -95,6 +97,26 @@ export class QueryExternalServicesUseCase {
           },
         ),
       );
+    }
+  }
+
+  private async loadJournalSlice(
+    profileKey: SettingsAccountKey,
+    journalLimit: number,
+  ): Promise<
+    Readonly<{
+      journal: ReadonlyArray<ExternalServiceJournalEntry>;
+      journalStatus: ExternalServicesJournalQueryStatus;
+    }>
+  > {
+    if (journalLimit === 0) {
+      return { journal: [], journalStatus: "skipped" };
+    }
+    try {
+      const journal = await this.deps.journalRepository.list(profileKey, journalLimit);
+      return { journal, journalStatus: "ready" };
+    } catch {
+      return { journal: [], journalStatus: "error" };
     }
   }
 }

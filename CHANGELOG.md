@@ -7,6 +7,14 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **F-031** External Services Settings: corrupt or unavailable journal no longer
+  blocks loading collections/requests; `QueryExternalServicesUseCase` returns
+  settings with `journalStatus` (`ready` / `skipped` / `error`). Workspace load
+  error uses a top banner instead of a broken flex Alert; History keeps a
+  compact local retry state.
+
 ## [1.3.1] - 2026-08-03
 
 ### Fixed

@@ -1,13 +1,7 @@
 import type { JSX } from "react";
 import type { ExternalServicesJournalPanelVm } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
-import {
-  Accordion,
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Button,
-} from "../../ui/index.js";
+import { Accordion, Button } from "../../ui/index.js";
 import { Skeleton } from "../../ui/skeleton/index.js";
 import { ExternalServicesJournalEntry } from "./ExternalServicesJournalEntry.js";
 import styles from "./ExternalServices.module.css";
@@ -42,22 +36,24 @@ export function ExternalServicesJournal({
       ) : null}
 
       {panel.loadState === "error" || panel.loadState === "unavailable" ? (
-        <Alert variant="destructive" data-testid="external-services-journal">
-          <AlertTitle>
+        <div
+          className={styles.journalLoadError}
+          role="alert"
+          data-testid="external-services-journal"
+        >
+          <p className={styles.journalLoadErrorText}>
             {t("settings.integrations.externalServices.journal.loadError")}
-          </AlertTitle>
-          <AlertDescription>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              data-testid="external-services-journal-retry"
-              onClick={onRetry}
-            >
-              {t("settings.integrations.externalServices.journal.retry")}
-            </Button>
-          </AlertDescription>
-        </Alert>
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="external-services-journal-retry"
+            onClick={onRetry}
+          >
+            {t("settings.integrations.externalServices.journal.retry")}
+          </Button>
+        </div>
       ) : null}
 
       {panel.loadState === "ready" && panel.entries.length === 0 ? (

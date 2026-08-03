@@ -159,6 +159,11 @@ external-services-discard-changes
 Test IDs:
 
 ```txt
+external-services-workspace
+external-services-workspace-banner
+external-services-workspace-body
+external-services-load-error
+external-services-load-retry
 external-services-journal-section
 external-services-journal
 external-services-journal-empty
@@ -175,7 +180,7 @@ external-services-journal-retry
 
 - Empty workspace welcome shows only the centered select prompt.
 - Response/History pane height is drag-resizable (`external-services-response-resize`) and collapsible.
-- Request rows show an absolute top-left enabled/disabled status dot; overflow menu actions are Enable/Disable (not state labels).
+- Request rows show a compact absolute top-left enabled/disabled status dot (≈5px); overflow menu actions are Enable/Disable (not state labels).
 - Compact fixed-width Params/Headers key/value fields; body editor hidden when mode is `none`.
 - Method badge ↔ request name gap tightened; `⋯` menu trigger matches quick-add hover treatment.
 
@@ -186,7 +191,8 @@ external-services-journal-retry
 | Loading | Skeleton/disabled mutation controls with translated reason. |
 | Empty collections | Sidebar empty + welcome workspace; New collection / Import. |
 | Empty requests | Empty-folder card in sidebar and collection workspace. |
-| Load error | Alert + Retry; retain call shell and navigation. |
+| Settings load error | Top workspace banner (`Alert` + Retry) above sidebar/editor; does not become a flex sibling that breaks the Postman layout. |
+| Journal load error | Compact inline error + Retry only inside History; independent of settings load (corrupt journal must not blank collections). |
 | Save pending | Disable duplicate submits; preserve draft. |
 | Save error | Inline Alert; preserve all input. |
 | Run queued | Send button loading; label indicates queued/running. |

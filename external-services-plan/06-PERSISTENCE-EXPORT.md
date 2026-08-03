@@ -25,11 +25,12 @@ Add a dedicated per-profile journal path through `profileStoragePaths.ts`, for e
 ```
 
 - File document has its own `format: "omnicall.external-services-journal"` and `formatVersion: 1`.
-- Adapter validates unknown JSON, treats missing file as empty, and fails visibly on corrupt current data.
+- Adapter validates unknown JSON, treats missing file as empty, and fails visibly on corrupt current data (`external_services_journal_document_requires_recovery`).
 - Append uses atomic write and caps records to latest 100.
 - Only redacted/truncated records cross the repository boundary.
 - Journal is local operational history and is excluded from F-030 preferences export and collection export.
 - Logout retains journal; different profile keys never share records.
+- **Query isolation:** `QueryExternalServicesUseCase` must not fail settings/collections when journal list throws; UI shows History error + Retry while COLLECTIONS remain usable. Settings-only refresh uses `journalLimit: 0` (no journal I/O). Recovery of a corrupt journal file remains operator/admin (replace/delete the profile journal JSON); silent wipe is not automatic.
 
 ## `UserSettings` migration
 

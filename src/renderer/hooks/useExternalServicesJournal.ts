@@ -54,6 +54,10 @@ export function useExternalServicesJournal(
       setPanel(deriveExternalServicesJournalFromOutcome(null, "error"));
       return;
     }
+    if (result.value.journalStatus === "error") {
+      setPanel(deriveExternalServicesJournalFromOutcome(null, "error"));
+      return;
+    }
 
     setPanel(deriveExternalServicesJournalFromOutcome(result.value, "ready"));
   }, [facade]);

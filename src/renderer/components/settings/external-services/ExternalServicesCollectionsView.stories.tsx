@@ -33,14 +33,14 @@ const baseProps: ExternalServicesPanelProps = {
   welcome: { journal },
   requestsView: null,
   requestEditor: null,
+  loadErrorMessage: null,
+  statusMessage: null,
+  onRetryLoad: noop,
   dialogs: {
     busy: false,
-    errorMessage: null,
-    statusMessage: null,
     nameDialog: { open: false, mode: "create", scope: "collection", value: "", errorMessage: null },
     deleteDialog: { open: false, collectionName: "" },
     discardDialogOpen: false,
-    onRetry: noop,
     onNameDialogOpenChange: noop,
     onNameDialogValueChange: noop,
     onNameDialogSubmit: noop,
@@ -68,6 +68,36 @@ export const EmptyLight: Story = {
 
 export const EmptyDark: Story = {
   args: baseProps,
+  globals: { theme: "dark" },
+};
+
+export const LoadErrorLight: Story = {
+  args: {
+    ...baseProps,
+    sidebar: { ...baseProps.sidebar, loadState: "error" },
+    loadErrorMessage: "Не удалось загрузить внешние сервисы. Повторите попытку.",
+    welcome: {
+      journal: {
+        panel: { loadState: "error", entries: [], capped: false },
+        onRetry: noop,
+      },
+    },
+  },
+  globals: { theme: "light" },
+};
+
+export const LoadErrorDark: Story = {
+  args: {
+    ...baseProps,
+    sidebar: { ...baseProps.sidebar, loadState: "error" },
+    loadErrorMessage: "Не удалось загрузить внешние сервисы. Повторите попытку.",
+    welcome: {
+      journal: {
+        panel: { loadState: "error", entries: [], capped: false },
+        onRetry: noop,
+      },
+    },
+  },
   globals: { theme: "dark" },
 };
 

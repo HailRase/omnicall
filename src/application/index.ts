@@ -562,6 +562,7 @@ export type {
   QueryExternalServicesInput,
   QueryExternalServicesOutcome,
   ExternalServicesCollectionView,
+  ExternalServicesJournalQueryStatus,
 } from "./use-cases/integration/QueryExternalServicesUseCase.js";
 export {
   deriveExternalServicesCollectionsPanel,

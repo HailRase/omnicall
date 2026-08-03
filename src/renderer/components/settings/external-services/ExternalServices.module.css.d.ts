@@ -33,6 +33,8 @@ declare const classes: {
   readonly journalDetailValue: string;
   readonly journalHeaders: string;
   readonly journalList: string;
+  readonly journalLoadError: string;
+  readonly journalLoadErrorText: string;
   readonly journalSection: string;
   readonly journalSummary: string;
   readonly journalSummaryMeta: string;
@@ -174,5 +176,8 @@ declare const classes: {
   readonly welcomePane: string;
   readonly welcomePrompt: string;
   readonly workspace: string;
+  readonly workspaceBanner: string;
+  readonly workspaceBody: string;
+  readonly workspaceStatus: string;
 };
 export default classes;

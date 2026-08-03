@@ -21,6 +21,7 @@
 | WU-13 | Per-trigger delay, queue monitor, logout warning | done | 2026-07-30 | ADR-0023 Accepted; schema v13 bindings; DelayScheduler + Queue UI + logout warning; migration/delay tests; work-history delay/queue entries |
 | WU-12 | Documentation close, preflight, and release decision | done | 2026-07-30 | Acceptance audited; v13 fixture/lint closeout; full gates PASS; F-031 → implemented; T-052 done; SemVer pending user ship auth (MINOR 1.1.2→1.2.0) |
 | Follow-up | Additive trigger `post_call_processing` | done | 2026-07-31 | Shared F-031/F-032 code; `OperatorStatusChanged` → PCP only; mapper/match/i18n/docs; no schema bump; ships with next MINOR |
+| Follow-up | Query/journal isolation + load UX | done | 2026-08-03 | `journalStatus` on query outcome; skip journal at limit 0; corrupt journal does not blank collections; workspace banner + History compact error; docs/registry/CHANGELOG Unreleased |
 
 ## State rules
 
