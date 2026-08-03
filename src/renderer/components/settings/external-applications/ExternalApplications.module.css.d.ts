@@ -13,6 +13,7 @@ declare const classes: {
   readonly conditionsTab: string;
   readonly editor: string;
   readonly editorGrid: string;
+  readonly editorGridSize: string;
   readonly editorTabBody: string;
   readonly editorTabsList: string;
   readonly editorTabsPane: string;

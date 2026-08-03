@@ -63,6 +63,8 @@ export type InputGroupButtonSize = "xs" | "sm" | "icon-xs" | "icon-sm";
 
 export type ButtonGroupOrientation = "horizontal" | "vertical";
 
+export type RadioGroupOrientation = "horizontal" | "vertical";
+
 export type SidebarSide = "left" | "right";
 
 export type SidebarVariant = "sidebar" | "floating" | "inset";

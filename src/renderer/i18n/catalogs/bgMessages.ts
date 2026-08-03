@@ -650,7 +650,15 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Режим на отваряне",
   "settings.integrations.externalApplications.openMode.electronWindow": "Прозорец на приложението",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "Картата се отваря в отделен прозорец на OmniCall до софтфона.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Външен браузър",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "Страницата се отваря в раздел на системния браузър (Chrome, Edge и т.н.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Софтфон",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "Прозорец OmniCall",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Браузър",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Ширина",
   "settings.integrations.externalApplications.window.height": "Височина",
   "settings.integrations.externalApplications.tabs.general": "Общи",

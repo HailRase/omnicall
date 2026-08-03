@@ -120,4 +120,58 @@ describe("ExternalApplicationsPanel", () => {
     });
     expect(screen.getByTestId("external-applications-history-empty")).toBeInTheDocument();
   });
+
+  it("selects open mode via illustrated radio cards", async () => {
+    setupJsdomRadix();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    renderPanel({ onChange });
+
+    const group = screen.getByTestId("external-applications-open-mode");
+    expect(group).toHaveAttribute("role", "radiogroup");
+
+    const electronWindow = screen.getByRole("radio", {
+      name: /окно приложения|application window/i,
+    });
+    const externalBrowser = screen.getByRole("radio", {
+      name: /внешний браузер|external browser/i,
+    });
+
+    expect(electronWindow).toBeChecked();
+    expect(externalBrowser).not.toBeChecked();
+
+    await user.click(externalBrowser);
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ openMode: "external_browser" }),
+    );
+  });
+
+  it("keeps open-mode radios keyboard accessible", async () => {
+    setupJsdomRadix();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    renderPanel({ onChange });
+
+    const electronWindow = screen.getByRole("radio", {
+      name: /окно приложения|application window/i,
+    });
+    electronWindow.focus();
+    expect(electronWindow).toHaveFocus();
+
+    // Horizontal roving focus + Space select (jsdom may skip Radix arrow-click sync).
+    await user.keyboard("{ArrowRight}");
+    const externalBrowser = screen.getByRole("radio", {
+      name: /внешний браузер|external browser/i,
+    });
+    expect(externalBrowser).toHaveFocus();
+
+    await user.keyboard(" ");
+    // Controlled panel does not re-render selection; assert draft intent only.
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ openMode: "external_browser" }),
+    );
+  });
 });

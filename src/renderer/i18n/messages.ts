@@ -41,7 +41,15 @@ const ruMessages = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Способ открытия",
   "settings.integrations.externalApplications.openMode.electronWindow": "Окно приложения",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "Карточка откроется в отдельном окне OmniCall рядом с софтфоном.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Внешний браузер",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "Страница откроется во вкладке системного браузера (Chrome, Edge и т.п.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Софтфон",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "Окно OmniCall",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Браузер",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Ширина",
   "settings.integrations.externalApplications.window.height": "Высота",
   "settings.integrations.externalApplications.tabs.general": "Общее",
@@ -1879,7 +1887,15 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Open mode",
   "settings.integrations.externalApplications.openMode.electronWindow": "Application window",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "The card opens in a separate OmniCall window beside the softphone.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "External browser",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "The page opens in a system browser tab (Chrome, Edge, etc.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Softphone",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "OmniCall window",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Browser",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Width",
   "settings.integrations.externalApplications.window.height": "Height",
   "settings.integrations.externalApplications.tabs.general": "General",
@@ -3654,7 +3670,15 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Mode d’ouverture",
   "settings.integrations.externalApplications.openMode.electronWindow": "Fenêtre de l’application",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "La fiche s’ouvre dans une fenêtre OmniCall séparée à côté du softphone.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Navigateur externe",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "La page s’ouvre dans un onglet du navigateur système (Chrome, Edge, etc.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Softphone",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "Fenêtre OmniCall",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Navigateur",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Largeur",
   "settings.integrations.externalApplications.window.height": "Hauteur",
   "settings.integrations.externalApplications.tabs.general": "Général",
@@ -5377,7 +5401,15 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Öffnungsmodus",
   "settings.integrations.externalApplications.openMode.electronWindow": "Anwendungsfenster",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "Die Karte öffnet sich in einem separaten OmniCall-Fenster neben dem Softphone.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Externer Browser",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "Die Seite öffnet sich in einem Systembrowser-Tab (Chrome, Edge usw.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Softphone",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "OmniCall-Fenster",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Browser",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Breite",
   "settings.integrations.externalApplications.window.height": "Höhe",
   "settings.integrations.externalApplications.tabs.general": "Allgemein",

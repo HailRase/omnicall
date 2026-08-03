@@ -82,6 +82,8 @@
 | `ExternalApplicationsPanel` | `src/renderer/components/settings/external-applications/ExternalApplicationsPanel.tsx` | `ExternalApplicationsPanelProps` | external-applications-panel | f=F-032 |
 | `ExternalApplicationsSidebar` | `src/renderer/components/settings/external-applications/ExternalApplicationsSidebar.tsx` | `ExternalApplicationsSidebarProps` | external-applications-sidebar, external-applications-history-nav, external-applications-add | f=F-032 |
 | `ExternalApplicationsVariablesTab` | `src/renderer/components/settings/external-applications/ExternalApplicationsVariablesTab.tsx` | `ExternalApplicationsVariablesTabProps` | external-applications-variables, external-applications-variables-add | f=F-032 |
+| `OpenModeChoiceCards` | `src/renderer/components/settings/external-applications/OpenModeChoiceCards.tsx` | `OpenModeChoiceCardsProps` | external-applications-open-mode | f=F-032 |
+| `ElectronWindowSchematic` | `src/renderer/components/settings/external-applications/OpenModeSchematics.tsx` | `—` | — | — |
 | `ExternalServicesBodyModeRadios` | `src/renderer/components/settings/external-services/ExternalServicesBodyModeRadios.tsx` | `ExternalServicesBodyModeRadiosProps` | external-services-body-mode | f=F-031 |
 | `ExternalServicesCollectionVariableRow` | `src/renderer/components/settings/external-services/ExternalServicesCollectionVariableRow.tsx` | `ExternalServicesCollectionVariableRowProps` | — | f=F-031 |
 | `ExternalServicesCollectionsDialogs` | `src/renderer/components/settings/external-services/ExternalServicesCollectionsDialogs.tsx` | `ExternalServicesCollectionsDialogsProps` | external-services-discard-changes | f=F-031 |
