@@ -194,8 +194,8 @@ export const DropdownMenuItem = forwardRef(function DropdownMenuItem(
 
 /**
  * - Purpose: toggleable checked menu item with leading check indicator.
- * - Inputs: checked state, onCheckedChange, inset flag, and item children.
- * - Outputs: Radix checkbox item with semantic check icon indicator.
+ * - Inputs: checked state, onCheckedChange, optional inset (no-op; space always reserved), children.
+ * - Outputs: Radix checkbox item with semantic check icon indicator left of label.
  */
 export const DropdownMenuCheckboxItem = forwardRef(function DropdownMenuCheckboxItem(
   { className, inset = false, children, ...rest }: DropdownMenuCheckboxItemProps,

@@ -1032,6 +1032,7 @@ Purpose:
 - Action menu anchored to a trigger.
 - Supports items, destructive items, separators, labels, checked items, and disabled reasons.
 - Uses Radix DropdownMenu.
+- `DropdownMenuCheckboxItem` always reserves leading space for the absolute check indicator (label stays to the right of the check; do not rely on `inset` for that gap — `inset` remains API-compatible / no-op for padding).
 
 API:
 
@@ -1040,6 +1041,7 @@ API:
 - `align?: "start" | "center" | "end"`
 - `side?: "top" | "right" | "bottom" | "left"`
 - composable trigger/content/item components
+- `DropdownMenuCheckboxItem.inset?: boolean` — retained for API parity; indicator gutter is always applied on the checkbox item itself
 
 Stories:
 
@@ -1061,6 +1063,7 @@ Tests:
 - [x] Closes on escape.
 - [x] Supports controlled open state.
 - [x] Toggles checkbox item.
+- [x] Reserves leading space for checkbox indicator (class/gutter).
 - [x] Preserves caller className on content.
 
 Checklist:
