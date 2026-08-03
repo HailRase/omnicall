@@ -1,6 +1,8 @@
 declare const classes: {
+  readonly pinIconHost: string;
   readonly sceneCard: string;
   readonly sceneForeign: string;
+  readonly sceneForeignCluster: string;
   readonly scenePin: string;
   readonly schematicCaption: string;
   readonly schematicCardFrame: string;
@@ -12,8 +14,6 @@ declare const classes: {
   readonly schematicDotMuted: string;
   readonly schematicForeignFrame: string;
   readonly schematicForeignTitle: string;
-  readonly schematicPin: string;
-  readonly schematicPinStem: string;
   readonly schematicSoftphone: string;
   readonly schematicSoftphoneHeader: string;
   readonly schematicSoftphoneInner: string;

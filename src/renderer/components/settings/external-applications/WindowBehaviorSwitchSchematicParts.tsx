@@ -6,6 +6,7 @@
 
 import type { JSX } from "react";
 import { useId } from "react";
+import { AppIcon } from "../../icons/AppIcon.js";
 import styles from "./WindowBehaviorSwitchSchematics.module.css";
 
 const DESKTOP_X = 4;
@@ -161,13 +162,87 @@ export function ForeignWindow({ className }: Readonly<{ className?: string }>): 
   );
 }
 
-/** Pin badge: card stays above other windows during the call. */
+type SmallForeignWindowProps = Readonly<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  className?: string;
+}>;
+
+/** Compact third-party window used in always-on-top multi-app scenes. */
+export function SmallForeignWindow({
+  x,
+  y,
+  width,
+  height,
+  className,
+}: SmallForeignWindowProps): JSX.Element {
+  const titleH = 10;
+  const pad = 5;
+
+  return (
+    <g className={className}>
+      <rect
+        className={styles.schematicForeignFrame}
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rx="4"
+      />
+      <rect
+        className={styles.schematicForeignTitle}
+        x={x}
+        y={y}
+        width={width}
+        height={titleH}
+        rx="4"
+      />
+      <rect
+        className={styles.schematicForeignTitle}
+        x={x}
+        y={y + 6}
+        width={width}
+        height={4}
+      />
+      <circle className={styles.schematicDotMuted} cx={x + 7} cy={y + 5} r="1.6" />
+      <circle className={styles.schematicDotMuted} cx={x + 13} cy={y + 5} r="1.6" />
+      <rect
+        className={styles.schematicContentMuted}
+        x={x + pad}
+        y={y + titleH + 3}
+        width={width - pad * 2}
+        height={Math.max(5, height - titleH - 10)}
+        rx="1.5"
+      />
+    </g>
+  );
+}
+
+/** Background cluster of small third-party apps behind the OmniCall card. */
+export function ForeignAppsCluster({
+  className,
+}: Readonly<{ className?: string }>): JSX.Element {
+  return (
+    <g className={className}>
+      <SmallForeignWindow x={62} y={14} width={52} height={36} />
+      <SmallForeignWindow x={128} y={18} width={48} height={32} />
+      <SmallForeignWindow x={78} y={48} width={56} height={38} />
+      <SmallForeignWindow x={140} y={52} width={44} height={34} />
+    </g>
+  );
+}
+
+/** Pin badge on OmniCall card: Lucide Pin via AppIcon (shell.window.pin). */
 export function PinBadge({ className }: Readonly<{ className?: string }>): JSX.Element {
   return (
     <g className={className}>
-      <circle className={styles.schematicPin} cx="162" cy="28" r="6" />
-      <path className={styles.schematicPinStem} d="M162 32 L162 38" />
-      <circle className={styles.schematicPin} cx="162" cy="26.5" r="2.2" />
+      <foreignObject x="154" y="16" width="20" height="20">
+        <div className={styles.pinIconHost}>
+          <AppIcon id="shell.window.pin" size={13} decorative preferAnimated={false} />
+        </div>
+      </foreignObject>
     </g>
   );
 }

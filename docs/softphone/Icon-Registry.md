@@ -19,7 +19,7 @@
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
 | `shell.window.maximize` | Fill work area in settings (layout-owned, not OS maximize) | `Square` | — | `ShellWindowControls` | active |
 | `shell.window.restore` | Restore settings size from work-area fill | `SquareStack` | — | `ShellWindowControls` | active |
-| `shell.window.pin` | Pin softphone always-on-top | `Pin` | — | `ShellWindowControls` | active |
+| `shell.window.pin` | Pin softphone always-on-top | `Pin` | — | `ShellWindowControls`; F-032 always-on-top preview badge | active |
 | `shell.window.unpin` | Unpin softphone always-on-top | `PinOff` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |

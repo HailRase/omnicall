@@ -10,6 +10,7 @@ import {
   Caption,
   CardWindow,
   DesktopStage,
+  ForeignAppsCluster,
   ForeignWindow,
   PinBadge,
   SoftphonePanel,
@@ -27,6 +28,7 @@ type SceneShellProps = WindowBehaviorSwitchSchematicLabels &
   Readonly<{
     kind: WindowBehaviorSwitchSchematicKind;
     active: boolean;
+    showOtherCaption?: boolean;
     children: ReactNode;
   }>;
 
@@ -36,6 +38,7 @@ function SceneShell({
   softphone,
   appWindow,
   otherWindow,
+  showOtherCaption = true,
   children,
 }: SceneShellProps): JSX.Element {
   return (
@@ -51,8 +54,8 @@ function SceneShell({
       <SoftphonePanel x={14} y={16} />
       <Caption x={36} y={94} text={softphone} />
       {children}
-      <Caption x={108} y={94} text={otherWindow} />
-      <Caption x={158} y={94} text={appWindow} />
+      {showOtherCaption ? <Caption x={108} y={94} text={otherWindow} /> : null}
+      <Caption x={showOtherCaption ? 158 : 140} y={94} text={appWindow} />
     </svg>
   );
 }
@@ -90,14 +93,14 @@ export function RaiseOnOpenSchematic({
   );
 }
 
-/** Card stays pinned above; OFF lets foreign window cover the card. */
+/** Card floats above several third-party apps; OFF lets them cover the card. */
 export function AlwaysOnTopSchematic({
   active,
   softphone,
   appWindow,
   otherWindow,
 }: WindowBehaviorSwitchSchematicLabels & { active: boolean }): JSX.Element {
-  const foreign = <ForeignWindow className={styles.sceneForeign} />;
+  const cluster = <ForeignAppsCluster className={styles.sceneForeignCluster} />;
   const card = <CardWindow className={styles.sceneCard} />;
   const pin = active ? <PinBadge className={styles.scenePin} /> : null;
 
@@ -108,17 +111,18 @@ export function AlwaysOnTopSchematic({
       softphone={softphone}
       appWindow={appWindow}
       otherWindow={otherWindow}
+      showOtherCaption={false}
     >
       {active ? (
         <>
-          {foreign}
+          {cluster}
           {card}
           {pin}
         </>
       ) : (
         <>
           {card}
-          {foreign}
+          {cluster}
         </>
       )}
     </SceneShell>

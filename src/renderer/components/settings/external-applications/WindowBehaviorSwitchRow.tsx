@@ -1,11 +1,12 @@
 /**
- * - Purpose: switch row with compact illustrated desktop preview.
+ * - Purpose: card-like switch item with illustrated desktop preview.
  * - Inputs: checked, disabled, labels, hint, change callback, schematic.
- * - Outputs: presentational FormField Switch plus aria-hidden outcome preview.
+ * - Outputs: presentational Switch card matching openMode choice layout.
  */
 
 import type { JSX, ReactNode } from "react";
-import { FormField, Switch } from "../../ui/index.js";
+import { useId } from "react";
+import { Switch } from "../../ui/index.js";
 import styles from "./WindowBehaviorSwitchPreview.module.css";
 
 export type WindowBehaviorSwitchRowProps = Readonly<{
@@ -30,18 +31,31 @@ export function WindowBehaviorSwitchRow({
   schematic,
   onCheckedChange,
 }: WindowBehaviorSwitchRowProps): JSX.Element {
+  const titleId = useId();
+  const hintId = useId();
+
   return (
-    <div className={styles.row} data-testid={testId} data-active={checked ? "true" : "false"}>
-      <div className={styles.controls}>
-        <FormField label={label} hint={hint}>
-          <Switch
-            checked={checked}
-            disabled={disabled}
-            aria-label={label}
-            onCheckedChange={onCheckedChange}
-          />
-        </FormField>
+    <div
+      className={styles.row}
+      data-testid={testId}
+      data-active={checked ? "true" : "false"}
+      data-disabled={disabled ? "true" : undefined}
+    >
+      <div className={styles.header}>
+        <Switch
+          checked={checked}
+          disabled={disabled}
+          aria-labelledby={titleId}
+          aria-describedby={hintId}
+          onCheckedChange={onCheckedChange}
+        />
+        <span id={titleId} className={styles.title}>
+          {label}
+        </span>
       </div>
+      <p id={hintId} className={styles.description}>
+        {hint}
+      </p>
       <div className={styles.preview} aria-hidden="true">
         {schematic}
       </div>

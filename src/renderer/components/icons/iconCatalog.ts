@@ -252,7 +252,10 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     static: Pin,
     defaultLabelKey: "icons.shell.window.pin",
     defaultSize: 16,
-    usage: ["ShellWindowControls: control-window-pin"],
+    usage: [
+      "ShellWindowControls: control-window-pin",
+      "WindowBehaviorSwitchSchematicParts: PinBadge (always-on-top preview)",
+    ],
   },
   "shell.window.unpin": {
     static: PinOff,

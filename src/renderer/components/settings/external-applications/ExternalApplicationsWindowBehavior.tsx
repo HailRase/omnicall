@@ -10,6 +10,7 @@ import type { ExternalApplicationsPanelApplication } from "./ExternalApplication
 import styles from "./ExternalApplications.module.css";
 import { OnCallEndedChoiceCards } from "./OnCallEndedChoiceCards.js";
 import { WindowBehaviorSwitchRow } from "./WindowBehaviorSwitchRow.js";
+import switchStyles from "./WindowBehaviorSwitchPreview.module.css";
 import {
   AlwaysOnTopSchematic,
   RaiseOnOpenSchematic,
@@ -48,39 +49,41 @@ export function ExternalApplicationsWindowBehavior({
       <h4 className={styles.sectionTitle}>
         {t("settings.integrations.externalApplications.windowBehavior.title")}
       </h4>
-      <WindowBehaviorSwitchRow
-        checked={windowBehavior.raiseOnOpen}
-        disabled={disabled}
-        label={t("settings.integrations.externalApplications.windowBehavior.raiseOnOpen")}
-        hint={t(
-          "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description",
-        )}
-        testId="external-applications-raise-on-open"
-        schematic={
-          <RaiseOnOpenSchematic active={windowBehavior.raiseOnOpen} {...labels} />
-        }
-        onCheckedChange={(raiseOnOpen) => {
-          onChange({ raiseOnOpen });
-        }}
-      />
-      <WindowBehaviorSwitchRow
-        checked={windowBehavior.alwaysOnTopDuringCall}
-        disabled={disabled}
-        label={t("settings.integrations.externalApplications.windowBehavior.alwaysOnTop")}
-        hint={t(
-          "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description",
-        )}
-        testId="external-applications-always-on-top"
-        schematic={
-          <AlwaysOnTopSchematic
-            active={windowBehavior.alwaysOnTopDuringCall}
-            {...labels}
-          />
-        }
-        onCheckedChange={(alwaysOnTopDuringCall) => {
-          onChange({ alwaysOnTopDuringCall });
-        }}
-      />
+      <div className={switchStyles.group}>
+        <WindowBehaviorSwitchRow
+          checked={windowBehavior.raiseOnOpen}
+          disabled={disabled}
+          label={t("settings.integrations.externalApplications.windowBehavior.raiseOnOpen")}
+          hint={t(
+            "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description",
+          )}
+          testId="external-applications-raise-on-open"
+          schematic={
+            <RaiseOnOpenSchematic active={windowBehavior.raiseOnOpen} {...labels} />
+          }
+          onCheckedChange={(raiseOnOpen) => {
+            onChange({ raiseOnOpen });
+          }}
+        />
+        <WindowBehaviorSwitchRow
+          checked={windowBehavior.alwaysOnTopDuringCall}
+          disabled={disabled}
+          label={t("settings.integrations.externalApplications.windowBehavior.alwaysOnTop")}
+          hint={t(
+            "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description",
+          )}
+          testId="external-applications-always-on-top"
+          schematic={
+            <AlwaysOnTopSchematic
+              active={windowBehavior.alwaysOnTopDuringCall}
+              {...labels}
+            />
+          }
+          onCheckedChange={(alwaysOnTopDuringCall) => {
+            onChange({ alwaysOnTopDuringCall });
+          }}
+        />
+      </div>
       <OnCallEndedChoiceCards
         value={windowBehavior.onCallEnded}
         disabled={disabled}
