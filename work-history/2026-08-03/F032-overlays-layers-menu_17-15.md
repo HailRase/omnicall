@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 17:15
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `97be2ea`
 
 ## Где
 - `src/renderer/components/settings/external-applications/WindowGeometryOverlays.tsx`
