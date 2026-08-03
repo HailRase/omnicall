@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 14:18
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `02debeb`
 
 ## Где
 - `src/renderer/components/settings/external-applications/WindowBehaviorSwitchPreview.module.css`

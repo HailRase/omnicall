@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 14:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `02debeb`
 
 ## Где
 - `WindowBehaviorSwitchSchematicParts.tsx` (`PinBadge`)

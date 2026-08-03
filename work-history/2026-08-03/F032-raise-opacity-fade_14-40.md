@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 14:40
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `02debeb`
 
 ## Где
 - `WindowBehaviorSwitchSchematics.module.css` (`wb-raise-card-front`)
