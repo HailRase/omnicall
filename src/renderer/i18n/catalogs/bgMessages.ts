@@ -698,6 +698,7 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Над другите по време на обаждане",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
     "Държи прозореца над другите само докато трае обаждането.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Друг прозорец",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "След обаждане",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Остави отворен",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":

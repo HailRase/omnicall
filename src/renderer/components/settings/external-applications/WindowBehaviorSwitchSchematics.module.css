@@ -1,0 +1,281 @@
+.schematic-svg {
+  display: block;
+  width: 100%;
+  max-width: 11rem;
+  height: auto;
+}
+
+.schematic-desktop {
+  fill: var(--color-bg-surface);
+  stroke: none;
+}
+
+.schematic-desktop-outline {
+  fill: none;
+  stroke: var(--color-border-default);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-taskbar {
+  fill: var(--color-bg-surface-deep);
+  stroke: none;
+}
+
+.schematic-softphone {
+  fill: var(--color-bg-surface);
+  stroke: var(--color-border-control);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-softphone-header,
+.schematic-softphone-inner {
+  fill: var(--color-bg-surface-alt);
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-status {
+  fill: var(--color-status-online);
+}
+
+.schematic-card-frame {
+  fill: var(--color-bg-surface);
+  stroke: var(--color-accent-primary);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-foreign-frame {
+  fill: var(--color-bg-surface-elevated);
+  stroke: var(--color-border-control);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-title-bar {
+  fill: var(--color-bg-surface-alt);
+  stroke: none;
+}
+
+.schematic-foreign-title {
+  fill: var(--color-bg-surface-deep);
+  stroke: none;
+}
+
+.schematic-content {
+  fill: var(--color-bg-surface-deep);
+  stroke: none;
+}
+
+.schematic-content-muted {
+  fill: var(--color-border-default);
+  stroke: none;
+  opacity: 0.7;
+}
+
+.schematic-dot {
+  fill: var(--color-accent-primary);
+}
+
+.schematic-dot-muted {
+  fill: var(--color-border-control);
+}
+
+.schematic-caption {
+  fill: var(--color-text-secondary);
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.schematic-pin {
+  fill: var(--color-accent-primary);
+  stroke: var(--color-bg-surface);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-pin-stem {
+  stroke: var(--color-accent-primary);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.scene-card,
+.scene-foreign,
+.scene-pin {
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
+.schematic-svg[data-kind="raise"][data-active="true"] .scene-card {
+  animation: wb-raise-card-front 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="raise"][data-active="true"] .scene-foreign {
+  opacity: 0.88;
+}
+
+.schematic-svg[data-kind="raise"][data-active="false"] .scene-card {
+  opacity: 0.85;
+  transform: translate(-6px, 4px) scale(0.92);
+}
+
+.schematic-svg[data-kind="raise"][data-active="false"] .scene-foreign {
+  animation: wb-raise-foreign-cover 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-foreign {
+  animation: wb-aot-foreign-attempt 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-card {
+  animation: wb-aot-card-hold 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-pin {
+  animation: wb-aot-pin-pulse 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-foreign {
+  animation: wb-aot-foreign-cover 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-card {
+  opacity: 0.9;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-pin {
+  opacity: 0;
+}
+
+@keyframes wb-raise-card-front {
+  0%,
+  12% {
+    opacity: 0.55;
+    transform: translate(-8px, 6px) scale(0.88);
+  }
+
+  38%,
+  72% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0.55;
+    transform: translate(-8px, 6px) scale(0.88);
+  }
+}
+
+@keyframes wb-raise-foreign-cover {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  40%,
+  65% {
+    opacity: 1;
+    transform: translate(3px, -2px);
+  }
+}
+
+@keyframes wb-aot-foreign-attempt {
+  0%,
+  18% {
+    transform: translate(-18px, 10px);
+    opacity: 0.75;
+  }
+
+  42%,
+  68% {
+    transform: translate(10px, -6px);
+    opacity: 0.95;
+  }
+
+  100% {
+    transform: translate(-18px, 10px);
+    opacity: 0.75;
+  }
+}
+
+@keyframes wb-aot-card-hold {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translate(0, -1px);
+  }
+}
+
+@keyframes wb-aot-pin-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+
+  42%,
+  68% {
+    opacity: 1;
+  }
+}
+
+@keyframes wb-aot-foreign-cover {
+  0%,
+  16% {
+    transform: translate(-22px, 12px);
+    opacity: 0.7;
+  }
+
+  42%,
+  72% {
+    transform: translate(8px, -4px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-22px, 12px);
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schematic-svg[data-kind="raise"][data-active="true"] .scene-card,
+  .schematic-svg[data-kind="raise"][data-active="false"] .scene-foreign,
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-foreign,
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-card,
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-pin,
+  .schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-foreign {
+    animation: none;
+  }
+
+  .schematic-svg[data-kind="raise"][data-active="true"] .scene-card {
+    opacity: 1;
+    transform: none;
+  }
+
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-foreign {
+    opacity: 0.85;
+    transform: translate(6px, -4px);
+  }
+
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-pin {
+    opacity: 1;
+  }
+
+  .schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-foreign {
+    opacity: 1;
+    transform: translate(6px, -4px);
+  }
+}

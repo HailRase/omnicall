@@ -1,0 +1,25 @@
+declare const classes: {
+  readonly sceneCard: string;
+  readonly sceneForeign: string;
+  readonly scenePin: string;
+  readonly schematicCaption: string;
+  readonly schematicCardFrame: string;
+  readonly schematicContent: string;
+  readonly schematicContentMuted: string;
+  readonly schematicDesktop: string;
+  readonly schematicDesktopOutline: string;
+  readonly schematicDot: string;
+  readonly schematicDotMuted: string;
+  readonly schematicForeignFrame: string;
+  readonly schematicForeignTitle: string;
+  readonly schematicPin: string;
+  readonly schematicPinStem: string;
+  readonly schematicSoftphone: string;
+  readonly schematicSoftphoneHeader: string;
+  readonly schematicSoftphoneInner: string;
+  readonly schematicStatus: string;
+  readonly schematicSvg: string;
+  readonly schematicTaskbar: string;
+  readonly schematicTitleBar: string;
+};
+export default classes;

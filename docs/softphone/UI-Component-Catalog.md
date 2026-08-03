@@ -88,6 +88,9 @@
 | `LeaveOpenSchematic` | `src/renderer/components/settings/external-applications/OnCallEndedSchematics.tsx` | `—` | — | — |
 | `OpenModeChoiceCards` | `src/renderer/components/settings/external-applications/OpenModeChoiceCards.tsx` | `OpenModeChoiceCardsProps` | external-applications-open-mode | f=F-032 |
 | `ElectronWindowSchematic` | `src/renderer/components/settings/external-applications/OpenModeSchematics.tsx` | `—` | — | — |
+| `WindowBehaviorSwitchRow` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchRow.tsx` | `WindowBehaviorSwitchRowProps` | — | f=F-032 |
+| `DesktopStage` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchSchematicParts.tsx` | `—` | — | — |
+| `RaiseOnOpenSchematic` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchSchematics.tsx` | `—` | — | — |
 | `buildOnCallEndedOptions` | `src/renderer/components/settings/external-applications/onCallEndedOptions.tsx` | `—` | — | — |
 | `ExternalServicesBodyModeRadios` | `src/renderer/components/settings/external-services/ExternalServicesBodyModeRadios.tsx` | `ExternalServicesBodyModeRadiosProps` | external-services-body-mode | f=F-031 |
 | `ExternalServicesCollectionVariableRow` | `src/renderer/components/settings/external-services/ExternalServicesCollectionVariableRow.tsx` | `ExternalServicesCollectionVariableRowProps` | — | f=F-031 |

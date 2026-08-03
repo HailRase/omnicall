@@ -237,5 +237,43 @@ describe("ExternalApplicationsPanel", () => {
 
     expect(screen.queryByTestId("external-applications-window-behavior")).not.toBeInTheDocument();
     expect(screen.queryByTestId("external-applications-on-call-ended")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("external-applications-raise-on-open")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("external-applications-always-on-top")).not.toBeInTheDocument();
+  });
+
+  it("toggles raiseOnOpen and alwaysOnTop with illustrated switch previews", async () => {
+    setupJsdomRadix();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    renderPanel({ onChange });
+
+    const raiseRow = screen.getByTestId("external-applications-raise-on-open");
+    const alwaysOnTopRow = screen.getByTestId("external-applications-always-on-top");
+
+    expect(raiseRow).toHaveAttribute("data-active", "true");
+    expect(alwaysOnTopRow).toHaveAttribute("data-active", "false");
+    expect(raiseRow.querySelector("svg")).toBeTruthy();
+    expect(alwaysOnTopRow.querySelector("svg")).toBeTruthy();
+
+    await user.click(
+      screen.getByRole("switch", { name: /поднять при открытии|raise on open/i }),
+    );
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        windowBehavior: expect.objectContaining({ raiseOnOpen: false }),
+      }),
+    );
+
+    await user.click(
+      screen.getByRole("switch", {
+        name: /поверх окон во время звонка|always on top during call/i,
+      }),
+    );
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        windowBehavior: expect.objectContaining({ alwaysOnTopDuringCall: true }),
+      }),
+    );
   });
 });

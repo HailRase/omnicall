@@ -88,6 +88,7 @@ const ruMessages = {
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Поверх окон во время звонка",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
     "Держит окно поверх других только пока идёт звонок.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Другое окно",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "После звонка",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Оставить",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
@@ -1945,6 +1946,7 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Always on top during call",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
     "Keeps the window above others only while the call is active.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Other window",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "After call ends",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Leave open",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
@@ -3738,6 +3740,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Au-dessus pendant l’appel",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
     "Garde la fenêtre au-dessus des autres uniquement pendant l’appel.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Autre fenêtre",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "Après l’appel",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Laisser ouverte",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
@@ -5479,6 +5482,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Während des Anrufs im Vordergrund",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
     "Hält das Fenster nur während des Anrufs über anderen Fenstern.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Anderes Fenster",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "Nach dem Anruf",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Offen lassen",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
