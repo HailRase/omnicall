@@ -1143,7 +1143,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `_none_ (new product feature)`
 - Context: Integration (primary); Settings (profile persistence / F-030 portability)
 - Priority: high
-- Status: **implemented** (2026-07-31; conditions/history/window lifecycle **2026-07-31**; guest close-guard **2026-08-02**)
+- Status: **implemented** (2026-07-31; conditions/history/window lifecycle **2026-07-31**; guest close-guard **2026-08-02**; window geometry editor/overlays **2026-08-03**)
 - Owner: TBD
 - Related: F-016 (Settings Integrations nav), F-023 / F-024 (profile settings), F-028 (consume-only campaign/ACD facts), F-030 (preferences round-trip), F-031 (shared event mapper + `{{` template catalog/autocomplete)
 - Explicit non-overlap:
@@ -1153,8 +1153,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Outputs: sandboxed Electron `BrowserWindow` (`loadURL`) or system browser via existing F-020 HTTPS gateway; call-ended leave/minimize/close; profile open history; optional close interception via guest bridge
 - Acceptance Criteria:
   - Settings → Integrations → **External Applications** leaf beside External Services; pre-auth soft-gated like OCP/ES; OmniCall Kit stays top-level.
-  - Flat application list (name, enabled, URL template, triggers + delay, window W×H, open mode, authored variables).
+  - Flat application list (name, enabled, URL template, triggers + delay, window W×H + x/y, open mode, authored variables).
   - Own **Conditions** tab: direction (default any) + multi-queue list (empty = any); shared by every trigger; fail-closed when facts missing; Open now ignores conditions.
+  - **Window geometry** (electron_window): persisted `window.{width,height,x,y}`; missing x/y → defaults `100,100` (no schema bump); open IPC requires integer x/y in `[-10000,10000]`; main creates `BrowserWindow` at clamped nearest-display workArea position (partially visible); focusing existing same-key window does not move/resize.
+  - **Geometry editor UI** (General tab, bottom, `electron_window` only): left-aligned stage with **adaptive preview scale** (divisor 4–8 from stage content width via `ResizeObserver`, so the desktop fits the stage without a phantom horizontal scrollbar); right controls; size presets + deferred free W×H/X/Y px with range validation; preview drag/resize paints via DOM and commits on pointer-up; arrow nudge (10 px); card title uses application name; hidden for `external_browser`.
+  - **Multi-app geometry overlays** (session-only): operator may overlay other profile `electron_window` apps on the adaptive-scale preview (peer W×H/x/y as read-only cards; Layers icon top-right on the desktop opens a checkbox multiselect menu); never persisted to settings / F-030; current app and browser-mode peers excluded.
   - **Window behavior** (electron_window): raise on open, always-on-top during call, on call end leave/minimize/close; lifecycle runs before terminal-event opens.
   - **Close guard** (electron_window): guest may register `window.omnicall.setCloseGuard`; native Close awaits explicit `true`; no guard = unrestricted close (no downgrade); deny/throw/timeout block close; call-ended `close` and dispose force-close without guard.
   - Sidebar **History** lists last 100 opens/skips/failures (journal excluded from F-030).
@@ -1164,11 +1167,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Typed IPC only (`OpenExternalApplicationWindowContract` + `apply-call-ended` + close-guard query/result); HTTPS (+ localhost HTTP test exception); no `<webview>`; guest partition isolated; guest preload is close-guard-only (not main softphone preload).
   - F-030 export/import round-trips config (not journal); empty default is inert; SIP-only bootstrap unchanged; v14/v15→v16 migrate without opening-behavior change when queues empty and direction any.
 - Test Coverage:
-  - Unit: parse/match/conditions; IPC contract; close-guard contract/interceptor/query; navigation availability; settings panel/sidebar/history
-  - Integration: automation multi-app open + invalid URL skip; migrate v14/v15→v16 conditions
+  - Unit: parse/match/conditions; IPC contract (incl. x/y); window bounds clamp; geometry math/editor; close-guard contract/interceptor/query; navigation availability; settings panel/sidebar/history (+ geometry hide for browser; overlay Layers checkbox toggle + preview remove)
+  - Integration: automation multi-app open + invalid URL skip + x/y pass-through; migrate v14/v15→v16 conditions (x/y defaults)
   - E2E: deferred (manual smoke: create app → incoming → window → history; optional card `setCloseGuard` deny/allow)
 - Design: `docs/softphone/P14-External-Applications-Design.md`
-- ADR: `docs/softphone/adr/ADR-0024-external-applications-screen-pop-windows.md` (**Accepted**, amended 2026-08-02)
+- ADR: `docs/softphone/adr/ADR-0024-external-applications-screen-pop-windows.md` (**Accepted**, amended 2026-08-02 close-guard; 2026-08-03 window origin x/y)
 - Implementation evidence: `src/domain/integration/external-applications/`; `src/application/services/integration/external-applications/`; `src/main/externalApplications/registerExternalApplicationWindowIpc.ts`; Settings panel `src/renderer/components/settings/external-applications/`; `src/renderer/hooks/useExternalApplicationsPanel.ts`; i18n `settings.integrations.externalApplications.*` ru/en/fr/de/bg
 - Implementation evidence (post-call trigger 2026-07-31): reuses F-031 `post_call_processing` via shared mapper + `ExternalServicesTriggerList`; match test covers operator-level (no focus gate); design `P14-External-Applications-Design.md` synced
 - Implementation evidence (Settings UI refresh 2026-07-31): sidebar without header chrome; fixed Add footer; per-item status dots + actions; History nav; conditions + window behavior; `ExternalApplicationsPanel.test.tsx`
@@ -1181,6 +1184,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (openMode illustrated choice cards 2026-08-03): General tab replaces openMode `Select` with UI Kit `RadioGroup` + product illustrated cards (`OpenModeChoiceCards`, desktop-scene SVG schematics with captions + hover/selected CSS motion, no live window/browser open); i18n descriptions + preview labels ru/en/fr/de/bg; panel tests cover selection + keyboard; UI Kit `RadioGroup` landed (`src/renderer/components/ui/radio-group/`).
 - Implementation evidence (onCallEnded illustrated choice cards 2026-08-03): General tab window-behavior section visible only for `electron_window`; replaces onCallEnded `Select` with `OnCallEndedChoiceCards` (leave/minimize/close desktop-scene SVG outcomes + RadioGroup a11y + hover/selected CSS motion, `prefers-reduced-motion`); short i18n hints under raiseOnOpen / alwaysOnTop switches; panel tests cover selection, keyboard, and section hide for external browser.
 - Implementation evidence (raiseOnOpen / alwaysOnTop illustrated switch previews 2026-08-03): Window-behavior switches keep boolean Switch controls; each row adds compact desktop-scene SVG preview (raise: card pops front vs stays covered; always-on-top: pinned card vs foreign cover) with CSS motion + `prefers-reduced-motion`; i18n preview caption `windowBehavior.preview.otherWindow` ru/en/fr/de/bg; panel tests cover toggle intents, preview presence, and hide for external browser.
+- Implementation evidence (window geometry x/y open path 2026-08-03): Domain `ExternalApplicationWindowSize` + parse defaults; IPC/port payload x/y; `executeExternalApplicationJob` passes position; main `registerExternalApplicationWindowIpc` + `clampExternalApplicationWindowBounds`; tests: parse/contract/clamp/automation/migrate.
+- Implementation evidence (window geometry editor UI 2026-08-03): General tab bottom `WindowGeometryEditor` (electron_window only) — left-aligned adaptive-scale stage (`resolveGeometryPreviewScale` + `useGeometryPreviewStageWidth`); right controls; size presets; deferred W×H/X/Y + validation; DOM live drag/resize with pointer-up commit; card title = app name; i18n `windowGeometry.*` ru/en/fr/de/bg; tests `windowGeometryMath.test.ts`, `WindowGeometryEditor.test.tsx`, `ExternalApplicationsPanel.test.tsx`.
+- Implementation evidence (multi-app geometry overlays 2026-08-03): session-only overlay of other profile `electron_window` apps on adaptive-scale preview (saved W×H/x/y, read-only cards); Layers icon (`settings.integrations.external-applications.overlays`) absolute top-right on desktop opens DropdownMenuCheckboxItem multiselect; current/browser apps excluded; i18n `windowGeometry.overlays.*` + icon label ru/en/fr/de/bg; tests in `ExternalApplicationsPanel.test.tsx`.
+- Implementation evidence (adaptive geometry preview scale 2026-08-03): preview divisor adapts to stage content width (min 4 / max 8) for desktop-only fit (no sidebar reserve); same scale drives desktop, primary card, peer overlays, and drag/resize math; left-aligned stage.
+- Implementation evidence (immediate enable toggle + dirty navigation 2026-08-03): sidebar ⋯ enable/disable persists only `enabled` from the last saved baseline (does not flush other dirty editor fields); draft vs saved baseline drives dirty UI (selected row accent, unsaved hint, Save enabled); switching app/history/create/duplicate/rename opens discard dialog like F-031; tests `useExternalApplicationsPanel.test.tsx`, `ExternalApplicationsPanel.test.tsx`.
 
 ## F-033: Selectable Incoming Ringtone Catalog
 

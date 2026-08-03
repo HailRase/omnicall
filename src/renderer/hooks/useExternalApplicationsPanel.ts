@@ -4,7 +4,7 @@
  * - Outputs: panel props and persistence intents.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildExternalServicesManualRunFacts } from "@application/integration/buildExternalServicesManualRunFacts.js";
 import { readExternalServicesProductStateFromStore } from "@application/integration/readExternalServicesProductStateFromStore.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
@@ -17,11 +17,16 @@ import type {
   ExternalApplicationsSidebarSelection,
 } from "../components/settings/external-applications/ExternalApplicationsPanel.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import {
+  areExternalApplicationsSettingsEqual,
+  patchApplicationEnabled,
+  type ExternalApplication,
+  type ExternalApplicationId,
+  type ExternalApplicationsSettings,
+} from "./externalApplicationsDraftUtils.js";
+import { useExternalApplicationsPanelNavigation } from "./useExternalApplicationsPanelNavigation.js";
 import type { NotificationDescriptor } from "./useNotifications.js";
 
-type ExternalApplicationsSettings = UserSettings["externalApplications"];
-type ExternalApplication = ExternalApplicationsSettings["applications"][number];
-type ExternalApplicationId = ExternalApplication["id"];
 type ExternalApplicationsFacade = Pick<
   AccountBootstrapFacade,
   | "getUserSettingsForAccount"
@@ -37,40 +42,7 @@ type UseExternalApplicationsPanelInput = Readonly<{
   notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
-function createApplication(): ExternalApplication {
-  return {
-    id: crypto.randomUUID() as ExternalApplicationId,
-    name: "App",
-    enabled: true,
-    urlTemplate: "https://example.com/{{call_id}}",
-    openMode: "electron_window",
-    window: { width: 1100, height: 800 },
-    variables: [],
-    triggers: [],
-    conditions: {
-      callDirection: "any",
-      queueNames: [],
-    },
-    windowBehavior: {
-      raiseOnOpen: true,
-      alwaysOnTopDuringCall: false,
-      onCallEnded: "leave",
-    },
-  };
-}
-
-function duplicateApplication(source: ExternalApplication): ExternalApplication {
-  return {
-    ...source,
-    id: crypto.randomUUID() as ExternalApplicationId,
-    name: `${source.name} copy`,
-    variables: source.variables.map((variable) => ({ ...variable })),
-    triggers: source.triggers.map((trigger) => ({ ...trigger })),
-    window: { ...source.window },
-    conditions: { ...source.conditions },
-    windowBehavior: { ...source.windowBehavior },
-  };
-}
+const EMPTY_SETTINGS: ExternalApplicationsSettings = { applications: [] };
 
 /**
  * - Purpose: load and persist active-profile External Applications settings.
@@ -81,9 +53,9 @@ export function useExternalApplicationsPanel(
   input: UseExternalApplicationsPanelInput,
 ): ExternalApplicationsPanelProps {
   const { facade, sectionActive, onActiveUserSettingsRefresh, notify } = input;
-  const [settings, setSettings] = useState<ExternalApplicationsSettings>({
-    applications: [],
-  });
+  const [settings, setSettings] = useState<ExternalApplicationsSettings>(EMPTY_SETTINGS);
+  const [savedSettings, setSavedSettings] =
+    useState<ExternalApplicationsSettings>(EMPTY_SETTINGS);
   const [selection, setSelection] = useState<ExternalApplicationsSidebarSelection | null>(
     null,
   );
@@ -95,6 +67,25 @@ export function useExternalApplicationsPanel(
   >([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(false);
+
+  const savedSettingsRef = useRef(savedSettings);
+  const settingsRef = useRef(settings);
+
+  useEffect(() => {
+    savedSettingsRef.current = savedSettings;
+  }, [savedSettings]);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  const isDirty = !areExternalApplicationsSettingsEqual(settings, savedSettings);
+  const navigation = useExternalApplicationsPanelNavigation({
+    isDirty,
+    setSettings,
+    setSelection,
+    setForceNameEditKey,
+  });
 
   const loadHistory = useCallback(async (): Promise<void> => {
     if (facade === null) return;
@@ -123,6 +114,7 @@ export function useExternalApplicationsPanel(
       }
       const nextSettings = result.value.externalApplications;
       setSettings(nextSettings);
+      setSavedSettings(nextSettings);
       setSelection((current) => {
         if (current?.kind === "history") {
           return current;
@@ -166,37 +158,46 @@ export function useExternalApplicationsPanel(
     }));
   }, []);
 
-  const handleCreate = useCallback((): void => {
-    const application = createApplication();
-    setSettings((current) => ({
-      applications: [...current.applications, application],
-    }));
-    setSelection({ kind: "application", id: application.id });
-    setForceNameEditKey((current) => current + 1);
-  }, []);
+  const handleToggle = useCallback(
+    async (id: ExternalApplicationId, enabled: boolean): Promise<void> => {
+      setSettings((current) => patchApplicationEnabled(current, id, enabled));
 
-  const handleToggle = useCallback((id: ExternalApplicationId, enabled: boolean): void => {
-    setSettings((current) => ({
-      applications: current.applications.map((application) =>
-        application.id === id ? { ...application, enabled } : application,
-      ),
-    }));
-  }, []);
+      const baseline = savedSettingsRef.current;
+      const baselineApp = baseline.applications.find((application) => application.id === id);
+      if (baselineApp === undefined || baselineApp.enabled === enabled) {
+        return;
+      }
+      if (facade === null) {
+        setSettings((current) => patchApplicationEnabled(current, id, baselineApp.enabled));
+        return;
+      }
 
-  const handleRename = useCallback((id: ExternalApplicationId): void => {
-    setSelection({ kind: "application", id });
-    setForceNameEditKey((current) => current + 1);
-  }, []);
-
-  const handleDuplicate = useCallback((id: ExternalApplicationId): void => {
-    setSettings((current) => {
-      const source = current.applications.find((application) => application.id === id);
-      if (source === undefined) return current;
-      const duplicate = duplicateApplication(source);
-      setSelection({ kind: "application", id: duplicate.id });
-      return { applications: [...current.applications, duplicate] };
-    });
-  }, []);
+      setBusy(true);
+      try {
+        const toPersist = patchApplicationEnabled(baseline, id, enabled);
+        const result = await facade.saveExternalApplicationsSettings(toPersist);
+        if (!result.ok) {
+          setSettings((current) => patchApplicationEnabled(current, id, baselineApp.enabled));
+          notify?.({
+            level: "error",
+            messageKey: "settings.integrations.externalApplications.validation.saveFailed",
+            module: "externalApplications",
+            functionId: "external_applications.toggle",
+            interruptClass: "actionable",
+          });
+          return;
+        }
+        const persisted = result.value.settings.externalApplications;
+        setSavedSettings(persisted);
+        savedSettingsRef.current = persisted;
+        setSettings((current) => patchApplicationEnabled(current, id, enabled));
+        onActiveUserSettingsRefresh(result.value.settings);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [facade, notify, onActiveUserSettingsRefresh],
+  );
 
   const handleDelete = useCallback((id: ExternalApplicationId): void => {
     setSettings((current) => {
@@ -219,7 +220,8 @@ export function useExternalApplicationsPanel(
     if (facade === null) return;
     setBusy(true);
     try {
-      const result = await facade.saveExternalApplicationsSettings(settings);
+      const draft = settingsRef.current;
+      const result = await facade.saveExternalApplicationsSettings(draft);
       if (!result.ok) {
         notify?.({
           level: "error",
@@ -230,11 +232,15 @@ export function useExternalApplicationsPanel(
         });
         return;
       }
+      const persisted = result.value.settings.externalApplications;
+      setSettings(persisted);
+      setSavedSettings(persisted);
+      savedSettingsRef.current = persisted;
       onActiveUserSettingsRefresh(result.value.settings);
     } finally {
       setBusy(false);
     }
-  }, [facade, notify, onActiveUserSettingsRefresh, settings]);
+  }, [facade, notify, onActiveUserSettingsRefresh]);
 
   const handleOpenNow = useCallback(async (): Promise<void> => {
     if (facade === null || selection?.kind !== "application") return;
@@ -264,19 +270,49 @@ export function useExternalApplicationsPanel(
     busy,
     loadError,
     forceNameEditKey,
+    isDirty,
+    discardDialogOpen: navigation.discardOpen,
+    onDiscardDialogOpenChange: (open) => {
+      if (open) {
+        navigation.setDiscardOpen(true);
+        return;
+      }
+      navigation.cancelDiscard();
+    },
+    onDiscardConfirm: () => {
+      navigation.confirmDiscard(savedSettingsRef.current);
+    },
     onSelectApplication: (id) => {
-      setSelection({ kind: "application", id });
+      if (selection?.kind === "application" && selection.id === id) {
+        return;
+      }
+      navigation.requestNavigation({ kind: "application", id });
     },
     onSelectHistory: () => {
-      setSelection({ kind: "history" });
+      if (selection?.kind === "history") {
+        return;
+      }
+      navigation.requestNavigation({ kind: "history" });
     },
     onRetryHistory: () => {
       void loadHistory();
     },
-    onCreate: handleCreate,
-    onToggle: handleToggle,
-    onRename: handleRename,
-    onDuplicate: handleDuplicate,
+    onCreate: () => {
+      navigation.requestNavigation({ kind: "create" });
+    },
+    onToggle: (id, enabled) => {
+      void handleToggle(id, enabled);
+    },
+    onRename: (id) => {
+      if (selection?.kind === "application" && selection.id === id) {
+        setForceNameEditKey((current) => current + 1);
+        return;
+      }
+      navigation.requestNavigation({ kind: "rename", id });
+    },
+    onDuplicate: (id) => {
+      navigation.requestNavigation({ kind: "duplicate", id });
+    },
     onDelete: handleDelete,
     onChange: updateApplication,
     onSave: () => {

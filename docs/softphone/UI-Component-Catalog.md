@@ -91,6 +91,14 @@
 | `WindowBehaviorSwitchRow` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchRow.tsx` | `WindowBehaviorSwitchRowProps` | — | f=F-032 |
 | `DesktopStage` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchSchematicParts.tsx` | `—` | — | — |
 | `RaiseOnOpenSchematic` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchSchematics.tsx` | `—` | — | — |
+| `WindowGeometryEditor` | `src/renderer/components/settings/external-applications/WindowGeometryEditor.tsx` | `WindowGeometryEditorProps` | external-applications-window-geometry | f=F-032 |
+| `WindowGeometryOverlayCards` | `src/renderer/components/settings/external-applications/WindowGeometryOverlayCards.tsx` | `WindowGeometryOverlayCardsProps` | external-applications-geometry-overlay-card-*, external-applications-geometry-overlay-remove-preview-* | f=F-032 |
+| `WindowGeometryOverlays` | `src/renderer/components/settings/external-applications/WindowGeometryOverlays.tsx` | `WindowGeometryOverlaysProps` | external-applications-geometry-overlays, external-applications-geometry-overlays-trigger, external-applications-geometry-overlay-option-* | f=F-032 |
+| `WindowGeometryPositionFields` | `src/renderer/components/settings/external-applications/WindowGeometryPositionFields.tsx` | `WindowGeometryPositionFieldsProps` | external-applications-geometry-x, external-applications-geometry-y | f=F-032 |
+| `WindowGeometryPresetChips` | `src/renderer/components/settings/external-applications/WindowGeometryPresetChips.tsx` | `WindowGeometryPresetChipsProps` | external-applications-geometry-presets | f=F-032 |
+| `WindowGeometryPreview` | `src/renderer/components/settings/external-applications/WindowGeometryPreview.tsx` | `WindowGeometryPreviewProps` | external-applications-geometry-preview, external-applications-geometry-stage, external-applications-geometry-desktop | f=F-032 |
+| `WindowGeometryPreviewCard` | `src/renderer/components/settings/external-applications/WindowGeometryPreviewCard.tsx` | `WindowGeometryPreviewCardProps` | external-applications-geometry-card | f=F-032 |
+| `WindowGeometrySizeFields` | `src/renderer/components/settings/external-applications/WindowGeometrySizeFields.tsx` | `WindowGeometrySizeFieldsProps` | external-applications-geometry-width, external-applications-geometry-height | f=F-032 |
 | `buildOnCallEndedOptions` | `src/renderer/components/settings/external-applications/onCallEndedOptions.tsx` | `—` | — | — |
 | `ExternalServicesBodyModeRadios` | `src/renderer/components/settings/external-services/ExternalServicesBodyModeRadios.tsx` | `ExternalServicesBodyModeRadiosProps` | external-services-body-mode | f=F-031 |
 | `ExternalServicesCollectionVariableRow` | `src/renderer/components/settings/external-services/ExternalServicesCollectionVariableRow.tsx` | `ExternalServicesCollectionVariableRowProps` | — | f=F-031 |

@@ -68,12 +68,13 @@
 | Status | **implemented** (2026-07-31) |
 | Branch | `feature/external-applications` |
 | Design | `P14-External-Applications-Design.md` |
-| ADR | ADR-0024 (**Accepted**; close-guard amendment 2026-08-02) |
-| Schema | Introduced at **v16**; current aggregate **v19** (with F-033/F-034) |
+| ADR | ADR-0024 (**Accepted**; close-guard 2026-08-02; window origin x/y 2026-08-03) |
+| Schema | Introduced at **v16**; current aggregate **v19** (with F-033/F-034); window x/y via nested parse (no bump) |
 | Release | MINOR shipped with **`1.3.0`** (2026-08-02) |
 | Non-overlap | Not F-031 HTTP; not F-011 SDK; not F-028 OCP control |
 | Extensions (2026-07-31) | App-level open conditions; sidebar History journal; raise/always-on-top/on-call-ended window lifecycle |
 | Extensions (2026-08-02) | Guest close-guard (`window.omnicall.setCloseGuard`); minimal guest preload; no-guard path unchanged |
+| Extensions (2026-08-03) | Window x/y open path + workArea clamp; General-tab geometry editor (adaptive preview); session-only multi-app overlays via Layers checkbox menu on desktop |
 
 ## Closed — F-033 Selectable Incoming Ringtone Catalog
 

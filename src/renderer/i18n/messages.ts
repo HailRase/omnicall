@@ -22,6 +22,7 @@ const ruMessages = {
   "icons.settings.integrations.externalApplications": "Внешние приложения",
   "icons.settings.integrations.externalApplications.open": "Открыть сейчас",
   "icons.settings.integrations.externalApplications.history": "История открытий",
+  "icons.settings.integrations.externalApplications.overlays": "Наложение других приложений",
   "icons.settings.integrations.externalServices.send": "Отправить",
   "icons.settings.integrations.externalServices.add": "Добавить",
   "icons.settings.integrations.externalServices.panelExpand": "Развернуть панель ответа",
@@ -32,6 +33,11 @@ const ruMessages = {
   "settings.integrations.externalApplications.title": "Внешние приложения",
   "settings.integrations.externalApplications.add": "Добавить",
   "settings.integrations.externalApplications.save": "Сохранить",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Есть несохранённые изменения",
+  "settings.integrations.externalApplications.editor.discardTitle": "Отменить изменения?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Несохранённые изменения приложения будут потеряны.",
+  "settings.integrations.externalApplications.editor.discard": "Отменить изменения",
   "settings.integrations.externalApplications.openNow": "Открыть сейчас",
   "settings.integrations.externalApplications.enabled": "Включено",
   "settings.integrations.externalApplications.disabled": "Выключено",
@@ -52,6 +58,48 @@ const ruMessages = {
   "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Ширина",
   "settings.integrations.externalApplications.window.height": "Высота",
+  "settings.integrations.externalApplications.windowGeometry.title": "Расположение окна",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Задайте размер и позицию окна приложения на рабочем столе. Превью масштаба 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Размер",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Позиция",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Предустановки размера",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Допустимо: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Введите целое число",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Превью рабочего стола",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Рабочий стол",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Перетащите окно, потяните края или углы для размера, стрелки — сдвиг на 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Изменить высоту сверху",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Изменить высоту снизу",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Изменить ширину справа",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Изменить ширину слева",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Изменить размер по диагонали сверху справа",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Изменить размер по диагонали сверху слева",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Изменить размер по диагонали снизу справа",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Изменить размер по диагонали снизу слева",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Наложение других приложений",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Нет других приложений с режимом «Окно приложения» для наложения.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Убрать наложение «${params.name}»`,
   "settings.integrations.externalApplications.tabs.general": "Общее",
   "settings.integrations.externalApplications.tabs.events": "События",
   "settings.integrations.externalApplications.tabs.conditions": "Условия",
@@ -62,6 +110,7 @@ const ruMessages = {
   "settings.integrations.externalApplications.actions.rename": "Переименовать",
   "settings.integrations.externalApplications.actions.duplicate": "Дублировать",
   "settings.integrations.externalApplications.actions.delete": "Удалить",
+  "settings.integrations.externalApplications.actions.cancel": "Отмена",
   "settings.integrations.externalApplications.variables": "Свои переменные",
   "settings.integrations.externalApplications.variablesAdd": "Добавить переменную",
   "settings.integrations.externalApplications.variablesWhenHint": "Свои · всегда",
@@ -1879,6 +1928,7 @@ const enMessages: MessageShape = {
   "icons.settings.integrations.externalApplications": "External Applications",
   "icons.settings.integrations.externalApplications.open": "Open now",
   "icons.settings.integrations.externalApplications.history": "Open history",
+  "icons.settings.integrations.externalApplications.overlays": "Overlay other applications",
   "icons.settings.integrations.externalServices.send": "Send",
   "icons.settings.integrations.externalServices.add": "Add",
   "icons.settings.integrations.externalServices.panelExpand": "Expand response pane",
@@ -1889,6 +1939,11 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "External Applications",
   "settings.integrations.externalApplications.add": "Add",
   "settings.integrations.externalApplications.save": "Save",
+  "settings.integrations.externalApplications.editor.unsavedHint": "You have unsaved changes",
+  "settings.integrations.externalApplications.editor.discardTitle": "Discard changes?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Unsaved application changes will be lost.",
+  "settings.integrations.externalApplications.editor.discard": "Discard changes",
   "settings.integrations.externalApplications.openNow": "Open now",
   "settings.integrations.externalApplications.enabled": "Enabled",
   "settings.integrations.externalApplications.disabled": "Disabled",
@@ -1909,6 +1964,48 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Width",
   "settings.integrations.externalApplications.window.height": "Height",
+  "settings.integrations.externalApplications.windowGeometry.title": "Window layout",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Set the application window size and position on the desktop. Preview scale is 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Size",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Position",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Size presets",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Allowed: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Enter a whole number",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Desktop preview",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Desktop",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Drag the window, resize from edges or corners, arrows nudge by 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Resize height from top",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Resize height from bottom",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Resize width from right",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Resize width from left",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Resize diagonally from top-right",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Resize diagonally from top-left",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Resize diagonally from bottom-right",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Resize diagonally from bottom-left",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Overlay other applications",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "No other Application Window apps are available to overlay.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Remove overlay “${params.name}”`,
   "settings.integrations.externalApplications.tabs.general": "General",
   "settings.integrations.externalApplications.tabs.events": "Events",
   "settings.integrations.externalApplications.tabs.conditions": "Conditions",
@@ -1919,6 +2016,7 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Rename",
   "settings.integrations.externalApplications.actions.duplicate": "Duplicate",
   "settings.integrations.externalApplications.actions.delete": "Delete",
+  "settings.integrations.externalApplications.actions.cancel": "Cancel",
   "settings.integrations.externalApplications.variables": "Custom variables",
   "settings.integrations.externalApplications.variablesAdd": "Add variable",
   "settings.integrations.externalApplications.variablesWhenHint": "Custom · always",
@@ -3683,6 +3781,11 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "Applications externes",
   "settings.integrations.externalApplications.add": "Ajouter",
   "settings.integrations.externalApplications.save": "Enregistrer",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Modifications non enregistrees",
+  "settings.integrations.externalApplications.editor.discardTitle": "Abandonner les modifications ?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Les modifications non enregistrees de l’application seront perdues.",
+  "settings.integrations.externalApplications.editor.discard": "Abandonner les modifications",
   "settings.integrations.externalApplications.openNow": "Ouvrir maintenant",
   "settings.integrations.externalApplications.enabled": "Activée",
   "settings.integrations.externalApplications.disabled": "Désactivée",
@@ -3703,6 +3806,48 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Largeur",
   "settings.integrations.externalApplications.window.height": "Hauteur",
+  "settings.integrations.externalApplications.windowGeometry.title": "Disposition de la fenêtre",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Définissez la taille et la position de la fenêtre sur le bureau. Aperçu à l’échelle 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Taille",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Position",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Préréglages de taille",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Autorisé : ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Saisissez un nombre entier",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Aperçu du bureau",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Bureau",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Glissez la fenêtre, redimensionnez par les bords ou coins ; flèches : 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Redimensionner la hauteur depuis le haut",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Redimensionner la hauteur depuis le bas",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Redimensionner la largeur depuis la droite",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Redimensionner la largeur depuis la gauche",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Redimensionner en diagonale depuis le haut droit",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Redimensionner en diagonale depuis le haut gauche",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Redimensionner en diagonale depuis le bas droit",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Redimensionner en diagonale depuis le bas gauche",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Superposer d’autres applications",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Aucune autre application en mode Fenêtre d’application n’est disponible pour la superposition.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Retirer la superposition « ${params.name} »`,
   "settings.integrations.externalApplications.tabs.general": "Général",
   "settings.integrations.externalApplications.tabs.events": "Événements",
   "settings.integrations.externalApplications.tabs.conditions": "Conditions",
@@ -3713,6 +3858,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Renommer",
   "settings.integrations.externalApplications.actions.duplicate": "Dupliquer",
   "settings.integrations.externalApplications.actions.delete": "Supprimer",
+  "settings.integrations.externalApplications.actions.cancel": "Annuler",
   "settings.integrations.externalApplications.variables": "Variables personnalisees",
   "settings.integrations.externalApplications.variablesAdd": "Ajouter une variable",
   "settings.integrations.externalApplications.variablesWhenHint": "Perso · toujours",
@@ -3764,6 +3910,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.history.outcome.skipped_lifecycle": "Annulée",
   "settings.integrations.externalApplications.history.outcome.failed": "Échec",
   "icons.settings.integrations.externalApplications.history": "Historique d’ouverture",
+  "icons.settings.integrations.externalApplications.overlays": "Superposer d’autres applications",
   "settings.integrations.externalServices.title": "Services externes",
   "settings.integrations.externalServices.description":
     "Automations HTTP sortantes declenchees par les evenements d'appel pour le profil actif.",
@@ -5425,6 +5572,11 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "Externe Anwendungen",
   "settings.integrations.externalApplications.add": "Hinzufügen",
   "settings.integrations.externalApplications.save": "Speichern",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Ungespeicherte Aenderungen vorhanden",
+  "settings.integrations.externalApplications.editor.discardTitle": "Aenderungen verwerfen?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Ungespeicherte Aenderungen der Anwendung gehen verloren.",
+  "settings.integrations.externalApplications.editor.discard": "Aenderungen verwerfen",
   "settings.integrations.externalApplications.openNow": "Jetzt öffnen",
   "settings.integrations.externalApplications.enabled": "Aktiviert",
   "settings.integrations.externalApplications.disabled": "Deaktiviert",
@@ -5445,6 +5597,48 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Breite",
   "settings.integrations.externalApplications.window.height": "Höhe",
+  "settings.integrations.externalApplications.windowGeometry.title": "Fensterlayout",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Legen Sie Größe und Position des Anwendungsfensters auf dem Desktop fest. Vorschau im Maßstab 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Größe",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Position",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Größenvoreinstellungen",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Erlaubt: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Ganze Zahl eingeben",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Desktop-Vorschau",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Desktop",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Fenster ziehen, an Kanten/Ecken skalieren; Pfeile verschieben um 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Höhe von oben ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Höhe von unten ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Breite von rechts ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Breite von links ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Diagonal von oben rechts skalieren",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Diagonal von oben links skalieren",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Diagonal von unten rechts skalieren",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Diagonal von unten links skalieren",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Andere Anwendungen überlagern",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Keine anderen Anwendungen im Modus Anwendungsfenster zum Überlagern verfügbar.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Überlagerung „${params.name}“ entfernen`,
   "settings.integrations.externalApplications.tabs.general": "Allgemein",
   "settings.integrations.externalApplications.tabs.events": "Ereignisse",
   "settings.integrations.externalApplications.tabs.conditions": "Bedingungen",
@@ -5455,6 +5649,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Umbenennen",
   "settings.integrations.externalApplications.actions.duplicate": "Duplizieren",
   "settings.integrations.externalApplications.actions.delete": "Löschen",
+  "settings.integrations.externalApplications.actions.cancel": "Abbrechen",
   "settings.integrations.externalApplications.variables": "Eigene Variablen",
   "settings.integrations.externalApplications.variablesAdd": "Variable hinzufügen",
   "settings.integrations.externalApplications.variablesWhenHint": "Eigene · immer",
@@ -5506,6 +5701,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.history.outcome.skipped_lifecycle": "Abgebrochen",
   "settings.integrations.externalApplications.history.outcome.failed": "Fehler",
   "icons.settings.integrations.externalApplications.history": "Öffnungsverlauf",
+  "icons.settings.integrations.externalApplications.overlays": "Andere Anwendungen überlagern",
   "settings.integrations.externalServices.title": "Externe Dienste",
   "settings.integrations.externalServices.description":
     "Ausgehende HTTP-Automatisierungen fuer Anrufereignisse des aktiven Profils.",

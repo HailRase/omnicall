@@ -1,0 +1,25 @@
+declare const classes: {
+  readonly card: string;
+  readonly cardBody: string;
+  readonly cardDot: string;
+  readonly cardLabel: string;
+  readonly cardTitlebar: string;
+  readonly desktop: string;
+  readonly desktopCaption: string;
+  readonly handle: string;
+  readonly handleE: string;
+  readonly handleN: string;
+  readonly handleNe: string;
+  readonly handleNw: string;
+  readonly handleS: string;
+  readonly handleSe: string;
+  readonly handleSw: string;
+  readonly handleW: string;
+  readonly hint: string;
+  readonly overlays: string;
+  readonly preview: string;
+  readonly stage: string;
+  readonly stageCenter: string;
+  readonly taskbar: string;
+};
+export default classes;

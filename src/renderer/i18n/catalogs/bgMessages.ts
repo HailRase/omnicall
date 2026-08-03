@@ -631,6 +631,7 @@ export const bgMessages: MessageShape = {
   "icons.settings.integrations.externalApplications": "Външни приложения",
   "icons.settings.integrations.externalApplications.open": "Отвори сега",
   "icons.settings.integrations.externalApplications.history": "История на отварянията",
+  "icons.settings.integrations.externalApplications.overlays": "Наслагване на други приложения",
   "icons.settings.integrations.externalServices.send": "Изпрати",
   "icons.settings.integrations.externalServices.add": "Добави",
   "icons.settings.integrations.externalServices.panelExpand": "Разгъни панела за отговор",
@@ -641,6 +642,11 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "Външни приложения",
   "settings.integrations.externalApplications.add": "Добави",
   "settings.integrations.externalApplications.save": "Запази",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Има незапазени промени",
+  "settings.integrations.externalApplications.editor.discardTitle": "Отхвърляне на промените?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Незапазените промени на приложението ще бъдат загубени.",
+  "settings.integrations.externalApplications.editor.discard": "Отхвърли промените",
   "settings.integrations.externalApplications.openNow": "Отвори сега",
   "settings.integrations.externalApplications.enabled": "Включено",
   "settings.integrations.externalApplications.disabled": "Изключено",
@@ -661,6 +667,48 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Ширина",
   "settings.integrations.externalApplications.window.height": "Височина",
+  "settings.integrations.externalApplications.windowGeometry.title": "Разположение на прозореца",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Задайте размер и позиция на прозореца на работния плот. Преглед в мащаб 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Размер",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Позиция",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Предварителни размери",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Допустимо: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Въведете цяло число",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Преглед на работния плот",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Работен плот",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Плъзнете прозореца, променете размера от краища/ъгли; стрелки — 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Промяна на височината отгоре",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Промяна на височината отдолу",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Промяна на ширината отдясно",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Промяна на ширината отляво",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Диагонално оразмеряване отгоре вдясно",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Диагонално оразмеряване отгоре вляво",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Диагонално оразмеряване отдолу вдясно",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Диагонално оразмеряване отдолу вляво",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Наслагване на други приложения",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Няма други приложения с режим „Прозорец на приложение“ за наслагване.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Премахни наслагването „${params.name}“`,
   "settings.integrations.externalApplications.tabs.general": "Общи",
   "settings.integrations.externalApplications.tabs.events": "Събития",
   "settings.integrations.externalApplications.tabs.conditions": "Условия",
@@ -671,6 +719,7 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Преименувай",
   "settings.integrations.externalApplications.actions.duplicate": "Дублирай",
   "settings.integrations.externalApplications.actions.delete": "Изтрий",
+  "settings.integrations.externalApplications.actions.cancel": "Отказ",
   "settings.integrations.externalApplications.variables": "Собствени променливи",
   "settings.integrations.externalApplications.variablesAdd": "Добави променлива",
   "settings.integrations.externalApplications.variablesWhenHint": "Собствени · винаги",

@@ -41,7 +41,7 @@ describe("ExternalApplicationsAutomation", () => {
           enabled: true,
           urlTemplate: "https://crm.example/card?id={{call_id}}",
           openMode: "electron_window",
-          window: { width: 1100, height: 800 },
+          window: { width: 1100, height: 800, x: 120, y: 80 },
           variables: [],
           triggers: [{ eventType: "incoming_ringing", delaySeconds: 0 }],
           conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
@@ -53,7 +53,7 @@ describe("ExternalApplicationsAutomation", () => {
           enabled: true,
           urlTemplate: "https://help.example/search?q={{caller_id}}",
           openMode: "electron_window",
-          window: { width: 900, height: 700 },
+          window: { width: 900, height: 700, x: 200, y: 150 },
           variables: [],
           triggers: [{ eventType: "incoming_ringing", delaySeconds: 0 }],
           conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,
@@ -90,6 +90,12 @@ describe("ExternalApplicationsAutomation", () => {
       "https://crm.example/card?id=call-1",
       "https://help.example/search?q=79001234567",
     ]);
+    expect(windowGateway.requests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ x: 120, y: 80, width: 1100, height: 800 }),
+        expect.objectContaining({ x: 200, y: 150, width: 900, height: 700 }),
+      ]),
+    );
   });
 
   it("skips open when resolved URL is not allowed HTTPS", async () => {
@@ -111,7 +117,7 @@ describe("ExternalApplicationsAutomation", () => {
           enabled: true,
           urlTemplate: "ftp://evil.example/{{call_id}}",
           openMode: "electron_window",
-          window: { width: 1100, height: 800 },
+          window: { width: 1100, height: 800, x: 100, y: 100 },
           variables: [],
           triggers: [{ eventType: "outgoing_connecting", delaySeconds: 0 }],
           conditions: DEFAULT_EXTERNAL_APPLICATION_CONDITIONS,

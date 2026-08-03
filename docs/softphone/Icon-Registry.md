@@ -43,6 +43,7 @@
 | `settings.integrations.external-applications` | Settings External Applications row in Integrations cluster | `AppWindow` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-applications.open` | Open now for External Applications URL bar | `ExternalLink` | — | `ExternalApplicationsEditor` | active |
 | `settings.integrations.external-applications.history` | External Applications open history sidebar entry | `Activity` | — | `ExternalApplicationsSidebar` | active |
+| `settings.integrations.external-applications.overlays` | Toggle multi-app geometry overlays on window preview | `Layers` | `LayersIcon` | `WindowGeometryOverlays` | active |
 | `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
 | `settings.integrations.external-services.add` | New collection / quick-add in External Services; Add in External Applications sidebar | `Plus` | — | `ExternalServicesSidebar`, `ExternalApplicationsSidebar` | active |
 | `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |

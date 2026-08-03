@@ -24,6 +24,7 @@ export type ExternalApplicationsSidebarProps = Readonly<{
   selectedId: ExternalApplicationsPanelApplication["id"] | null;
   historySelected: boolean;
   busy: boolean;
+  isDirty: boolean;
   onSelect: (id: ExternalApplicationsPanelApplication["id"]) => void;
   onSelectHistory: () => void;
   onCreate: () => void;
@@ -41,6 +42,7 @@ export function ExternalApplicationsSidebar({
   selectedId,
   historySelected,
   busy,
+  isDirty,
   onSelect,
   onSelectHistory,
   onCreate,
@@ -60,11 +62,17 @@ export function ExternalApplicationsSidebar({
       <ul className={styles.applicationList}>
         {applications.map((application) => {
           const selected = !historySelected && application.id === selectedId;
+          const showDirty = selected && isDirty;
           return (
             <li key={application.id}>
               <div
-                className={clsx(styles.applicationRow, selected && styles.applicationRowSelected)}
+                className={clsx(
+                  styles.applicationRow,
+                  selected && styles.applicationRowSelected,
+                  showDirty && styles.applicationRowDirty,
+                )}
                 data-testid={`external-applications-item-${application.id}`}
+                data-dirty={showDirty ? "true" : undefined}
               >
                 <span
                   className={clsx(

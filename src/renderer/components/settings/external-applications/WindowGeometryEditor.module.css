@@ -1,0 +1,94 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-surface);
+  container-type: inline-size;
+  container-name: window-geometry;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.controls-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: flex-start;
+}
+
+.field-group {
+  display: flex;
+  flex: 1 1 11rem;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: min(100%, 9.5rem);
+}
+
+.group-label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.size-grid,
+.position-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.75rem, 1fr));
+  gap: var(--space-sm);
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  align-items: stretch;
+}
+
+.preview-column {
+  display: flex;
+  flex: 1 1 22rem;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.controls {
+  display: flex;
+  flex: 1 1 15rem;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: min(100%, 14rem);
+  max-width: 100%;
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface-alt);
+}
+
+/* Stack when this section itself is too narrow (settings content, not viewport). */
+@container window-geometry (max-width: 40rem) {
+  .preview-column,
+  .controls {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}

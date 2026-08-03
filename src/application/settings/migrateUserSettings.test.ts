@@ -270,6 +270,12 @@ describe("migrateUserSettings", () => {
         alwaysOnTopDuringCall: false,
         onCallEnded: "leave",
       });
+      expect(result.value.externalApplications.applications[0]?.window).toEqual({
+        width: 1100,
+        height: 800,
+        x: 100,
+        y: 100,
+      });
     }
   });
 

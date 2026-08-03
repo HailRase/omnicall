@@ -45,6 +45,10 @@
   background: var(--color-bg-surface-elevated);
 }
 
+.application-row-dirty {
+  box-shadow: inset 2px 0 0 var(--color-status-warning, var(--color-accent));
+}
+
 .application-status-dot {
   position: absolute;
   top: 0.2rem;
@@ -187,6 +191,21 @@
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.editor-save-cluster {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.unsaved-hint {
+  margin: 0;
+  color: var(--color-status-warning, var(--color-accent));
+  font-size: var(--font-size-xs);
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 .inline-rename-text {

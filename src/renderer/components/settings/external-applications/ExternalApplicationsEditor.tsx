@@ -20,8 +20,10 @@ import styles from "./ExternalApplications.module.css";
 
 export type ExternalApplicationsEditorProps = Readonly<{
   application: ExternalApplicationsPanelApplication;
+  applications: ReadonlyArray<ExternalApplicationsPanelApplication>;
   busy: boolean;
   forceNameEditKey: number;
+  isDirty: boolean;
   onChange: (application: ExternalApplicationsPanelApplication) => void;
   onSave: () => void;
   onOpenNow: () => void;
@@ -32,8 +34,10 @@ export type ExternalApplicationsEditorProps = Readonly<{
  */
 export function ExternalApplicationsEditor({
   application,
+  applications,
   busy,
   forceNameEditKey,
+  isDirty,
   onChange,
   onSave,
   onOpenNow,
@@ -58,16 +62,23 @@ export function ExternalApplicationsEditor({
             onChange({ ...application, name });
           }}
         />
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={busy}
-          data-testid="external-applications-save"
-          onClick={onSave}
-        >
-          {t("settings.integrations.externalApplications.save")}
-        </Button>
+        <div className={styles.editorSaveCluster}>
+          {isDirty ? (
+            <p className={styles.unsavedHint} data-testid="external-applications-unsaved-hint">
+              {t("settings.integrations.externalApplications.editor.unsavedHint")}
+            </p>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant={isDirty ? "default" : "outline"}
+            disabled={busy || !isDirty}
+            data-testid="external-applications-save"
+            onClick={onSave}
+          >
+            {t("settings.integrations.externalApplications.save")}
+          </Button>
+        </div>
       </div>
 
       <div className={styles.urlBarBlock}>
@@ -130,6 +141,7 @@ export function ExternalApplicationsEditor({
           <TabsContent value="general" className={styles.editorTabBody}>
             <ExternalApplicationsGeneralTab
               application={application}
+              applications={applications}
               busy={busy}
               onChange={onChange}
             />

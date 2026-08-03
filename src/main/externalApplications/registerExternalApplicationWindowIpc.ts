@@ -1,11 +1,12 @@
 /**
  * - Purpose: register secure main-process screen-pop window IPC.
- * - Inputs: validated HTTPS window requests and call-ended lifecycle commands.
+ * - Inputs: validated HTTPS window requests (geometry W×H + x/y) and call-ended commands.
  * - Outputs: focused/new BrowserWindow or lifecycle side effects.
+ * - Existing same-key window: focus/raise only — do not move/resize to payload geometry.
  */
 
 import { join } from "node:path";
-import { BrowserWindow, ipcMain, shell } from "electron";
+import { BrowserWindow, ipcMain, screen, shell } from "electron";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
@@ -19,6 +20,7 @@ import {
   attachExternalApplicationCloseInterceptor,
   type ExternalApplicationCloseInterceptor,
 } from "./attachExternalApplicationCloseInterceptor.js";
+import { clampExternalApplicationWindowBounds } from "./clampExternalApplicationWindowBounds.js";
 import { queryExternalApplicationCloseGuard } from "./queryExternalApplicationCloseGuard.js";
 
 type TrackedWindow = Readonly<{
@@ -51,6 +53,7 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
       const key = `${payload.applicationId}:${payload.callId}`;
       const existing = windows.get(key);
       if (existing !== undefined && !existing.browserWindow.isDestroyed()) {
+        // Product-safe default: focus/raise existing window; do not apply new geometry.
         applyRaise(existing.browserWindow, payload.raiseOnOpen);
         existing.browserWindow.setAlwaysOnTop(payload.alwaysOnTopDuringCall);
         windows.set(key, {
@@ -62,9 +65,12 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
         return { ok: true, focusedExisting: true };
       }
       try {
+        const bounds = resolveClampedBounds(payload);
         const browserWindow = new BrowserWindow({
-          width: payload.width,
-          height: payload.height,
+          x: bounds.x,
+          y: bounds.y,
+          width: bounds.width,
+          height: bounds.height,
           title: payload.title,
           show: false,
           webPreferences: {
@@ -163,6 +169,21 @@ export function registerExternalApplicationWindowIpc(): ExternalApplicationWindo
       windows.clear();
     },
   };
+}
+
+function resolveClampedBounds(
+  payload: OpenExternalApplicationWindowPayload,
+): ReturnType<typeof clampExternalApplicationWindowBounds> {
+  const nearest = screen.getDisplayNearestPoint({ x: payload.x, y: payload.y });
+  return clampExternalApplicationWindowBounds(
+    {
+      x: payload.x,
+      y: payload.y,
+      width: payload.width,
+      height: payload.height,
+    },
+    nearest.workArea,
+  );
 }
 
 function applyRaise(browserWindow: BrowserWindow, raiseOnOpen: boolean): void {

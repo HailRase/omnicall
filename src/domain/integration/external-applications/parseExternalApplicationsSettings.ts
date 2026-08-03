@@ -15,6 +15,8 @@ import {
   DEFAULT_EXTERNAL_APPLICATION_WINDOW_BEHAVIOR,
   DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
   DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_X,
+  DEFAULT_EXTERNAL_APPLICATION_WINDOW_Y,
   MAX_EXTERNAL_APPLICATION_NAME_LENGTH,
   MAX_EXTERNAL_APPLICATION_QUEUE_NAME_LENGTH,
   MAX_EXTERNAL_APPLICATION_QUEUE_NAMES,
@@ -22,8 +24,12 @@ import {
   MAX_EXTERNAL_APPLICATION_URL_LENGTH,
   MAX_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
   MAX_EXTERNAL_APPLICATION_WINDOW_WIDTH,
+  MAX_EXTERNAL_APPLICATION_WINDOW_X,
+  MAX_EXTERNAL_APPLICATION_WINDOW_Y,
   MIN_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
   MIN_EXTERNAL_APPLICATION_WINDOW_WIDTH,
+  MIN_EXTERNAL_APPLICATION_WINDOW_X,
+  MIN_EXTERNAL_APPLICATION_WINDOW_Y,
   isExternalApplicationCallDirectionFilter,
   isExternalApplicationOnCallEndedAction,
   isExternalApplicationOpenMode,
@@ -308,6 +314,8 @@ function parseWindow(
     return Object.freeze({
       width: DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH,
       height: DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
+      x: DEFAULT_EXTERNAL_APPLICATION_WINDOW_X,
+      y: DEFAULT_EXTERNAL_APPLICATION_WINDOW_Y,
     });
   }
   const width = parseWindowDimension(
@@ -326,7 +334,38 @@ function parseWindow(
     DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
     errors,
   );
-  return Object.freeze({ width, height });
+  const x = parseWindowCoordinate(
+    value["x"],
+    `${path}.x`,
+    MIN_EXTERNAL_APPLICATION_WINDOW_X,
+    MAX_EXTERNAL_APPLICATION_WINDOW_X,
+    DEFAULT_EXTERNAL_APPLICATION_WINDOW_X,
+    errors,
+  );
+  const y = parseWindowCoordinate(
+    value["y"],
+    `${path}.y`,
+    MIN_EXTERNAL_APPLICATION_WINDOW_Y,
+    MAX_EXTERNAL_APPLICATION_WINDOW_Y,
+    DEFAULT_EXTERNAL_APPLICATION_WINDOW_Y,
+    errors,
+  );
+  return Object.freeze({ width, height, x, y });
+}
+
+/** Missing coordinate → default (backward compatible); invalid → default + error. */
+function parseWindowCoordinate(
+  value: unknown,
+  path: string,
+  min: number,
+  max: number,
+  fallback: number,
+  errors: ExternalApplicationsSettingsValidationError[],
+): number {
+  if (value === undefined) {
+    return fallback;
+  }
+  return parseWindowDimension(value, path, min, max, fallback, errors);
 }
 
 function parseWindowDimension(
@@ -490,6 +529,8 @@ function emptyApplication(): ExternalApplicationDefinition {
     window: Object.freeze({
       width: DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH,
       height: DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT,
+      x: DEFAULT_EXTERNAL_APPLICATION_WINDOW_X,
+      y: DEFAULT_EXTERNAL_APPLICATION_WINDOW_Y,
     }),
     variables: Object.freeze([]),
     triggers: Object.freeze([]),

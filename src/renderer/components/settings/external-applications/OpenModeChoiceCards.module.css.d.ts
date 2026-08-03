@@ -18,6 +18,7 @@ declare const classes: {
   readonly schematicDesktop: string;
   readonly schematicDesktopOutline: string;
   readonly schematicDot: string;
+  readonly schematicDotMuted: string;
   readonly schematicSoftphone: string;
   readonly schematicSoftphoneHeader: string;
   readonly schematicSoftphoneInner: string;

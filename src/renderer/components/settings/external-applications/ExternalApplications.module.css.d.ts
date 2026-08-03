@@ -6,7 +6,9 @@ declare const classes: {
   readonly applicationNameDisabled: string;
   readonly applicationRow: string;
   readonly applicationRowActions: string;
+  readonly applicationRowDirty: string;
   readonly applicationRowSelected: string;
+  readonly editorSaveCluster: string;
   readonly applicationStatusDot: string;
   readonly applicationStatusDotOff: string;
   readonly applicationStatusDotOn: string;
@@ -41,6 +43,7 @@ declare const classes: {
   readonly sidebar: string;
   readonly sidebarFooter: string;
   readonly switchRow: string;
+  readonly unsavedHint: string;
   readonly urlBar: string;
   readonly urlBarBlock: string;
   readonly variableRow: string;
