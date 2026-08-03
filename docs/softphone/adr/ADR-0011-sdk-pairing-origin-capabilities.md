@@ -26,10 +26,11 @@ revocation before any product state is exposed (DI-04).
 
 1. **Exact Origin gate:** Origin strings are matched **exactly** (missing, `null`, wildcard,
    suffix, and substring matches are rejected). Origin is an additional gate, **not** client
-   identity. **Upgrade admission** (unknown → renderer TOFU modal Allow/Deny, allowed,
-   denied/blacklist, Unblock restore rules) is defined by **ADR-0018**; this ADR no longer
-   requires the Origin to be pre-listed before the first WebSocket upgrade. Pairing /
-   PoP / session grants remain this ADR + ADR-0016 and run **after** Origin is `allowed`.
+   identity. **Upgrade admission** is defined by **ADR-0018** (amended 2026-08-03): only
+   **`allowed`** Origins receive a WebSocket; `unknown` / `denied` / malformed reject at
+   upgrade (`origin_blocked`). Pre-list via Trusted sites or
+   `OMNICALL_SDK_ALLOWED_ORIGINS`. Pairing / PoP / session grants remain this ADR +
+   ADR-0016 and run **after** Origin is `allowed`.
 
 2. **Pairing:** Explicit local user/admin approval is required before a client installation
    becomes trusted. Each client receives a distinct revocable identity. Pairing material is

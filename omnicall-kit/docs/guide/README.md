@@ -3,7 +3,7 @@
 Canonical developer documentation for `@softomnitel/omnicall-kit`.
 
 **Status (2026-08-02):** F-011 **implemented**; desktop DI-10 **closed**; npm +
-workspace `@softomnitel/omnicall-kit@0.2.0` / `@softomnitel/omnicall-protocol@0.1.0`
+workspace `@softomnitel/omnicall-kit@0.2.1` / `@softomnitel/omnicall-protocol@0.1.0`
 (`latest`); RC `0.1.0-rc.0` on tag `rc`. License **UNLICENSED** — publish
 fail-closed until human license review.
 

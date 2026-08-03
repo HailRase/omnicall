@@ -55,7 +55,7 @@ browser Local Network Access / loopback permission policy (**ADR-0015**).
 
 | Constraint | Guidance |
 | --- | --- |
-| Exact Origin | Desktop matches the exact Origin string; admission is TOFU/blacklist (ADR-0018) |
+| Exact Origin | Desktop matches the exact Origin string; WebSocket only for `allowed` Trusted sites / seed; blacklist rejects (ADR-0018 amended 2026-08-03) |
 | Discovery | Loopback HTTP discovery only; never embed secrets in discovery docs |
 | Permission denied | Map to stable client errors (`local_network_permission_*`) — not silent success |
 | Mixed content | Prefer documented desktop endpoint URL your product already approved |

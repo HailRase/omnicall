@@ -46,13 +46,17 @@ console.log(snapshot.revision);
 
 ## Что нужно для работы
 
-1. OmniCall Desktop должен быть установлен, запущен и иметь включённый SDK
-   gateway.
-2. Страница CRM должна работать в Chromium или Edge на Chromium.
-3. Для сборки проекта нужен Node.js `>=20.19.0` и npm `>=10`.
-4. В браузере нужны Web Crypto и IndexedDB. Они хранят криптографическую
+1. OmniCall Desktop должен быть установлен и запущен (SDK gateway всегда слушает
+   на primary instance; Desktop ≥ `1.3.1`).
+2. **Exact Origin CRM должен быть заранее в Trusted sites** (Settings → OmniCall Kit →
+   Trusted sites) или в seed `OMNICALL_SDK_ALLOWED_ORIGINS`. Неразрешённый
+   (`unknown`) Origin **не** открывает WebSocket — клиент получает
+   `origin_blocked`. Pairing Approve — отдельный шаг уже после allow.
+3. Страница CRM должна работать в Chromium или Edge на Chromium.
+4. Для сборки проекта нужен Node.js `>=20.19.0` и npm `>=10`.
+5. В браузере нужны Web Crypto и IndexedDB. Они хранят криптографическую
    идентичность браузера.
-5. Если CRM работает по HTTPS, браузер может спросить разрешение на связь с
+6. Если CRM работает по HTTPS, браузер может спросить разрешение на связь с
    локальной программой. Объясните это действие оператору в интерфейсе.
 
 Firefox и Safari пока не входят в заявленную матрицу поддержки.
@@ -67,7 +71,7 @@ npm install @softomnitel/omnicall-kit
 закрытом npm registry:
 
 ```bash
-npm install @softomnitel/omnicall-kit@0.2.0
+npm install @softomnitel/omnicall-kit@0.2.1
 ```
 
 Пакет ESM-only. Импортируйте его через `import`, а не `require`.
@@ -110,6 +114,7 @@ Discovery ходит только на фиксированный loopback endpo
 
 `origin` — точный адрес CRM из браузера: схема, домен и порт. Например,
 `https://crm.example`. Desktop не принимает маски, поддомены и частичные строки.
+Этот Origin должен уже быть **`allowed`** в Desktop до `connect()`.
 
 Не передавайте `sdkVersion` в options: handshake-версия всегда берётся из
 `SDK_VERSION` пакета.
@@ -437,7 +442,7 @@ function discoverOmniCallDesktop(options: {
   signal?: AbortSignal;
 }): Promise<DiscoveryDocument>;
 
-const SDK_VERSION: '0.2.0';
+const SDK_VERSION: '0.2.1';
 ```
 
 `discoverOmniCallDesktop` валидирует только trusted loopback discovery Desktop.
@@ -962,6 +967,14 @@ Desktop не выдал capability или оператор запретил Orig
 `getGrantedCapabilities()`. Для `window.hide` и `account.activate` оператор
 должен выдать право в Origin matrix Desktop.
 
+### `origin_blocked`: сокет не открывается
+
+Exact Origin CRM не в Trusted sites / seed, либо Origin в blacklist. Добавьте
+Origin в Settings → OmniCall Kit → Trusted sites (или Unblock, если был
+заблокирован), затем подключитесь снова. Не крутите `connect()` в цикле —
+ошибка **не** retryable. Discovery на `unknown` Origin может работать; WebSocket —
+нет, пока Origin не `allowed`.
+
 ### `pairing_required` не заканчивается
 
 Оператор ещё не подтвердил CRM в OmniCall Desktop. Покажите адрес из
@@ -989,16 +1002,25 @@ SDK не совместим с legacy `window.Softphone` и не предост�
 Переносите интеграцию на `createOmniCallClient()`, snapshot, публичные события и
 namespaces клиента.
 
-### С `0.1.x` на `0.2.0`
+### С `0.2.0` на `0.2.1`
 
-1. Обновите pin: `npm install @softomnitel/omnicall-kit@0.2.0`.
+1. Обновите pin: `npm install @softomnitel/omnicall-kit@0.2.1`.
+2. API методов не менялся: обновите интеграторский контракт по README (Trusted sites
+   до `connect()`, `origin_blocked` для unknown Origin).
+
+### С `0.1.x` на `0.2.1`
+
+1. Обновите pin: `npm install @softomnitel/omnicall-kit@0.2.1`.
 2. Удалите любой ручной `sdkVersion` из options клиента — его больше нет в публичном API.
-3. Для цепочек мутаций используйте `result.revision` или `client.getRevision()`;
-   не ждите, что `getCachedSnapshot()` обновится от reply/events.
+3. Для цепочек мутаций используйте `result.revision` или `client.getRevision()`
+   (latest-known); не ждите, что `getCachedSnapshot()` обновится от reply/events.
 4. При необходимости ловите `WaitUntilTimeoutError` и/или передавайте `{ timeoutMs, signal }`
    в `waitUntil`.
 5. Опционально используйте `discoverOmniCallDesktop` вместо захардкоженного URL.
-6. Нужен OmniCall Desktop **≥ 1.3.1** для coordinator/dedup/pairing/Origin hardening.
+6. Нужен OmniCall Desktop **≥ 1.3.1** (единый revision coordinator, dedup
+   Origin+clientId+requestId, pairing Origin+clientId, **fail-closed Origin upgrade**).
+7. Перед `connect()` Origin CRM должен быть в Trusted sites / seed — first-contact
+   TOFU-on-upgrade больше не используется (ADR-0018 amended 2026-08-03).
 
 При `incompatible_version` остановите функции телефонии и предложите обновить
 пакет или Desktop. Добавление необязательных полей совместимо. Удаление,

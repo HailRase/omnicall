@@ -8,8 +8,13 @@
 > amendment (matrix + telephony-busy deny + tray). See
 > `evidence/DI-05-window-hide-product.md`. Rows below that say “hide unavailable”
 > describe DI-11 gate day only.
+>
+> **Superseded note (2026-08-03):** WebSocket upgrade is **fail-closed** — only
+> `allowed` Origins open a socket (Trusted sites / `OMNICALL_SDK_ALLOWED_ORIGINS`).
+> First-contact TOFU-on-upgrade described in this evidence is **historical**.
+> See ADR-0018 amendment + `sdk-production-readiness/PROGRESS.md`.
 
-**ADR:** ADR-0018 Accepted  
+**ADR:** ADR-0018 Accepted (amended 2026-08-03 Origin upgrade)  
 
 ## Prerequisites verified
 

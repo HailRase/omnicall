@@ -59,8 +59,8 @@
 
 ### Remaining (human publish only)
 
-- [ ] Human license approval + `RELEASE_LICENSE_REVIEWED=1`
-- [ ] Human npm publish authorization + SemVer bump cut
+- [x] Human license approval + `RELEASE_LICENSE_REVIEWED=1` (authorized cut per `CLOSEOUT.md`)
+- [x] Human npm publish authorization + SemVer bump cut — Desktop **`1.3.1`**, kit **`0.2.0`**
 
 ### Agent policy
 

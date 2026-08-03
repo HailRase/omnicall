@@ -105,8 +105,9 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 - focus behavior follows local policy (ADR-0013) and rate limit;
 - incoming ringing raises shell once per callId (IPC `shell:window-raise`);
 - outgoing Connecting raises shell once per callId;
-- Origin TOFU / pairing pending raise from main; root `SdkConnectCeremonyModal` (no Settings redirect);
-- pending cancelled on disconnect / Origin leave-allowed / TTL sweeper (no blacklist on TOFU cancel);
+- Pairing pending raise from main; root `SdkConnectCeremonyModal` (no Settings redirect);
+  Origin first-contact = Trusted sites / seed (fail-closed upgrade); no TOFU-on-upgrade;
+- pairing pending cancelled on disconnect / Origin leave-allowed / TTL sweeper;
 - activate consent pending raises via renderer IPC;
 - login activate: matrix enables `account.activate`; consent method picker; same-client
   idempotent; different client reauthorize; logout_required; cancel vs deny details;

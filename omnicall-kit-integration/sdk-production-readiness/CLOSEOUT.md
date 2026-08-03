@@ -49,6 +49,12 @@
 | `@softomnitel/omnicall-protocol` | `0.1.0` | **no bump** | wire field names unchanged |
 | OmniCall Desktop | `1.3.1` | **shipped PATCH** | coordinator/dedup/pairing/origin hardening |
 
+## Docs alignment (post-closeout, no security downgrade)
+
+Authoritative Origin admission: **fail-closed upgrade** (`allowed` only) — ADR-0018
+amended 2026-08-03, `SECURITY.md`, kit README / guides, integration README Current
+Status. Do **not** restore TOFU-on-upgrade without a new ADR.
+
 ## Independent review request
 
 WU-07 content gate is **PASS**. Further `/sdk-review` optional before human publish cut.

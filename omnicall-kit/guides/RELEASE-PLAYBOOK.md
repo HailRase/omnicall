@@ -35,8 +35,8 @@ Mirrors OmniCall desktop release discipline, adapted for npm private packages (o
 | --- | --- |
 | Scope | `@softomnitel` |
 | `publishConfig.access` | **`public`** (Free org interim) or **`restricted`** (Teams) |
-| Workspace truth | kit **`0.2.0`**, protocol **`0.1.0`** (`packages/*/package.json`) |
-| npm `latest` (verified) | kit **`0.2.0`**, protocol **`0.1.0`** |
+| Workspace truth | kit **`0.2.1`**, protocol **`0.1.0`** (`packages/*/package.json`) |
+| npm `latest` (verified) | kit **`0.2.1`**, protocol **`0.1.0`** |
 | npm `rc` | **`0.1.0-rc.0`** (both) |
 | Free org plan | Can prepare locally; **cannot** publish restricted |
 | Stable dist-tag | **`latest`** (DI-10 closed 2026-07-27) |

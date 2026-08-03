@@ -250,7 +250,8 @@ Initial error codes:
 
 Wire details keys (inside `forbidden` / related failures — no secrets):
 
-- `origin_denied` — first-contact Origin Deny (typed reply then close)
+- `origin_denied` — residual Origin deny wire detail (historical first-contact path;
+  production unknown Origins are rejected at upgrade as `origin_blocked`)
 - `permission_denied` — capability or Origin matrix deny (including activate disabled)
 - `activate_denied_for_origin` — activate blocked for Origin after consent Deny / policy
 - `activate_consent_pending` — optional details key with primary wire code `conflict` when
@@ -341,7 +342,8 @@ below with ADR-0014…0017. IDs match the P12 handoff.
 | O-OCP-1 | Public operator field names vs F-028 E-12 map | ADR-0017 | DI-07 |
 
 Policy baselines (still closed from DI-00 / ADR-0018): loopback-only bind, exact Origin
-match with TOFU/blacklist admission (ADR-0018), discovery CORS for `unknown`+`allowed`,
+match with fail-closed `allowed`-only WebSocket upgrade + blacklist (ADR-0018 amended
+2026-08-03), discovery CORS for `unknown`+`allowed` (onboarding read, not WS grant),
 no raw credentials in v1, per-client events, `window:hide` gated, Account sole human
 sign-in (ADR-AF-003) with saved-account login activation + per-attempt consent modal
 (ADR-0018). Always-on gateway listener (no normal Settings off toggle; env kill-switch

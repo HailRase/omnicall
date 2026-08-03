@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-08-03
-**Version:** `1.3.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit@0.2.0` + `@softomnitel/omnicall-protocol@0.1.0`)
+**Version:** `1.3.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit@0.2.1` + `@softomnitel/omnicall-protocol@0.1.0`)
 **Feedback channels:** ADR-0026 Feedback Channel Law — anti-dual; ephemeral outcomes → `notify` (incl. SDK/OCP/EA/ES save + screen-share confirm); Account errors → persistent Alert + journaled critical; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
 **Tests:** `1.3.1` cut — release preflight green (2026-08-03)
 **Settings nav:** Integrations = always-open cluster (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
@@ -28,7 +28,7 @@
 | Handoff | `handoffs/P12-External-Host-API-Master-Handoff.md` |
 | ADR | ADR-0027 (+ ADR-0009…0018 historical) |
 | Gate | unit + integration + desktop/kit preflight only — agents must not run packaged Electron / Chromium / Edge smoke |
-| Release | Desktop **`1.3.1`** + kit **`0.2.0`** (2026-08-03) |
+| Release | Desktop **`1.3.1`** + kit **`0.2.1`** (2026-08-03) |
 
 ## Closed — F-034 Notification Center
 
@@ -139,7 +139,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 **Recently closed (TASK-QUEUE):** **T-053 / F-034** Notification Center WU-00…WU-10 (`implemented`; WU-09 OS deferred; 2026-08-02); **F-032/F-033** merged to local `main` from `feature/external-applications` (2026-08-02); **F-031/F-032** additive automatic trigger `post_call_processing` (2026-07-31); **F-014/F-028 / LF-058** OCP transport recovery UX harden (2026-07-30); **T-052 / F-031** External Services (`implemented`; 2026-07-30).
 
-**F-011 / P12 corrective track:** **T-054 / WU-07 PASS** (2026-08-03). F-011 **`implemented`**. Shipped Desktop **`1.3.1`** + kit **`0.2.0`**. Gate = unit + integration + preflight only.
+**F-011 / P12 corrective track:** **T-054 / WU-07 PASS** (2026-08-03). F-011 **`implemented`**. Shipped Desktop **`1.3.1`** + kit **`0.2.1`**. Gate = unit + integration + preflight only.
 
 ## RAT (Real Adapter Track)
 
@@ -161,7 +161,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **1.3.1** (2026-08-03) — F-011 SDK production-readiness + kit **`0.2.0`** |
+| Shipped | **1.3.1** (2026-08-03) — F-011 SDK production-readiness; kit **`0.2.1`** (docs/admission sync) |
 | Previous | **1.3.0** (F-034/F-033/F-032), **1.2.0**, **1.1.2**… |
 | Next cut | PATCH hotfix as needed; WU-09 OS banners deferred |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |

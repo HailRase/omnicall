@@ -49,7 +49,7 @@ describe('@softomnitel/omnicall-kit type smoke', () => {
     expectTypeOf<OmniCallClient['window']>().toHaveProperty('show');
     expectTypeOf<OmniCallClientOptions>().toHaveProperty('origin');
     expectTypeOf<OmniCallClientOptions>().not.toHaveProperty('sdkVersion');
-    expectTypeOf(SDK_VERSION).toEqualTypeOf<'0.2.0'>();
+    expectTypeOf(SDK_VERSION).toEqualTypeOf<'0.2.1'>();
     expectTypeOf<OmniCallClientOptions['transportFactory']>().toEqualTypeOf<
       (() => TransportPort) | undefined
     >();

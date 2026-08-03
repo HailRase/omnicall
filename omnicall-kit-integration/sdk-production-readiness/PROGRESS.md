@@ -27,8 +27,8 @@
 
 ## Next (human only)
 
-1. SemVer cut recommendation: kit `0.1.5` or `0.2.0`; Desktop `1.3.1`; protocol no bump
-2. License review + `RELEASE_LICENSE_REVIEWED=1`
-3. Human npm publish authorization
+Shipped per `CLOSEOUT.md`: Desktop **`1.3.1`**, kit **`0.2.0`**, protocol **`0.1.0`**.
+Docs/ADR/SECURITY/READMEs aligned to fail-closed Origin upgrade (2026-08-03) — no
+TOFU-on-upgrade restore without a new ADR.
 
 No further remediation WU in this track.

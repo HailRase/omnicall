@@ -1,5 +1,15 @@
 # @softomnitel/omnicall-kit
 
+## 0.2.1
+
+### Patch Changes
+
+- Integrator README / guides aligned with production Origin admission: WebSocket
+  upgrade is fail-closed (`allowed` Trusted sites / seed only); TOFU-on-upgrade
+  superseded (ADR-0018 amended 2026-08-03). Documents `origin_blocked` for unknown
+  Origins, Desktop ≥ `1.3.1`, and keeps latest-known `getRevision()` / discovery /
+  `waitUntil` DX from `0.2.0`. No wire or public method removals.
+
 ## 0.2.0
 
 ### Minor Changes

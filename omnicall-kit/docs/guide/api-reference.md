@@ -137,7 +137,8 @@ are **optional** in browsers (defaults above). Inject fakes in unit tests. See
 
 ## `client.calls`
 
-All mutations require `expectedRevision` from a fresh snapshot.
+All mutations require `expectedRevision` (use `getRevision()` latest-known or a fresh
+`getSnapshot()` after reconnect / `stale_state`).
 
 | Method | Capability |
 | --- | --- |

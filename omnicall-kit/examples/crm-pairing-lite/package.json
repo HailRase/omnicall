@@ -8,6 +8,6 @@
     ".": "./src/crm-app.ts"
   },
   "dependencies": {
-    "@softomnitel/omnicall-kit": "0.2.0"
+    "@softomnitel/omnicall-kit": "0.2.1"
   }
 }

@@ -34,14 +34,14 @@ Raw `error.details` remains `WireJsonObject | undefined` for additive keys.
 | `operation_failed` | Generic failure | Show failure; log code only. For `call:originate`, check `details.failure_kind === "sip_not_registered"` — SIP not registered; do not expect `call:failed` event (preflight deny). |
 | `local_network_permission_required` / `_denied` | Browser LNA / loopback | Guide user to allow local network |
 | `discovery_unreachable` | Desktop discovery failed | Is desktop running? Gateway always-on per ADR-0018 |
-| `origin_blocked` | Blacklisted Origin — upgrade rejected (no wire JSON) | Operator Unblock in Settings → OmniCall Kit; do not auto-retry |
+| `origin_blocked` | Upgrade rejected — Origin not `allowed` (unknown / missing / malformed) or blacklisted | Add to Trusted sites / seed, or Unblock if blacklisted; do not auto-retry |
 | `invalid_message` / `unsupported_command` | Protocol mismatch | Fail closed |
 
-### Origin transport failures (ADR-0018)
+### Origin transport failures (ADR-0018 amended 2026-08-03)
 
 | Situation | Typical host signal | Next step |
 | --- | --- | --- |
-| First Origin Deny | `forbidden` + details `origin_denied`, then socket close | Stop retry; wait for operator Allow / Unblock |
+| Origin not pre-allowed (`unknown`) | Client code `origin_blocked` (upgrade fail, no wire JSON) | Operator adds exact Origin in Settings → OmniCall Kit → Trusted sites (or seed env) |
 | Blacklisted Origin | Client code `origin_blocked` (upgrade fail) | Operator must Unblock in Settings → OmniCall Kit |
 | Capability / activate policy deny (WS up) | `forbidden` + `permission_denied` | Edit per-Origin matrix; do not treat as blacklist. Applies to live matrix shrink mid-session as well as activate-off |
 

@@ -9,7 +9,7 @@
 | Поле | Значение |
 | --- | --- |
 | npm | `@softomnitel/omnicall-kit` (+ транзитивно `@softomnitel/omnicall-protocol`) |
-| Stable | kit `0.2.0` / protocol `0.1.0` (`latest`) |
+| Stable | kit `0.2.1` / protocol `0.1.0` (`latest`) |
 | RC | `0.1.0-rc.0` (`rc`) |
 | Feature Registry | F-011 — **implemented** (DI-10 closed) |
 | Браузеры | Chromium / Edge (Chromium). Firefox/Safari — не заявлены |
@@ -70,7 +70,7 @@ const client = createOmniCallClient({
 });
 
 client.onPairingRequired((info) => {
-  // Пользователь должен Allow Origin (TOFU) и Approve pairing в OmniCall
+  // Origin уже должен быть в Trusted sites; здесь — Approve pairing в OmniCall
   void info.origin;
   void info.requestedProfile;
 });
@@ -150,7 +150,7 @@ Shared desk (ADR-0021): любой авторизованный paired-клие�
 
 ```bash
 npm install @softomnitel/omnicall-kit
-# pin: npm install @softomnitel/omnicall-kit@0.2.0
+# pin: npm install @softomnitel/omnicall-kit@0.2.1
 # RC:  npm install @softomnitel/omnicall-kit@rc
 ```
 
@@ -277,9 +277,10 @@ try {
 ### Origin
 
 - Exact match строки Origin — без wildcard / substring.
-- Первый контакт: TOFU Allow/Deny в OmniCall (ADR-0018).
-- Blacklist → `origin_blocked` (сокет не поднимается) — Unblock в Settings → OmniCall Kit.
-- Deny → `forbidden` + `origin_denied`, затем close.
+- До `connect()`: Origin в Trusted sites или seed `OMNICALL_SDK_ALLOWED_ORIGINS`
+  (ADR-0018 amended 2026-08-03). Upgrade для `unknown` **отклонён**.
+- Unknown / blacklist → `origin_blocked` (сокет не поднимается).
+- Pairing Approve — отдельный шаг уже на `allowed` Origin (ADR-0016).
 
 ### Capabilities: request vs grant
 
@@ -720,9 +721,9 @@ EN: [security-anti-patterns.md](./security-anti-patterns.md).
 
 ## Чеклист перед продом
 
-- [ ] Установлен `@softomnitel/omnicall-kit@0.2.0` (или осознанный pin/`rc`)
+- [ ] Установлен `@softomnitel/omnicall-kit@0.2.1` (или осознанный pin/`rc`)
 - [ ] OmniCall Desktop запущен; SDK gateway / Integrations включены
-- [ ] Origin CRM exact match; TOFU Allow проверен; blacklist path понятен
+- [ ] Origin CRM exact match; Trusted sites / seed до connect; blacklist path понятен
 - [ ] Pairing UX: инструкция при `pairing_required`; revoke → clear + re-pair
 - [ ] PoP в IndexedDB (`installId` стабилен); нет Web Storage для ключей
 - [ ] `requestedCapabilities` без privileged ids

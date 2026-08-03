@@ -486,7 +486,7 @@ export { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS }
 export { SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS }
 
 // @public
-export const SDK_VERSION: "0.2.0";
+export const SDK_VERSION: "0.2.1";
 
 export { SnapshotCallSummary }
 
