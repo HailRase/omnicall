@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 20:03
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `866284df`
 
 ## Где
 - `src/renderer/components/settings/external-applications/WindowGeometryPreview.module.css`
