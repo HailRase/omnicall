@@ -83,11 +83,21 @@ const ruMessages = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Имя очереди",
   "settings.integrations.externalApplications.windowBehavior.title": "Поведение окна",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Поднять при открытии",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Выводит окно карточки на передний план при открытии.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Поверх окон во время звонка",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Держит окно поверх других только пока идёт звонок.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "После звонка",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Оставить",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "Окно карточки останется открытым после завершения звонка.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Свернуть",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "Окно свернётся в панель задач после завершения звонка.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Закрыть",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "Окно карточки закроется после завершения звонка.",
   "settings.integrations.externalApplications.history.nav": "История",
   "settings.integrations.externalApplications.history.title": "История открытий",
   "settings.integrations.externalApplications.history.loading": "Загрузка…",
@@ -1930,11 +1940,21 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Queue name",
   "settings.integrations.externalApplications.windowBehavior.title": "Window behavior",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Raise on open",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Brings the card window to the front when it opens.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Always on top during call",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Keeps the window above others only while the call is active.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "After call ends",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Leave open",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "The card window stays open after the call ends.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Minimize",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "The card window minimizes to the taskbar after the call ends.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Close",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "The card window closes after the call ends.",
   "settings.integrations.externalApplications.history.nav": "History",
   "settings.integrations.externalApplications.history.title": "Open history",
   "settings.integrations.externalApplications.history.loading": "Loading…",
@@ -3713,11 +3733,21 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Nom de la file",
   "settings.integrations.externalApplications.windowBehavior.title": "Comportement de la fenêtre",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Mettre au premier plan",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Place la fenêtre de la fiche au premier plan à l’ouverture.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Au-dessus pendant l’appel",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Garde la fenêtre au-dessus des autres uniquement pendant l’appel.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "Après l’appel",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Laisser ouverte",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "La fenêtre de la fiche reste ouverte après la fin de l’appel.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Réduire",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "La fenêtre est réduite dans la barre des tâches après l’appel.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Fermer",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "La fenêtre de la fiche se ferme après la fin de l’appel.",
   "settings.integrations.externalApplications.history.nav": "Historique",
   "settings.integrations.externalApplications.history.title": "Historique d’ouverture",
   "settings.integrations.externalApplications.history.loading": "Chargement…",
@@ -5444,11 +5474,21 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Name der Warteschlange",
   "settings.integrations.externalApplications.windowBehavior.title": "Fensterverhalten",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Beim Öffnen in den Vordergrund",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Holt das Kartenfenster beim Öffnen in den Vordergrund.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Während des Anrufs im Vordergrund",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Hält das Fenster nur während des Anrufs über anderen Fenstern.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "Nach dem Anruf",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Offen lassen",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "Das Kartenfenster bleibt nach dem Anruf geöffnet.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Minimieren",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "Das Kartenfenster wird nach dem Anruf in die Taskleiste minimiert.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Schließen",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "Das Kartenfenster wird nach dem Anruf geschlossen.",
   "settings.integrations.externalApplications.history.nav": "Verlauf",
   "settings.integrations.externalApplications.history.title": "Öffnungsverlauf",
   "settings.integrations.externalApplications.history.loading": "Laden…",

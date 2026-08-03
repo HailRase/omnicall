@@ -76,14 +76,19 @@
 | `SettingsNavLeafItem` | `src/renderer/components/settings/SettingsSidebarNavItems.tsx` | `SettingsNavLeafItemProps` | — | — |
 | `ExternalApplicationsConditionsSection` | `src/renderer/components/settings/external-applications/ExternalApplicationsConditionsSection.tsx` | `ExternalApplicationsConditionsSectionProps` | external-applications-conditions, external-applications-condition-queue-add | f=F-032 |
 | `ExternalApplicationsEditor` | `src/renderer/components/settings/external-applications/ExternalApplicationsEditor.tsx` | `ExternalApplicationsEditorProps` | external-applications-editor, external-applications-save, external-applications-url, external-applications-open-now, external-applications-tab-general, external-applications-tab-events, external-applications-tab-conditions, external-applications-tab-variables | f=F-032 |
-| `ExternalApplicationsGeneralTab` | `src/renderer/components/settings/external-applications/ExternalApplicationsGeneralTab.tsx` | `ExternalApplicationsGeneralTabProps` | external-applications-window-behavior | f=F-032 |
+| `ExternalApplicationsGeneralTab` | `src/renderer/components/settings/external-applications/ExternalApplicationsGeneralTab.tsx` | `ExternalApplicationsGeneralTabProps` | — | f=F-032 |
 | `ExternalApplicationsHistoryPanel` | `src/renderer/components/settings/external-applications/ExternalApplicationsHistoryPanel.tsx` | `ExternalApplicationsHistoryPanelProps` | external-applications-history, external-applications-history-empty | f=F-032 |
 | `ExternalApplicationsInlineRename` | `src/renderer/components/settings/external-applications/ExternalApplicationsInlineRename.tsx` | `ExternalApplicationsInlineRenameProps` | — | f=F-032 |
 | `ExternalApplicationsPanel` | `src/renderer/components/settings/external-applications/ExternalApplicationsPanel.tsx` | `ExternalApplicationsPanelProps` | external-applications-panel | f=F-032 |
 | `ExternalApplicationsSidebar` | `src/renderer/components/settings/external-applications/ExternalApplicationsSidebar.tsx` | `ExternalApplicationsSidebarProps` | external-applications-sidebar, external-applications-history-nav, external-applications-add | f=F-032 |
 | `ExternalApplicationsVariablesTab` | `src/renderer/components/settings/external-applications/ExternalApplicationsVariablesTab.tsx` | `ExternalApplicationsVariablesTabProps` | external-applications-variables, external-applications-variables-add | f=F-032 |
+| `ExternalApplicationsWindowBehavior` | `src/renderer/components/settings/external-applications/ExternalApplicationsWindowBehavior.tsx` | `ExternalApplicationsWindowBehaviorProps` | external-applications-window-behavior | f=F-032 |
+| `OnCallEndedChoiceCards` | `src/renderer/components/settings/external-applications/OnCallEndedChoiceCards.tsx` | `OnCallEndedChoiceCardsProps` | external-applications-on-call-ended | f=F-032 |
+| `DesktopStage` | `src/renderer/components/settings/external-applications/OnCallEndedSchematicParts.tsx` | `—` | — | — |
+| `LeaveOpenSchematic` | `src/renderer/components/settings/external-applications/OnCallEndedSchematics.tsx` | `—` | — | — |
 | `OpenModeChoiceCards` | `src/renderer/components/settings/external-applications/OpenModeChoiceCards.tsx` | `OpenModeChoiceCardsProps` | external-applications-open-mode | f=F-032 |
 | `ElectronWindowSchematic` | `src/renderer/components/settings/external-applications/OpenModeSchematics.tsx` | `—` | — | — |
+| `buildOnCallEndedOptions` | `src/renderer/components/settings/external-applications/onCallEndedOptions.tsx` | `—` | — | — |
 | `ExternalServicesBodyModeRadios` | `src/renderer/components/settings/external-services/ExternalServicesBodyModeRadios.tsx` | `ExternalServicesBodyModeRadiosProps` | external-services-body-mode | f=F-031 |
 | `ExternalServicesCollectionVariableRow` | `src/renderer/components/settings/external-services/ExternalServicesCollectionVariableRow.tsx` | `ExternalServicesCollectionVariableRowProps` | — | f=F-031 |
 | `ExternalServicesCollectionsDialogs` | `src/renderer/components/settings/external-services/ExternalServicesCollectionsDialogs.tsx` | `ExternalServicesCollectionsDialogsProps` | external-services-discard-changes | f=F-031 |

@@ -693,11 +693,21 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Име на опашката",
   "settings.integrations.externalApplications.windowBehavior.title": "Поведение на прозореца",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Покажи при отваряне",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Извежда прозореца на картата на преден план при отваряне.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Над другите по време на обаждане",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Държи прозореца над другите само докато трае обаждането.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "След обаждане",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Остави отворен",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "Прозорецът на картата остава отворен след края на обаждането.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Минимизирай",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "Прозорецът се минимизира в лентата на задачите след обаждането.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Затвори",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "Прозорецът на картата се затваря след края на обаждането.",
   "settings.integrations.externalApplications.history.nav": "История",
   "settings.integrations.externalApplications.history.title": "История на отварянията",
   "settings.integrations.externalApplications.history.loading": "Зареждане…",

@@ -174,4 +174,68 @@ describe("ExternalApplicationsPanel", () => {
       expect.objectContaining({ openMode: "external_browser" }),
     );
   });
+
+  it("selects onCallEnded via illustrated radio cards", async () => {
+    setupJsdomRadix();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    renderPanel({ onChange });
+
+    const group = screen.getByTestId("external-applications-on-call-ended");
+    expect(group).toHaveAttribute("role", "radiogroup");
+    expect(screen.getByTestId("external-applications-window-behavior")).toBeInTheDocument();
+
+    const leave = screen.getByRole("radio", { name: /оставить|leave open/i });
+    const minimize = screen.getByRole("radio", { name: /свернуть|minimize/i });
+    const close = screen.getByRole("radio", { name: /закрыть|close/i });
+
+    expect(leave).toBeChecked();
+    expect(minimize).not.toBeChecked();
+    expect(close).not.toBeChecked();
+
+    await user.click(minimize);
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        windowBehavior: expect.objectContaining({ onCallEnded: "minimize" }),
+      }),
+    );
+  });
+
+  it("keeps onCallEnded radios keyboard accessible", async () => {
+    setupJsdomRadix();
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    renderPanel({ onChange });
+
+    const leave = screen.getByRole("radio", { name: /оставить|leave open/i });
+    leave.focus();
+    expect(leave).toHaveFocus();
+
+    await user.keyboard("{ArrowRight}");
+    const minimize = screen.getByRole("radio", { name: /свернуть|minimize/i });
+    expect(minimize).toHaveFocus();
+
+    await user.keyboard(" ");
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        windowBehavior: expect.objectContaining({ onCallEnded: "minimize" }),
+      }),
+    );
+  });
+
+  it("hides window behavior when open mode is external browser", () => {
+    setupJsdomRadix();
+    const browserApp = { ...application, openMode: "external_browser" as const };
+
+    renderPanel({
+      applications: [browserApp],
+      selectedApplication: browserApp,
+    });
+
+    expect(screen.queryByTestId("external-applications-window-behavior")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("external-applications-on-call-ended")).not.toBeInTheDocument();
+  });
 });
