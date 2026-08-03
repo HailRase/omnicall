@@ -114,6 +114,8 @@ const externalApplicationsDefaults = {
   busy: false,
   loadError: false,
   forceNameEditKey: 0,
+  isDirty: false,
+  discardDialogOpen: false,
   onSelectApplication: vi.fn(),
   onSelectHistory: vi.fn(),
   onRetryHistory: vi.fn(),
@@ -125,6 +127,8 @@ const externalApplicationsDefaults = {
   onChange: vi.fn(),
   onSave: vi.fn(),
   onOpenNow: vi.fn(),
+  onDiscardDialogOpenChange: vi.fn(),
+  onDiscardConfirm: vi.fn(),
 } satisfies ExternalApplicationsPanelProps;
 
 export const settingsIntegrationsTestDefaults = {
@@ -209,6 +213,8 @@ export const settingsIntegrationsStoryDefaults = {
       onChange: () => undefined,
       onSave: () => undefined,
       onOpenNow: () => undefined,
+      onDiscardDialogOpenChange: () => undefined,
+      onDiscardConfirm: () => undefined,
     } satisfies ExternalApplicationsPanelProps,
   },
 } as const;

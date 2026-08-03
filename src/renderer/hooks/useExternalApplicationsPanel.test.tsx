@@ -5,14 +5,16 @@ import { ok } from "@shared/result/index.js";
 import type { UserSettings } from "@application/index.js";
 import { useExternalApplicationsPanel } from "./useExternalApplicationsPanel.js";
 
-const APP_A_ID = "11111111-1111-4111-8111-111111111111" as UserSettings["externalApplications"]["applications"][number]["id"];
-const APP_B_ID = "22222222-2222-4222-8222-222222222222" as UserSettings["externalApplications"]["applications"][number]["id"];
+type ExternalApplicationRow = UserSettings["externalApplications"]["applications"][number];
+
+const APP_A_ID = "11111111-1111-4111-8111-111111111111" as ExternalApplicationRow["id"];
+const APP_B_ID = "22222222-2222-4222-8222-222222222222" as ExternalApplicationRow["id"];
 
 function makeApplication(
-  id: UserSettings["externalApplications"]["applications"][number]["id"],
+  id: ExternalApplicationRow["id"],
   name: string,
   enabled = true,
-): UserSettings["externalApplications"]["applications"][number] {
+): ExternalApplicationRow {
   return {
     id,
     name,
@@ -89,17 +91,24 @@ describe("useExternalApplicationsPanel", () => {
       expect(saveExternalApplicationsSettings).toHaveBeenCalledOnce();
     });
 
-    const persisted = saveExternalApplicationsSettings.mock.calls[0]?.[0];
-    expect(persisted?.applications.find((row) => row.id === APP_B_ID)?.enabled).toBe(false);
-    expect(persisted?.applications.find((row) => row.id === APP_A_ID)?.urlTemplate).toBe(
-      "https://example.com/{{call_id}}",
-    );
+    const persisted = saveExternalApplicationsSettings.mock.calls[0]?.[0] as
+      | UserSettings["externalApplications"]
+      | undefined;
     expect(
-      result.current.applications.find((row) => row.id === APP_A_ID)?.urlTemplate,
+      persisted?.applications.find((row: ExternalApplicationRow) => row.id === APP_B_ID)?.enabled,
+    ).toBe(false);
+    expect(
+      persisted?.applications.find((row: ExternalApplicationRow) => row.id === APP_A_ID)
+        ?.urlTemplate,
+    ).toBe("https://example.com/{{call_id}}");
+    expect(
+      result.current.applications.find((row: ExternalApplicationRow) => row.id === APP_A_ID)
+        ?.urlTemplate,
     ).toBe("https://dirty.example/{{call_id}}");
-    expect(result.current.applications.find((row) => row.id === APP_B_ID)?.enabled).toBe(
-      false,
-    );
+    expect(
+      result.current.applications.find((row: ExternalApplicationRow) => row.id === APP_B_ID)
+        ?.enabled,
+    ).toBe(false);
     expect(result.current.isDirty).toBe(true);
   });
 

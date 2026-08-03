@@ -71,7 +71,7 @@ export function ExternalApplicationsEditor({
           <Button
             type="button"
             size="sm"
-            variant={isDirty ? "default" : "outline"}
+            variant={isDirty ? "primary" : "outline"}
             disabled={busy || !isDirty}
             data-testid="external-applications-save"
             onClick={onSave}
