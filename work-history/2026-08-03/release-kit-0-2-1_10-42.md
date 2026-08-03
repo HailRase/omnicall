@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 10:42
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `b9ddc99`
 
 ## Где
 - `omnicall-kit/packages/sdk` (`0.2.1`), README, CHANGELOG, `SDK_VERSION`
