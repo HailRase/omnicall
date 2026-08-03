@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 13:54
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `914943c`
 
 ## Где
 - `src/renderer/components/settings/external-applications/WindowBehaviorSwitchRow.tsx`
