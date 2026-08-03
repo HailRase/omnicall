@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 12:41
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `ae968b7`
 
 ## Где
 - `src/renderer/components/settings/external-applications/OpenModeSchematics.tsx`
