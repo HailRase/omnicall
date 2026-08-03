@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-03 13:48
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `1abfc00`
 
 ## Где
 - `src/renderer/components/settings/external-applications/OnCallEndedChoiceCards.module.css`
