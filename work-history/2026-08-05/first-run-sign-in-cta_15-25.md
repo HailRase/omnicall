@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-05 15:42
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `f46b0f01`
 
 ## Где
 - `src/renderer/components/call/CallIdleEmptyState.tsx` (+ module CSS)
