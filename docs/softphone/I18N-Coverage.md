@@ -13,6 +13,7 @@
 | `src/application/projections/*` (UI-facing) | Semantic reason/label keys + params | `settings.systemState.*`, `connection.recovery.disabled.*`, `call.line.status.*`, … | migrated | projection unit tests |
 | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | i18n-driven system state UI | `settings.systemState.*` | migrated | `SettingsSystemStatePanel.test.tsx` |
 | `src/renderer/components/dialpad/Dialpad.tsx` | i18n-driven dialpad copy | `dialpad.panel.*`, `dialpad.input.*`, `dialpad.call.*`, `dialpad.keys.*` | migrated | `Dialpad.test.tsx` |
+| F-016 first-run sign-in CTA (2026-08-05) | Unregistered idle CTA + Account empty-profile hint | `call.idle.needsSignIn.*`, `account.firstRun.hint.*` | migrated | `CallIdleEmptyState.test.tsx`, `SettingsAccountPanel.test.tsx`, locale catalogs ru/en/fr/de/bg, `i18n:check` |
 | `src/renderer/shells/SoftphoneReadyShell.tsx`, `src/renderer/components/notifications/*`, `src/renderer/hooks/useActionNotifications.ts` | unified notification copy, aria labels, action labels | `notifications.*`, `legacy operator.toast.*`, `updates.*`, `account.*`, `call.*`, `settings.*` | migrated | notification/component tests + `i18n:check` |
 | `src/renderer/hooks/useSipSystemStateActions.ts` | action feedback via semantic keys | `settings.systemState.action.*` | migrated | settings panel tests |
 

@@ -500,6 +500,9 @@ function SoftphoneShellLayoutRoute({
           <CallContextShell
             bindings={callBindings}
             ocpRejectWithBreak={ocpRejectWithBreak}
+            onOpenAccount={() => {
+              overlayShell.openSettings("account");
+            }}
           />
         </>
       }

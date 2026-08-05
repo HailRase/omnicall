@@ -18,7 +18,7 @@
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, control-disabled-reason | — |
 | `CallContextBadges` | `src/renderer/components/call/CallContextBadges.tsx` | `CallContextBadgesProps` | call-context-badges, queue-info-label, queue-info-label, incoming-campaign-context, incoming-campaign-context, incoming-campaign-context | f=F-028 lf=LF-037,LF-038 |
 | `CallControlsBar` | `src/renderer/components/call/CallControlsBar.tsx` | `CallControlsBarProps` | call-controls-bar, control-view-mode-fullscreen, control-view-mode-expanded, control-view-mode-hidden | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
-| `CallIdleEmptyState` | `src/renderer/components/call/CallIdleEmptyState.tsx` | `—` | call-idle-empty-state | lf=LF-020 f=F-003,F-016 |
+| `CallIdleEmptyState` | `src/renderer/components/call/CallIdleEmptyState.tsx` | `CallIdleEmptyStateProps` | call-idle-empty-state, call-idle-sign-in-cta | lf=LF-020 f=F-003,F-016 |
 | `CallLineRow` | `src/renderer/components/call/CallLineRow.tsx` | `CallLineRowProps` | — | lf=LF-011,LF-021,LF-022,LF-023 f=F-016 smoke=R7- |
 | `CallLinesShell` | `src/renderer/components/call/CallLinesShell.tsx` | `CallLinesShellProps` | call-lines-panel | — |
 | `CallSessionCard` | `src/renderer/components/call/CallSessionCard.tsx` | `CallSessionCardProps` | — | lf=LF-011,LF-021 f=F-016 smoke=R7- |
@@ -75,7 +75,8 @@
 | `SettingsSidebar` | `src/renderer/components/settings/SettingsSidebar.tsx` | `SettingsSidebarProps` | settings-sidebar, icon-tooltip-host | — |
 | `SettingsNavLeafItem` | `src/renderer/components/settings/SettingsSidebarNavItems.tsx` | `SettingsNavLeafItemProps` | — | — |
 | `ExternalApplicationsConditionsSection` | `src/renderer/components/settings/external-applications/ExternalApplicationsConditionsSection.tsx` | `ExternalApplicationsConditionsSectionProps` | external-applications-conditions, external-applications-condition-queue-add | f=F-032 |
-| `ExternalApplicationsEditor` | `src/renderer/components/settings/external-applications/ExternalApplicationsEditor.tsx` | `ExternalApplicationsEditorProps` | external-applications-editor, external-applications-save, external-applications-url, external-applications-open-now, external-applications-tab-general, external-applications-tab-events, external-applications-tab-conditions, external-applications-tab-variables | f=F-032 |
+| `ExternalApplicationsDiscardDialog` | `src/renderer/components/settings/external-applications/ExternalApplicationsDiscardDialog.tsx` | `ExternalApplicationsDiscardDialogProps` | external-applications-discard-changes | f=F-032 |
+| `ExternalApplicationsEditor` | `src/renderer/components/settings/external-applications/ExternalApplicationsEditor.tsx` | `ExternalApplicationsEditorProps` | external-applications-editor, external-applications-unsaved-hint, external-applications-save, external-applications-url, external-applications-open-now, external-applications-tab-general, external-applications-tab-events, external-applications-tab-conditions, external-applications-tab-variables | f=F-032 |
 | `ExternalApplicationsGeneralTab` | `src/renderer/components/settings/external-applications/ExternalApplicationsGeneralTab.tsx` | `ExternalApplicationsGeneralTabProps` | — | f=F-032 |
 | `ExternalApplicationsHistoryPanel` | `src/renderer/components/settings/external-applications/ExternalApplicationsHistoryPanel.tsx` | `ExternalApplicationsHistoryPanelProps` | external-applications-history, external-applications-history-empty | f=F-032 |
 | `ExternalApplicationsInlineRename` | `src/renderer/components/settings/external-applications/ExternalApplicationsInlineRename.tsx` | `ExternalApplicationsInlineRenameProps` | — | f=F-032 |
@@ -92,12 +93,14 @@
 | `DesktopStage` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchSchematicParts.tsx` | `—` | — | — |
 | `RaiseOnOpenSchematic` | `src/renderer/components/settings/external-applications/WindowBehaviorSwitchSchematics.tsx` | `—` | — | — |
 | `WindowGeometryEditor` | `src/renderer/components/settings/external-applications/WindowGeometryEditor.tsx` | `WindowGeometryEditorProps` | external-applications-window-geometry | f=F-032 |
-| `WindowGeometryOverlayCards` | `src/renderer/components/settings/external-applications/WindowGeometryOverlayCards.tsx` | `WindowGeometryOverlayCardsProps` | external-applications-geometry-overlay-card-*, external-applications-geometry-overlay-remove-preview-* | f=F-032 |
-| `WindowGeometryOverlays` | `src/renderer/components/settings/external-applications/WindowGeometryOverlays.tsx` | `WindowGeometryOverlaysProps` | external-applications-geometry-overlays, external-applications-geometry-overlays-trigger, external-applications-geometry-overlay-option-* | f=F-032 |
+| `WindowGeometryNumberField` | `src/renderer/components/settings/external-applications/WindowGeometryNumberField.tsx` | `WindowGeometryNumberFieldProps` | — | f=F-032 |
+| `WindowGeometryOverlayCards` | `src/renderer/components/settings/external-applications/WindowGeometryOverlayCards.tsx` | `WindowGeometryOverlayCardsProps` | — | f=F-032 |
+| `WindowGeometryOverlays` | `src/renderer/components/settings/external-applications/WindowGeometryOverlays.tsx` | `WindowGeometryOverlaysProps` | external-applications-geometry-overlays, external-applications-geometry-overlays-trigger | f=F-032 |
 | `WindowGeometryPositionFields` | `src/renderer/components/settings/external-applications/WindowGeometryPositionFields.tsx` | `WindowGeometryPositionFieldsProps` | external-applications-geometry-x, external-applications-geometry-y | f=F-032 |
 | `WindowGeometryPresetChips` | `src/renderer/components/settings/external-applications/WindowGeometryPresetChips.tsx` | `WindowGeometryPresetChipsProps` | external-applications-geometry-presets | f=F-032 |
 | `WindowGeometryPreview` | `src/renderer/components/settings/external-applications/WindowGeometryPreview.tsx` | `WindowGeometryPreviewProps` | external-applications-geometry-preview, external-applications-geometry-stage, external-applications-geometry-desktop | f=F-032 |
 | `WindowGeometryPreviewCard` | `src/renderer/components/settings/external-applications/WindowGeometryPreviewCard.tsx` | `WindowGeometryPreviewCardProps` | external-applications-geometry-card | f=F-032 |
+| `WindowGeometryResizeHandles` | `src/renderer/components/settings/external-applications/WindowGeometryResizeHandles.tsx` | `WindowGeometryResizeHandlesProps` | — | f=F-032 |
 | `WindowGeometrySizeFields` | `src/renderer/components/settings/external-applications/WindowGeometrySizeFields.tsx` | `WindowGeometrySizeFieldsProps` | external-applications-geometry-width, external-applications-geometry-height | f=F-032 |
 | `buildOnCallEndedOptions` | `src/renderer/components/settings/external-applications/onCallEndedOptions.tsx` | `—` | — | — |
 | `ExternalServicesBodyModeRadios` | `src/renderer/components/settings/external-services/ExternalServicesBodyModeRadios.tsx` | `ExternalServicesBodyModeRadiosProps` | external-services-body-mode | f=F-031 |
@@ -138,7 +141,7 @@
 | `SdkModuleSettingsTimeoutsSection` | `src/renderer/components/settings/panels/SdkModuleSettingsTimeoutsSection.tsx` | `—` | sdk-module-timeouts, sdk-timeout-consent, sdk-timeout-origin-trust, sdk-timeout-pairing | f=F-011 lf=LF-051 |
 | `SdkModuleSettingsTrustedSiteItem` | `src/renderer/components/settings/panels/SdkModuleSettingsTrustedSiteItem.tsx` | `—` | — | — |
 | `SdkModuleSettingsTrustedSitesSection` | `src/renderer/components/settings/panels/SdkModuleSettingsTrustedSitesSection.tsx` | `—` | sdk-module-allowed-origins, sdk-module-origin-add-input, sdk-module-origin-add, sdk-module-origins-empty, sdk-module-trusted-accordion | — |
-| `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel | — |
+| `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel, settings-account-first-run-hint | — |
 | `SettingsCodecsPanel` | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | `SettingsCodecsPanelProps` | settings-codecs-panel, settings-codecs-error | — |
 | `SettingsDiagnosticsPanel` | `src/renderer/components/settings/panels/SettingsDiagnosticsPanel.tsx` | `—` | — | — |
 | `SettingsGeneralPanel` | `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx` | `SettingsGeneralPanelProps` | settings-general-panel, settings-theme-control, settings-language-select, settings-current-version, settings-latest-version, settings-update-status, settings-check-updates, settings-open-download-page | — |

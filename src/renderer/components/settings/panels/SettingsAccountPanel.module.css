@@ -5,6 +5,12 @@
   width: 100%;
 }
 
+.first-run-hint {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
 .tabs-row {
   width: 100%;
 }

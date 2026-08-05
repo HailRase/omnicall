@@ -13,6 +13,9 @@ export const bgMessages: MessageShape = {
   "account.startupRegistration.retryCta": "Опитай отново регистрацията",
   "account.action.logout": "Изход",
   "account.action.signIn": "Вход",
+  "account.firstRun.hint.title": "Първо влизане",
+  "account.firstRun.hint.description":
+    "Въведете SIP данните от администратора (или модул OCP) и натиснете Вход. При нужда запазете профила на този компютър.",
   "account.mode.ocpModule": "Модул OCP",
   "account.mode.sipOnly": "Само SIP",
   "account.mode.tabsAria": "Режим за вход в акаунта",
@@ -176,6 +179,8 @@ export const bgMessages: MessageShape = {
     `DTMF клавиатура ${params.displayName}`,
   "call.dtmf.tonesAriaLabel": "Набрани тонове",
   "call.idle.message": "Въведете номер или изчакайте входящо обаждане",
+  "call.idle.needsSignIn.message": "За да се обаждате, влезте в акаунта",
+  "call.idle.needsSignIn.action": "Вход в акаунт",
   "call.line.ariaLabel": (params: Readonly<{ displayName: string }>) =>
     `Линия на обаждане ${params.displayName}`,
   "call.line.mutedBadge": "Заглушен",

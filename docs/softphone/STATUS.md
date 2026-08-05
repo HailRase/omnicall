@@ -2,10 +2,11 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-08-03
+**Updated:** 2026-08-05
 **Version:** `1.3.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit@0.2.1` + `@softomnitel/omnicall-protocol@0.1.0`)
 **Feedback channels:** ADR-0026 Feedback Channel Law — anti-dual; ephemeral outcomes → `notify` (incl. SDK/OCP/EA/ES save + screen-share confirm); Account errors → persistent Alert + journaled critical; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
-**Tests:** `1.3.1` cut — release preflight green (2026-08-03)
+**Tests:** `1.3.1` cut — release preflight green (2026-08-03); first-run CTA unit suites green (2026-08-05)
+**First-run CTA (F-016 polish):** unregistered idle CTA only → Settings Account; empty saved-profile Account hint — `P11-First-Run-Sign-In-CTA.md`
 **Settings nav:** Integrations = always-open cluster (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
 **Settings schema:** `UserSettings` **v19** = v18 (EA/ringtone/always-on-top) + nested `notificationPreferences` (F-034); migrates 3…18 upward (no downgrade)
 **OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
