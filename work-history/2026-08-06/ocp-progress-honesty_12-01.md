@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-06 12:01
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `a7e61d1f`
 
 ## Где
 - `src/domain/integration/ocp/OcpSignInProgress.ts`

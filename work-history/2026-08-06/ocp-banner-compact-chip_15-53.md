@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-06 15:53
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `a7e61d1f`
 
 ## Где
 - `src/renderer/components/integration/ocp/OcpConnectionBanner.*`

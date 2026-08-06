@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-06 16:36
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `a7e61d1f`
 
 ## Где
 - `src/renderer/components/integration/ocp/OcpConnectionBanner.module.css`

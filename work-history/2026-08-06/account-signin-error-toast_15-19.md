@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-06 15:19
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `a7e61d1f`
 
 ## Где
 - `src/application/projections/settings/deriveAccountSignInNotificationFeedback.ts`

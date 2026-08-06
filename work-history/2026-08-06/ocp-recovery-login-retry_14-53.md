@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-06 14:53
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `a7e61d1f`
 
 ## Где
 - `AccountBootstrapFacade.ts` — `resolveOcpLogin`, `executeOcpRecoveryRepeatSignIn`, `connectOcp` attempt secrets
