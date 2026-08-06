@@ -123,8 +123,12 @@ For testing installers without a release cut:
 
 | Mode | Builds | Publishes to omnicall-releases |
 | --- | --- | --- |
-| `workflow_dispatch` | Yes | **No** |
+| `workflow_dispatch` (default) | Yes | **No** |
+| `workflow_dispatch` on tag ref with `publish=true` | Yes | **Yes** (same path as tag push) |
 | Push tag `v*.*.*` | Yes | **Yes** (direct API upload per OS + manifest sync) |
+
+If tag push does not start Actions, re-cut is not required: run
+`gh workflow run release.yml --ref vX.Y.Z -f publish=true` on the release tag.
 
 ## electron-builder on CI
 
