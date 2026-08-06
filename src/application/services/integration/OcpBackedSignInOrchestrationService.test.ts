@@ -284,7 +284,7 @@ describe("OcpBackedSignInOrchestrationService", () => {
       server: "sip:pbx.example",
     });
 
-    let releaseAuthorize: (() => void) | null = null;
+    let releaseAuthorize!: () => void;
     const authorizeGate = new Promise<void>((resolve) => {
       releaseAuthorize = resolve;
     });
@@ -386,7 +386,7 @@ describe("OcpBackedSignInOrchestrationService", () => {
     expect(mid.completedExecutionStages).toContain("receiving_phone_credentials");
     expect(mid.executionStage).not.toBe("receiving_phone_credentials");
 
-    releaseAuthorize?.();
+    releaseAuthorize();
     const result = await pending;
     expect(result.ok).toBe(true);
     if (result.ok) {

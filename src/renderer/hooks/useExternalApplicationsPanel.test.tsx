@@ -49,17 +49,20 @@ describe("useExternalApplicationsPanel", () => {
     const appA = makeApplication(APP_A_ID, "A", true);
     const appB = makeApplication(APP_B_ID, "B", true);
     const loaded = makeUserSettings([appA, appB]);
-    const saveExternalApplicationsSettings = vi.fn(async (next) =>
-      ok({
-        settings: makeUserSettings(next.applications),
-        settingsRevision: 2,
-      }),
+    const saveExternalApplicationsSettings = vi.fn(
+      (next: UserSettings["externalApplications"]) =>
+        Promise.resolve(
+          ok({
+            settings: makeUserSettings(next.applications),
+            settingsRevision: 2,
+          }),
+        ),
     );
     const facade = {
-      getUserSettingsForAccount: vi.fn(async () => ok(loaded)),
+      getUserSettingsForAccount: vi.fn(() => Promise.resolve(ok(loaded))),
       saveExternalApplicationsSettings,
       openExternalApplicationNow: vi.fn(),
-      queryExternalApplicationsJournal: vi.fn(async () => ok([])),
+      queryExternalApplicationsJournal: vi.fn(() => Promise.resolve(ok([]))),
     };
     const onActiveUserSettingsRefresh = vi.fn();
 
@@ -83,7 +86,7 @@ describe("useExternalApplicationsPanel", () => {
     });
     expect(result.current.isDirty).toBe(true);
 
-    await act(async () => {
+    act(() => {
       result.current.onToggle(APP_B_ID, false);
     });
 
@@ -117,10 +120,10 @@ describe("useExternalApplicationsPanel", () => {
     const appB = makeApplication(APP_B_ID, "B");
     const loaded = makeUserSettings([appA, appB]);
     const facade = {
-      getUserSettingsForAccount: vi.fn(async () => ok(loaded)),
+      getUserSettingsForAccount: vi.fn(() => Promise.resolve(ok(loaded))),
       saveExternalApplicationsSettings: vi.fn(),
       openExternalApplicationNow: vi.fn(),
-      queryExternalApplicationsJournal: vi.fn(async () => ok([])),
+      queryExternalApplicationsJournal: vi.fn(() => Promise.resolve(ok([]))),
     };
 
     const { result } = renderHook(() =>

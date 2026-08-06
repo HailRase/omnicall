@@ -133,10 +133,11 @@ describe("QueryExternalServicesUseCase", () => {
       externalServices: settings,
     });
     const journal: ExternalServicesJournalRepository = {
-      list: async () => {
-        throw new Error("external_services_journal_document_requires_recovery");
-      },
-      append: async () => undefined,
+      list: () =>
+        Promise.reject(
+          new Error("external_services_journal_document_requires_recovery"),
+        ),
+      append: () => Promise.resolve(undefined),
     };
     const registry = new ExternalServicesRuntimeRegistry();
     registry.activateProfile(profileA, settings, 2);

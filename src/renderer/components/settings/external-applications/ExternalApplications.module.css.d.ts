@@ -8,7 +8,6 @@ declare const classes: {
   readonly applicationRowActions: string;
   readonly applicationRowDirty: string;
   readonly applicationRowSelected: string;
-  readonly editorSaveCluster: string;
   readonly applicationStatusDot: string;
   readonly applicationStatusDotOff: string;
   readonly applicationStatusDotOn: string;
@@ -16,6 +15,7 @@ declare const classes: {
   readonly editor: string;
   readonly editorGrid: string;
   readonly editorGridSize: string;
+  readonly editorSaveCluster: string;
   readonly editorTabBody: string;
   readonly editorTabsList: string;
   readonly editorTabsPane: string;

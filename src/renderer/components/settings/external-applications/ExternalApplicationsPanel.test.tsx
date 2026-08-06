@@ -224,11 +224,9 @@ describe("ExternalApplicationsPanel", () => {
 
     await user.click(minimize);
 
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        windowBehavior: expect.objectContaining({ onCallEnded: "minimize" }),
-      }),
-    );
+    expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
+      windowBehavior: { onCallEnded: "minimize" },
+    });
   });
 
   it("keeps onCallEnded radios keyboard accessible", async () => {
@@ -247,11 +245,9 @@ describe("ExternalApplicationsPanel", () => {
     expect(minimize).toHaveFocus();
 
     await user.keyboard(" ");
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        windowBehavior: expect.objectContaining({ onCallEnded: "minimize" }),
-      }),
-    );
+    expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
+      windowBehavior: { onCallEnded: "minimize" },
+    });
   });
 
   it("hides window behavior and geometry when open mode is external browser", () => {
@@ -283,11 +279,9 @@ describe("ExternalApplicationsPanel", () => {
     await user.click(
       screen.getByTestId("external-applications-geometry-preset-vga"),
     );
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        window: expect.objectContaining({ width: 640, height: 480 }),
-      }),
-    );
+    expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
+      window: { width: 640, height: 480 },
+    });
   });
 
   it("updates geometry X/Y from numeric inputs on blur", () => {
@@ -303,11 +297,9 @@ describe("ExternalApplicationsPanel", () => {
     expect(onChange).not.toHaveBeenCalled();
     fireEvent.blur(xInput);
 
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        window: expect.objectContaining({ x: 220 }),
-      }),
-    );
+    expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
+      window: { x: 220 },
+    });
   });
 
   it("toggles geometry overlay peers from Layers menu and preview", async () => {
@@ -423,21 +415,17 @@ describe("ExternalApplicationsPanel", () => {
     await user.click(
       screen.getByRole("switch", { name: /поднять при открытии|raise on open/i }),
     );
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        windowBehavior: expect.objectContaining({ raiseOnOpen: false }),
-      }),
-    );
+    expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
+      windowBehavior: { raiseOnOpen: false },
+    });
 
     await user.click(
       screen.getByRole("switch", {
         name: /поверх окон во время звонка|always on top during call/i,
       }),
     );
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        windowBehavior: expect.objectContaining({ alwaysOnTopDuringCall: true }),
-      }),
-    );
+    expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
+      windowBehavior: { alwaysOnTopDuringCall: true },
+    });
   });
 });
