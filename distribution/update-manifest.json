@@ -1,12 +1,12 @@
 {
-  "latestVersion": "1.3.1",
-  "releaseDate": "2026-08-02",
-  "releaseNotesUrl": "https://github.com/HailRase/omnicall-releases/releases/tag/v1.3.1",
+  "latestVersion": "1.4.0",
+  "releaseDate": "2026-08-06",
+  "releaseNotesUrl": "https://github.com/HailRase/omnicall-releases/releases/tag/v1.4.0",
   "downloadUrl": "https://github.com/HailRase/omnicall-releases/releases/latest",
   "platforms": {
-    "win32": "https://github.com/HailRase/omnicall-releases/releases/download/v1.3.1/OmniCall-1.3.1-win-x64.exe",
-    "darwin": "https://github.com/HailRase/omnicall-releases/releases/download/v1.3.1/OmniCall-1.3.1-mac-arm64.dmg",
-    "linux": "https://github.com/HailRase/omnicall-releases/releases/download/v1.3.1/OmniCall-1.3.1-linux-x86_64.AppImage"
+    "win32": "https://github.com/HailRase/omnicall-releases/releases/download/v1.4.0/OmniCall-1.4.0-win-x64.exe",
+    "darwin": "https://github.com/HailRase/omnicall-releases/releases/download/v1.4.0/OmniCall-1.4.0-mac-arm64.dmg",
+    "linux": "https://github.com/HailRase/omnicall-releases/releases/download/v1.4.0/OmniCall-1.4.0-linux-x86_64.AppImage"
   },
   "minimumSupportedVersion": "0.0.1"
 }

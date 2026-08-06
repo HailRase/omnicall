@@ -7,6 +7,35 @@ Versioning: SemVer. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-06
+
+### Added
+
+- External Applications settings: illustrated cards for open mode and after-call
+  window behavior, visual previews for raise / always-on-top, and an interactive
+  window size and position editor with overlay layers.
+- Clear “Sign in” call-to-action on the idle dialpad when the phone is not
+  registered yet, plus a first-run hint on the Account settings tab when no
+  profiles are saved.
+
+### Fixed
+
+- OCP sign-in progress stages no longer jump backward when phone credentials
+  arrive early; failures show the real reason immediately with Reconnect ready.
+- Compact OCP connection banner is a one-line status chip at the viewport edge;
+  Retry uses a neutral outline style and reuses the last login instead of asking
+  for credentials again when recovery can continue.
+- External Services settings still load collections and requests if the history
+  journal is missing or corrupt.
+
+### Changed
+
+- SIP server and registration errors (including 403) appear as Notification Center
+  toasts with a shortcut to System State; field validation stays on the Account
+  form without duplicating the same error in both places.
+- OCP sign-in progress shows six stages, including a wait for phone credentials
+  after module authorization.
+
 ## [1.3.1] - 2026-08-03
 
 ### Fixed

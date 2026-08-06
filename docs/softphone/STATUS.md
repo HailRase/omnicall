@@ -163,8 +163,8 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **1.3.1** (2026-08-03) — F-011 SDK production-readiness; kit **`0.2.1`** (docs/admission sync) |
-| Previous | **1.3.0** (F-034/F-033/F-032), **1.2.0**, **1.1.2**… |
+| Shipped | **1.4.0** (2026-08-06) — F-032 External Applications UX (geometry/cards/previews); F-016 first-run CTA; F-028 OCP progress/banner; F-031 journal isolation; account SIP error toasts |
+| Previous | **1.3.1** (F-011 / kit 0.2.x), **1.3.0**, **1.2.0**… |
 | Next cut | PATCH hotfix as needed; WU-09 OS banners deferred |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (public: installers + manifest) |

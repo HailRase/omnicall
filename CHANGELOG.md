@@ -7,6 +7,17 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-06
+
+### Added
+
+- **F-032** External Applications settings UX: illustrated open-mode and
+  after-call window-behavior choice cards; raise / always-on-top switch preview
+  scenes; interactive window geometry editor (size/position, Layers overlay menu,
+  live drag/resize on the preview stage).
+- **F-016** First-run sign-in CTA on the idle dialpad when SIP is not registered
+  (opens Settings → Account); empty-profile hint on the Account New tab.
+
 ### Fixed
 
 - **F-028** OCP sign-in progress: early phone `creds` no longer make
@@ -516,7 +527,9 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.3.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.4.0...main
+[1.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.4.0
+[1.3.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.1
 [1.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.0
 [1.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.2.0
 [1.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.2
