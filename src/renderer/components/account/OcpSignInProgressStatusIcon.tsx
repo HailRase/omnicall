@@ -9,6 +9,7 @@ const STATUS_ICON_ID: Record<OcpSignInStageVisualState, IconSemanticId> = {
   active: "account.authProgress.status.active",
   pending: "account.authProgress.status.pending",
   failed: "account.authProgress.status.failed",
+  timeout: "account.authProgress.status.timeout",
 };
 
 export type OcpSignInProgressStatusIconProps = Readonly<{
@@ -42,7 +43,7 @@ export function OcpSignInProgressStatusIcon({
     />
   );
 
-  if (state === "failed" && failureLabel !== null) {
+  if ((state === "failed" || state === "timeout") && failureLabel !== null) {
     return (
       <IconTooltip label={failureLabel}>
         <button

@@ -2525,49 +2525,85 @@ export class AccountBootstrapFacade {
   ): Promise<Result<void, PlatformError>> {
     const context = this.lastAuthorizationAttempt;
     if (context === null) {
+      // resolveOcpLogin falls back to authenticatedLogin / SIP username.
       return this.connectOcp(correlationId);
     }
-    const attemptSecrets = this.attemptScopedSecrets.read(context.correlationId);
+
+    const isOcpAttempt =
+      context.kind === "saved_profile_ocp" ||
+      context.kind === "ocp_integrations_connect";
+    const login = context.login?.trim() ?? "";
     if (
-      (context.kind === "saved_profile_ocp" ||
-        context.kind === "ocp_integrations_connect") &&
+      isOcpAttempt &&
       context.accountKey !== undefined &&
-      context.login !== undefined &&
-      attemptSecrets?.ocpApiKey !== undefined
+      login.length > 0
     ) {
-      const settings = await this.loadUserSettingsForAccountKey(context.accountKey);
-      const domainResult = await this.resolveAndHealOcpProxyDomain({
-        accountKey: context.accountKey,
-        settings,
-        correlationId,
-      });
-      if (isErr(domainResult)) {
-        return domainResult;
+      const attemptSecrets = this.attemptScopedSecrets.read(context.correlationId);
+      let apiKey = attemptSecrets?.ocpApiKey?.trim() ?? "";
+      if (apiKey.length === 0) {
+        try {
+          const scopeKey = createSecretStorageScopeKey(context.accountKey);
+          apiKey =
+            (
+              await this.secretStoragePort.loadSecret(
+                scopeKey,
+                OCP_PROXY_API_KEY_SECRET_ID,
+              )
+            )?.trim() ?? "";
+        } catch (error: unknown) {
+          return err(normalizeUnknownError(error));
+        }
       }
-      const retryResult = await this.ocpIntegration.backedSignIn.retryServer({
-        domain: domainResult.value,
-        login: context.login,
-        apiKey: attemptSecrets.ocpApiKey,
-        correlationId,
-      });
-      if (isErr(retryResult)) {
-        return retryResult;
+      if (apiKey.length > 0) {
+        const settings = await this.loadUserSettingsForAccountKey(
+          context.accountKey,
+        );
+        const domainResult = await this.resolveAndHealOcpProxyDomain({
+          accountKey: context.accountKey,
+          settings,
+          correlationId,
+        });
+        if (isErr(domainResult)) {
+          return domainResult;
+        }
+        this.attemptScopedSecrets.store(correlationId, { ocpApiKey: apiKey });
+        this.recordAuthorizationAttempt({
+          kind: context.kind,
+          correlationId,
+          login,
+          accountKey: context.accountKey,
+        });
+        const retryResult = await this.ocpIntegration.backedSignIn.retryServer({
+          domain: domainResult.value,
+          login,
+          apiKey,
+          correlationId,
+        });
+        if (isErr(retryResult)) {
+          return retryResult;
+        }
+        return retryResult.value.phase === "sip_ready"
+          ? ok(undefined)
+          : err(retryResult.value.error);
       }
-      return retryResult.value.phase === "sip_ready"
-        ? ok(undefined)
-        : err(retryResult.value.error);
-    }
-    // Active-bucket OCP attempts must not force login-picker scope on retry.
-    if (context.kind === "saved_profile_ocp") {
-      return this.connectOcp(correlationId);
-    }
-    if (context.kind === "ocp_integrations_connect") {
+      // Persist key missing — reconnect with known login scope (SecretStorage miss).
       return this.connectOcp({
-        login: context.login ?? "",
-        ...(context.accountKey !== undefined ? { accountKey: context.accountKey } : {}),
+        login,
+        accountKey: context.accountKey,
         correlationId,
       });
     }
+
+    if (isOcpAttempt && login.length > 0) {
+      return this.connectOcp({
+        login,
+        ...(context.accountKey !== undefined
+          ? { accountKey: context.accountKey }
+          : {}),
+        correlationId,
+      });
+    }
+
     return this.connectOcp(correlationId);
   }
 
@@ -3824,6 +3860,7 @@ export class AccountBootstrapFacade {
       return domainResult;
     }
 
+    this.attemptScopedSecrets.store(attemptCorrelationId, { ocpApiKey: apiKey });
     this.recordAuthorizationAttempt({
       kind: usesLoginPickerScope ? "ocp_integrations_connect" : "saved_profile_ocp",
       correlationId: attemptCorrelationId,
@@ -4461,6 +4498,11 @@ export class AccountBootstrapFacade {
     });
   }
 
+  /**
+   * Resolve OCP HTTP authenticate login for active-bucket / recovery paths.
+   * Prefer last attempt + live session login over SIP username so Retry after
+   * transport failure does not falsely demand a login the operator already used.
+   */
   private async resolveOcpLogin(
     explicitLogin?: string,
   ): Promise<Result<string, PlatformError>> {
@@ -4468,6 +4510,20 @@ export class AccountBootstrapFacade {
     if (trimmed.length > 0) {
       return ok(trimmed);
     }
+
+    const attemptLogin = this.lastAuthorizationAttempt?.login?.trim() ?? "";
+    if (attemptLogin.length > 0) {
+      return ok(attemptLogin);
+    }
+
+    const sessionLogin =
+      this.ocpIntegration.projectionHub
+        .getSessionProjection()
+        .authenticatedLogin?.trim() ?? "";
+    if (sessionLogin.length > 0) {
+      return ok(sessionLogin);
+    }
+
     const account = await this.deps.settingsRepository.getSipAccount();
     const username = account?.username.trim() ?? "";
     if (username.length === 0) {

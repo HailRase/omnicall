@@ -226,8 +226,32 @@ describe("useAccountActions", () => {
       expect(result.current.successKeys).toEqual([
         "account.success.sipTransportConnected",
       ]);
-      expect(result.current.error).toEqual({ key: "account.error.invalidCredentials" });
+      expect(result.current.error).toBeNull();
+      expect(result.current.notificationError).toEqual({
+        key: "account.error.invalidCredentials",
+      });
       expect(result.current.openSystemStateAction).toBe(true);
+    });
+  });
+
+  it("routes validation PlatformError to inline Alert without notification toast slot", async () => {
+    const { facade, signInAccount } = createFacadeMock();
+    signInAccount.mockResolvedValue(
+      err(createPlatformError("validation_failed", "password_required")),
+    );
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.updateField("username", "1001");
+      result.current.updateField("domain", "pbx.example.com");
+      result.current.updateField("server", "wss://sip.example.com");
+      result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toEqual({ key: "account.error.validationFailed" });
+      expect(result.current.notificationError).toBeNull();
+      expect(result.current.openSystemStateAction).toBe(false);
     });
   });
 
@@ -712,7 +736,7 @@ describe("useAccountActions", () => {
     expect(result.current.ocpSignInModalOpen).toBe(true);
   });
 
-  it("keeps modal open when modal recovery returns a typed error", async () => {
+  it("keeps modal open when modal recovery returns a typed error without dual Account channels", async () => {
     const { facade, recoverOcpSignInFromModal } = createFacadeMock();
     recoverOcpSignInFromModal.mockResolvedValue(
       err(
@@ -728,8 +752,12 @@ describe("useAccountActions", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.error).not.toBeNull();
+      expect(recoverOcpSignInFromModal).toHaveBeenCalledOnce();
+      expect(result.current.submitting).toBe(false);
     });
+    // Modal owns failure UX — no Account Alert and no toast slot for the same outcome.
+    expect(result.current.error).toBeNull();
+    expect(result.current.notificationError).toBeNull();
     expect(result.current.ocpSignInModalOpen).toBe(true);
   });
 

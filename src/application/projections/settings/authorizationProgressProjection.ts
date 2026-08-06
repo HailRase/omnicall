@@ -5,6 +5,7 @@
  *
  * `uiSurface`: `modal` = Account/SDK/Reconnect Dialog; `silent` = background
  * transport recovery (banner only; ADR-AF-002).
+ * Execution stages are monotonic (no regress; skipped prefix marked completed).
  */
 import {
   OCP_SIGN_IN_EXECUTION_STAGES,
@@ -151,20 +152,32 @@ export function applyAuthorizationProgressStage(
   };
 }
 
+/**
+ * Advance (or refresh) the active execution stage.
+ * - Monotonic: never regress to an earlier stage (early `creds` → SIP must not be
+ *   overwritten by a later `enterCredentialsWait` → receiving_phone_credentials).
+ * - Prefix completion: every stage before the active one is marked completed so
+ *   skipped stages (e.g. receiving when `creds` arrive during awaiting) stay honest.
+ */
 export function applyAuthorizationExecutionStage(
   projection: AuthorizationProgressProjection,
   executionStage: OcpSignInExecutionStage,
   correlationId: string,
   stageStartedAtMs: number = Date.now(),
 ): AuthorizationProgressProjection {
-  const priorCompleted =
-    projection.executionStage !== null &&
-    projection.executionStage !== executionStage &&
-    !projection.completedExecutionStages.includes(projection.executionStage)
-      ? [...projection.completedExecutionStages, projection.executionStage]
-      : [...projection.completedExecutionStages];
-  // Active stage must not remain in completed (stale ready → reconnect).
-  const completed = priorCompleted.filter((stage) => stage !== executionStage);
+  const nextIndex = OCP_SIGN_IN_EXECUTION_STAGES.indexOf(executionStage);
+  const currentIndex =
+    projection.executionStage === null
+      ? -1
+      : OCP_SIGN_IN_EXECUTION_STAGES.indexOf(projection.executionStage);
+
+  // Early-creds race: SIP stage already active — ignore a later credentials seed.
+  if (currentIndex > nextIndex) {
+    return projection;
+  }
+
+  // Every prior stage is complete (covers jumps that skip intermediate stages).
+  const completed = OCP_SIGN_IN_EXECUTION_STAGES.slice(0, nextIndex);
   return {
     ...projection,
     stage: mapExecutionStageToLegacyStage(executionStage),
@@ -217,6 +230,7 @@ function mapExecutionStageToLegacyStage(
     case "submitting_token_to_ocp":
       return "connecting_ocp";
     case "awaiting_authorization_data":
+    case "receiving_phone_credentials":
       return "receiving_credentials";
     case "connecting_sip_transport":
     case "authorizing_sip":

@@ -330,7 +330,19 @@ export function useOperatorStatusSelector(
     if (input.facade === null) {
       return;
     }
-    void input.facade.connectOcp();
+    // Same dual-FSM owner as System State «Повторить сервер» (ADR-AF-002).
+    void (async (): Promise<void> => {
+      const recovery = await input.facade!.dispatchAccountRecoveryAction(
+        "retry_server",
+      );
+      if (recovery.ok) {
+        return;
+      }
+      // Rare: action not allowed by snapshot — fall back to fresh-token connect.
+      if (recovery.error.message === "authorization_retry_unavailable") {
+        await input.facade!.connectOcp();
+      }
+    })();
   }, [input.facade]);
 
   return {

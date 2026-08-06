@@ -57,6 +57,7 @@ import { OcpConnectionBanner } from "../components/integration/ocp/OcpConnection
 import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaignEventModal.js";
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
 import { OcpSignInProgress } from "../components/account/OcpSignInProgress.js";
+import { shouldOpenOcpSignInProgressModal } from "@application/projections/settings/shouldOpenOcpSignInProgressModal.js";
 import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
 import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
 import { SdkConnectCeremonyModal } from "../components/integration/SdkConnectCeremonyModal.js";
@@ -295,12 +296,18 @@ function SoftphoneShellLayoutRoute({
   const ocpTransportRecoveryActive = useAccountBootstrapStore(
     (state) => state.ocpSessionProjection.transportRecoveryActive,
   );
+  const ocpAuthorizationProgress = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.authorizationProgress,
+  );
   useEffect(() => {
     if (ocpAuthFeedback === null) {
       return;
     }
-    // Auto-recovery already shows OcpConnectionBanner — skip duplicate token toasts.
-    if (ocpTransportRecoveryActive) {
+    // Banner recovery / sign-in progress modal already own the failure UX.
+    if (
+      ocpTransportRecoveryActive ||
+      shouldOpenOcpSignInProgressModal(ocpAuthorizationProgress)
+    ) {
       facade.clearOcpAuthFeedback();
       return;
     }
@@ -325,6 +332,7 @@ function SoftphoneShellLayoutRoute({
     facade,
     notifications,
     ocpAuthFeedback,
+    ocpAuthorizationProgress,
     ocpTransportRecoveryActive,
     openSystemState,
   ]);
@@ -441,7 +449,8 @@ function SoftphoneShellLayoutRoute({
     notifications,
     onOpenSystemState: openSystemState,
     accountFeedback: {
-      error: accountActions.error,
+      notificationError: accountActions.notificationError,
+      inlineError: accountActions.error,
       successKeys: accountActions.successKeys,
       warningKey: accountActions.warningKey,
       openSystemStateAction: accountActions.openSystemStateAction,

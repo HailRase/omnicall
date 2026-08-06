@@ -1315,6 +1315,7 @@ export const bgMessages: MessageShape = {
   "account.authProgress.stage.httpToken": "Получаване на авторизационен токен",
   "account.authProgress.stage.submitToken": "Изпращане на токена към OCP сървъра",
   "account.authProgress.stage.awaitData": "Аутентикация на токена в модула",
+  "account.authProgress.stage.receiveCredentials": "Получаване на телефонни данни",
   "account.authProgress.stage.sipTransport": "Свързване със SIP сървъра",
   "account.authProgress.stage.sipAuthorization": "Регистрация на телефона",
   "account.authProgress.status.pending": "Изчаква",

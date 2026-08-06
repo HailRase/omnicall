@@ -104,10 +104,20 @@ User-visible errors / warnings / success must use **one** channel per event. Do 
 | Rich diagnostic payload | Inline result panel (e.g. External Services run) |
 | List load empty/error | Panel empty/error region |
 
+### Account feedback matrix
+
+| Outcome | Channel | Notes |
+| --- | --- | --- |
+| Validation / required fields / profile not found | `AccountPanel` Alert | Journal via `interruptClass: "critical"` (no toast) |
+| Server / transport / REGISTER (incl. 403) | Toast (`actionable`) | System State CTA on toast action; no Alert |
+| Success / soft warnings | Toast (`informational`) | Unchanged |
+| OCP multi-stage failure | `OcpSignInProgress` modal | Suppress duplicate Account toast while modal owns |
+| OCP drop recovery | `OcpConnectionBanner` | Silent compact chip; no Account toast dual; not Sonner |
+
 Rules:
 
 - Confirm modals must not embed outcome error strips; use `notify`.
-- Account sign-in errors: `AccountPanel` Alert owns UX; `notify` with `interruptClass: "critical"` journals without toast.
+- Account: classifier in Application (`classifyAccountSignInErrorPresentation`); UI must not re-implement the matrix.
 - Multi-call `policyErrorMessage`: only `CallSessionStack`.
 - Settings mutations (SDK/OCP/EA/ES save, screen-share confirm) → `notify`; keep FormField/`validation.*`, list-load regions, codec policy strips, ES RunResult, SDK poll gateway strip.
 - Critical ADR-0013 raises and connection/update banners stay non-toast.

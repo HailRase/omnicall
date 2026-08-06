@@ -65,11 +65,27 @@ Frameless shell owns custom window controls (Win/Linux trailing buttons; macOS t
 | Token / helper | Use |
 | --- | --- |
 | `--incoming-call-banner-top` | Vertical inset below titlebar (shared by incoming call, update banner, OCP connection banner, top toasts) |
-| `--shell-window-controls-safe-inline-start` | Horizontal inset for macOS traffic lights when the floating UI occupies the titlebar |
-| `--shell-window-controls-safe-inline-end` | Horizontal inset for Win/Linux window buttons when the floating UI occupies the titlebar |
+| `--shell-window-controls-safe-inline-start` | Horizontal inset for macOS traffic lights when the floating UI occupies the **titlebar row** |
+| `--shell-window-controls-safe-inline-end` | Horizontal inset for Win/Linux window buttons when the floating UI occupies the **titlebar row** |
 | `resolveNotificationToasterOffset` | Product Sonner `offset` **and** `mobileOffset`; top toasts use the shared vertical inset and the normal 24px horizontal edge, because they render below titlebar controls |
 
+**Top-center banners below the titlebar** (`IncomingCallOverlay`, `OcpConnectionBanner`, and peers using `--incoming-call-banner-top`):
+
+- Anchor with `left: 50%` + `translateX(-50%)`.
+- Width: `min(<banner-max>, calc(100vw - 2 * var(--space-md)))` (viewport edge insets only).
+- Do **not** subtract `--shell-window-controls-safe-inline-start/end` from width — those tokens are for chrome that shares the titlebar row; on compact 360px both insets leave ~100px and clip the banner.
+- Channel stays shell banner / overlay (ADR-0026); do not move OCP recovery into Sonner toasts.
+
 Do **not** rely on Sonner’s default `mobileOffset` (16px) in the softphone shell. Prefer corner geometry over Sonner’s mobile full-bleed when the host is a narrow desktop window. `NotificationViewport.module.css` must also clamp the toaster and each toast to `100vw - 48px`; the compact shell is 360–420px, so a fixed Sonner width must never overflow during window-layout transitions.
+
+### OCP connection banner (compact chip)
+
+- Component: `OcpConnectionBanner` in shell overlay layer (`--z-shell-status-banner`).
+- Channel: persistent system state only (`uiSurface: silent`); never dual with toast; never open `OcpSignInProgress` for unexpected drop.
+- Copy: one line `OCP · <status>` (`reconnecting N/max` or `failed`).
+- Failed CTA: full-width `outline` Retry with normal outline hover (not `primary` accent, not danger-fill hover — destructive Alert already carries the tone).
+- Anchor: `left: 50%` + `translateX(calc(-50% + 5px))` optical nudge so the chip clears the dialpad avatar cluster on compact width.
+- Max width ~16.5rem; must fit compact main display (≥360px) without horizontal overflow.
 
 ## Primitives (`shared/ui/` — target)
 

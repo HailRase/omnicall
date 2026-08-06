@@ -86,6 +86,12 @@ export class InMemorySettingsRepository implements SettingsRepository {
     return Promise.resolve();
   }
 
+  /** Test helper: drop live SIP identity; UserSettings buckets stay. */
+  clearSipAccount(): Promise<void> {
+    this.state = { ...this.state, sipAccount: null };
+    return Promise.resolve();
+  }
+
   getPhoneStatus(): Promise<PhoneStatus> {
     return Promise.resolve(this.state.phoneStatus);
   }

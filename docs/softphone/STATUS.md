@@ -2,19 +2,19 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-08-05
+**Updated:** 2026-08-06
 **Version:** `1.3.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit@0.2.1` + `@softomnitel/omnicall-protocol@0.1.0`)
-**Feedback channels:** ADR-0026 Feedback Channel Law — anti-dual; ephemeral outcomes → `notify` (incl. SDK/OCP/EA/ES save + screen-share confirm); Account errors → persistent Alert + journaled critical; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
-**Tests:** `1.3.1` cut — release preflight green (2026-08-03); first-run CTA unit suites green (2026-08-05)
+**Feedback channels:** ADR-0026 (amended 2026-08-06) — anti-dual; ephemeral outcomes → `notify`; Account validation → Alert + journaled critical; Account server/register → toast (`actionable`) + System State CTA; OCP modal/banner keep ownership; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
+**Tests:** `1.3.1` cut — release preflight green (2026-08-03); first-run CTA unit suites green (2026-08-05); OCP progress honesty + Account feedback channel suites (2026-08-06)
 **First-run CTA (F-016 polish):** unregistered idle CTA only → Settings Account; empty saved-profile Account hint — `P11-First-Run-Sign-In-CTA.md`
 **Settings nav:** Integrations = always-open cluster (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
 **Settings schema:** `UserSettings` **v19** = v18 (EA/ringtone/always-on-top) + nested `notificationPreferences` (F-034); migrates 3…18 upward (no downgrade)
-**OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
+**OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); compact one-line chip `OCP · status` + outline Retry (viewport-edge geometry for ≥360px main display — not Sonner); banner Retry = System State `retry_server` (shared Facade recovery + login cascade); Login/Reconnect/SDK activate keep **six-stage** modal (immediate failure reveal; monotonic stages — early `creds` must not regress phone→SIP order; ADR-AF-002 amendment 2026-08-06)
 **Lint / typecheck:** green at `/release` cut `1.3.0`
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + min visible dwell 4000ms + exit crossfade; do not reintroduce React loading splash handoff; do not delay `initialize` for dwell
 **OCP call context:** `docs/softphone/OCP-Call-Context.md` — queue from `get_main_acallid` (wire: `acallid` + parties + `event`; never outbound `call_id`); desktop queue badge; SDK `call:acd-context` + snapshot `calls[].acdContext` under `ocp.acd_context.read` (ADR-0020) + additive `queueLabel`; campaign single-modal FSM + `operator:campaign-*` (ADR-0019); dual UI/SDK ownership + delivery reliability sections documented
 
-**Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `1.1.0`.
+**Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, OCP progress (six stages as of 2026-08-06), crash-safe saved profiles/secrets, one-click saved-profile entry, Account validation Alert + server/register toast (ADR-0026 amend 2026-08-06), rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `1.1.0`.
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 

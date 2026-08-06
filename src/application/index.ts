@@ -412,8 +412,12 @@ export {
   type AccountAuthorizationErrorProjection,
 } from "./projections/settings/mapAccountAuthorizationError.js";
 export {
+  assignAccountSignInErrorChannels,
+  classifyAccountSignInErrorPresentation,
   deriveAccountSignInNotificationFeedback,
   shouldAttachOpenSystemStateAction,
+  type AccountSignInErrorChannelAssignment,
+  type AccountSignInErrorPresentation,
   type AccountSignInNotificationFeedback,
   type AccountSignInSuccessMessageKey,
 } from "./projections/settings/deriveAccountSignInNotificationFeedback.js";

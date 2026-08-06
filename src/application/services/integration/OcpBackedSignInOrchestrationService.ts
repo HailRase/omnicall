@@ -13,6 +13,7 @@ import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { OcpProjectionHub } from "../../read-models/OcpProjectionHub.js";
 import {
+  OCP_SIGN_IN_EXECUTION_STAGES,
   applyAuthorizationExecutionFailure,
   applyAuthorizationExecutionStage,
   applyAuthorizationProgressStage,
@@ -178,7 +179,7 @@ export class OcpBackedSignInOrchestrationService {
         return connectResult;
       }
 
-      if (!this.setProgress("receiving_credentials", correlationId, runId)) {
+      if (!this.enterCredentialsWait(correlationId, correlationId, runId)) {
         return this.cancelledResult();
       }
       const applyResult = await credentialsWait;
@@ -188,7 +189,11 @@ export class OcpBackedSignInOrchestrationService {
       if (!applyResult.ok) {
         const stage = mapAuthorizationFailureStage(applyResult.error.message);
         this.setProgress(stage, correlationId, runId);
-        this.markExecutionFailure(applyResult.error.message, runId);
+        this.markExecutionFailure(
+          applyResult.error.message,
+          runId,
+          "receiving_phone_credentials",
+        );
         if (applyResult.error.message === "ocp_credentials_timeout") {
           this.deps.projectionHub.setAuthFeedback("CREDENTIALS_TIMEOUT");
         }
@@ -259,7 +264,13 @@ export class OcpBackedSignInOrchestrationService {
         }
         return authorizationResult;
       }
-      if (!this.setProgress("receiving_credentials", operationCorrelationId, runId)) {
+      if (
+        !this.enterCredentialsWait(
+          operationCorrelationId,
+          targetAttemptId,
+          runId,
+        )
+      ) {
         return this.cancelledResult();
       }
       const applyResult = await credentialsWait;
@@ -269,7 +280,11 @@ export class OcpBackedSignInOrchestrationService {
       if (!applyResult.ok) {
         const stage = mapAuthorizationFailureStage(applyResult.error.message);
         this.setProgress(stage, operationCorrelationId, runId);
-        this.markExecutionFailure(applyResult.error.message, runId);
+        this.markExecutionFailure(
+          applyResult.error.message,
+          runId,
+          "receiving_phone_credentials",
+        );
         return applyResult;
       }
       const mapped = this.mapApplyOutcome(
@@ -493,6 +508,48 @@ export class OcpBackedSignInOrchestrationService {
         correlationId,
       ),
     );
+    return true;
+  }
+
+  /**
+   * After OCP authorized: show credentials stage, start waiter budget, keep legacy stage.
+   * `waiterCorrelationId` must match the armed `waitAndApplyNext` attempt id.
+   * If early `creds` already advanced progress to SIP stages, do not regress UI —
+   * only arm the credentials timeout (no-op when the waiter already settled).
+   */
+  private enterCredentialsWait(
+    progressCorrelationId: CorrelationId,
+    waiterCorrelationId: CorrelationId,
+    runId: CorrelationId,
+  ): boolean {
+    if (!this.isCurrentRun(runId)) {
+      return false;
+    }
+    const current =
+      this.deps.projectionHub.getSessionProjection().authorizationProgress;
+    const receivingIndex = OCP_SIGN_IN_EXECUTION_STAGES.indexOf(
+      "receiving_phone_credentials",
+    );
+    const currentIndex =
+      current.executionStage === null
+        ? -1
+        : OCP_SIGN_IN_EXECUTION_STAGES.indexOf(current.executionStage);
+
+    if (currentIndex <= receivingIndex) {
+      const withStage = applyAuthorizationExecutionStage(
+        current,
+        "receiving_phone_credentials",
+        progressCorrelationId,
+      );
+      this.deps.projectionHub.setAuthorizationProgress(
+        applyAuthorizationProgressStage(
+          withStage,
+          "receiving_credentials",
+          progressCorrelationId,
+        ),
+      );
+    }
+    this.deps.sipCredentialService.beginCredentialsTimeout(waiterCorrelationId);
     return true;
   }
 

@@ -9,11 +9,35 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ### Fixed
 
+- **F-028** OCP sign-in progress: early phone `creds` no longer make
+  «Получение данных телефона» fill after «Подключение к SIP» — stages are
+  monotonic (prefix completed; no regress); `enterCredentialsWait` does not
+  overwrite an active SIP stage.
+- **F-028** OCP connection banner on compact main display: one-line chip
+  `OCP · status`, viewport-edge geometry (no titlebar safe-inset width clip),
+  failed Retry uses theme `outline` (not bright primary blue); same edge
+  geometry for `UpdateAvailableBanner`.
+- **F-028** OCP recovery Retry (banner / System State): reuses last OCP login and
+  saved API key instead of falsely asking for login when SIP identity is missing;
+  banner Retry shares dual-FSM `retry_server` with System State.
+- **F-028** OCP sign-in progress: terminal stage failures reveal immediately with
+  the real failure reason (no latent blue fill until timeout); Reconnect enables
+  at once; modal attempt suppresses duplicate `authFeedback` toasts.
 - **F-031** External Services Settings: corrupt or unavailable journal no longer
   blocks loading collections/requests; `QueryExternalServicesUseCase` returns
   settings with `journalStatus` (`ready` / `skipped` / `error`). Workspace load
   error uses a top banner instead of a broken flex Alert; History keeps a
   compact local retry state.
+
+### Changed
+
+- **F-001 / F-029 / F-016** Account sign-in feedback (ADR-0026 amendment): SIP
+  server/register failures (incl. 403) show as Notification Center toasts with
+  «Состояние системы» action; form validation stays on Account Alert; anti-dual
+  (no Alert + toast for the same error).
+- **F-028** OCP progress shows six stages (added phone-credentials wait after
+  module auth); stage timeouts stay aligned with Application waiters; credentials
+  timeout budget starts only after OCP authorized.
 
 ## [1.3.1] - 2026-08-03
 

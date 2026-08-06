@@ -1814,4 +1814,70 @@ describe("AccountBootstrapFacade integration", () => {
       facade.getOcpSessionSnapshot().authorizationProgress.stage,
     ).toBe("ready");
   });
+
+  it("reconnect recovery reuses last OCP login when SIP account is cleared", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const proxy = new MockOcpProxyAuthenticatePort();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settings.saveSipAccount(ocpTestSipAccount);
+    const accountKey = deriveSettingsAccountKeyFromIdentity(ocpTestSipAccount);
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: proxy,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings(
+      {
+        enabled: true,
+        domain: "ocp.example.com",
+        autoConnect: false,
+        linked: false,
+      },
+      { accountKey },
+    );
+    await facade.saveOcpProxyApiKey("api-key-abc", { accountKey });
+
+    const connectPending = facade.connectOcp();
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(3, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
+    expect((await connectPending).ok).toBe(true);
+    expect(facade.getOcpSessionSnapshot().authenticatedLogin).toBe(
+      ocpTestSipAccount.username,
+    );
+    expect(facade.getOcpSessionSnapshot().primaryRecoveryAction).toBe("reconnect");
+
+    // Drop live SIP identity — recovery must reuse attempt/session login, not LOGIN_REQUIRED.
+    await settings.clearSipAccount();
+    expect(await settings.getSipAccount()).toBeNull();
+
+    const httpBefore = proxy.calls.length;
+    const retryPending = facade.dispatchAccountRecoveryAction("reconnect");
+    await vi.waitFor(() => {
+      expect(proxy.calls.length).toBeGreaterThan(httpBefore);
+      expect(proxy.calls.at(-1)?.login).toBe(ocpTestSipAccount.username);
+    });
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(4, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
+    const retryResult = await retryPending;
+    expect(retryResult.ok).toBe(true);
+    expect(facade.getOcpSessionSnapshot().authFeedback).toBeNull();
+  });
 });

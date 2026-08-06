@@ -125,6 +125,16 @@ describe("ocpDualFsm", () => {
     });
     expect(resolveAllowedOcpRecoveryAction(authorized, "reconnect")).toBe("reconnect");
     expect(resolveAllowedOcpRecoveryAction(authorized, "retry_authorization")).toBeNull();
+
+    // Stale authorized after transport failure still offers Retry server.
+    const staleAuthorizedDown = reduceOcpDualFsm(authorized, {
+      kind: "server",
+      transition: { type: "transport_failed" },
+    });
+    expect(selectPrimaryOcpRecoveryAction(staleAuthorizedDown)).toBe("retry_server");
+    expect(
+      resolveAllowedOcpRecoveryAction(staleAuthorizedDown, "retry_server"),
+    ).toBe("retry_server");
   });
 
   it("blocks recovery after terminate terminal state", () => {

@@ -12,12 +12,17 @@ import { DisconnectOcpUseCase } from "../../use-cases/integration/ocp/Disconnect
 import { OcpAuthenticateAndConnectService } from "./OcpAuthenticateAndConnectService.js";
 import { OcpBackedSignInOrchestrationService } from "./OcpBackedSignInOrchestrationService.js";
 import { OcpSipCredentialService } from "./OcpSipCredentialService.js";
-import { initialAuthorizationProgressProjection } from "../../projections/settings/authorizationProgressProjection.js";
+import {
+  applyAuthorizationExecutionStage,
+  applyAuthorizationProgressStage,
+  initialAuthorizationProgressProjection,
+} from "../../projections/settings/authorizationProgressProjection.js";
 import {
   createAuthorizeSipAccountStub,
   createPromoteAuthorizedSipSessionStub,
   createRegisterAccountStub,
 } from "../../testing/sipUseCaseTestDoubles.js";
+import type { OcpSignInExecutionStage } from "@domain/index.js";
 
 describe("OcpBackedSignInOrchestrationService", () => {
   function createHarness(options?: {
@@ -264,6 +269,131 @@ describe("OcpBackedSignInOrchestrationService", () => {
       true,
     );
     dispose();
+  });
+
+  it("keeps SIP transport stage when early creds beat enterCredentialsWait", async () => {
+    const gateway = new MockOcpGateway();
+    const proxy = new MockOcpProxyAuthenticatePort();
+    proxy.setBehavior({ kind: "token", token: "tok-early" });
+    const logger = createTestLogger();
+    const hub = new OcpProjectionHub({ ocpGateway: gateway });
+    const account = createSipAccount(createSipAccountId("1001"), {
+      username: "1001",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+
+    let releaseAuthorize: (() => void) | null = null;
+    const authorizeGate = new Promise<void>((resolve) => {
+      releaseAuthorize = resolve;
+    });
+    const authorizeSipAccount = createAuthorizeSipAccountStub(
+      vi.fn(async () => {
+        await authorizeGate;
+        return ok(account);
+      }),
+    );
+
+    const applyStage = (
+      stage: OcpSignInExecutionStage,
+      correlationId: string,
+    ): void => {
+      hub.setAuthorizationProgress(
+        applyAuthorizationExecutionStage(
+          hub.getSessionProjection().authorizationProgress,
+          stage,
+          correlationId,
+        ),
+      );
+    };
+
+    const sipCredentialService = new OcpSipCredentialService({
+      ocpGateway: gateway,
+      logger,
+      authorizeSipAccount,
+      registerAccount: createRegisterAccountStub(
+        vi.fn(() => Promise.resolve(ok(undefined))),
+      ),
+      promoteAuthorizedSipSession: createPromoteAuthorizedSipSessionStub(),
+      isSipRegistered: () => false,
+      getActiveSipIdentity: () => Promise.resolve(null),
+      credentialsTimeoutMs: 2_000,
+      onRegisteringPhone: (correlationId) => {
+        hub.setAuthorizationProgress(
+          applyAuthorizationProgressStage(
+            hub.getSessionProjection().authorizationProgress,
+            "registering_phone",
+            correlationId,
+          ),
+        );
+      },
+      onExecutionStage: applyStage,
+    });
+
+    const authenticateAndConnect = new OcpAuthenticateAndConnectService({
+      proxyAuthenticate: proxy,
+      connectOcp: new ConnectOcpUseCase(gateway, logger),
+      disconnectOcp: new DisconnectOcpUseCase(gateway, logger),
+      ocpGateway: gateway,
+      projectionHub: hub,
+      logger,
+      sessionTimeoutMs: 2_000,
+      onExecutionStage: applyStage,
+    });
+
+    const service = new OcpBackedSignInOrchestrationService({
+      authenticateAndConnect,
+      sipCredentialService,
+      projectionHub: hub,
+      logger,
+    });
+
+    const pending = service.execute({
+      domain: "ocp.example.com",
+      login: "1001",
+      apiKey: "key-1",
+    });
+
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+
+    gateway.simulateAuthSuccessWithCredentials(21, {
+      username: "1001",
+      password: "secret-password",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+
+    await vi.waitFor(() => {
+      expect(hub.getSessionProjection().authorizationProgress.executionStage).toBe(
+        "connecting_sip_transport",
+      );
+    });
+
+    // Auth + enterCredentialsWait have finished; SIP authorize still gated.
+    await vi.waitFor(() => {
+      expect(
+        hub
+          .getSessionProjection()
+          .authorizationProgress.completedExecutionStages,
+      ).toContain("receiving_phone_credentials");
+    });
+
+    const mid = hub.getSessionProjection().authorizationProgress;
+    expect(mid.executionStage).toBe("connecting_sip_transport");
+    expect(mid.completedExecutionStages).toContain("receiving_phone_credentials");
+    expect(mid.executionStage).not.toBe("receiving_phone_credentials");
+
+    releaseAuthorize?.();
+    const result = await pending;
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.phase).toBe("sip_ready");
+    }
+    sipCredentialService.dispose();
+    hub.dispose();
   });
 
   it("rejects concurrent sign-in attempts", async () => {

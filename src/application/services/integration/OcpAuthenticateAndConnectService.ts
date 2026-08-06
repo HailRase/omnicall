@@ -27,8 +27,9 @@ import {
 const FEATURE_ID = "F-028";
 const BOUNDED_CONTEXT = "Integration";
 
-/** Wait for OCP authorization after WS connect + auth send before surfacing timeout toast. */
-export const OCP_AUTH_SESSION_TIMEOUT_MS = 15_000;
+/** Wait for OCP authorization after WS connect + auth send (SSoT: stage timeout). */
+export const OCP_AUTH_SESSION_TIMEOUT_MS =
+  OCP_SIGN_IN_STAGE_TIMEOUT_MS.awaiting_authorization_data;
 
 export type OcpAuthenticateAndConnectInput = Readonly<{
   domain: string;

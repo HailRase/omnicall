@@ -856,4 +856,59 @@ describe("useOperatorStatusSelector", () => {
     expect(result.current.vm.readyItems[0]?.isCurrent).toBe(true);
     expect(result.current.vm.breakItems.map((item) => item.reasonId)).toEqual([7]);
   });
+
+  it("banner Retry uses dual-FSM retry_server (not bare connectOcp)", async () => {
+    const dispatchAccountRecoveryAction = vi.fn().mockResolvedValue({ ok: true, value: undefined });
+    const connectOcp = vi.fn().mockResolvedValue({ ok: true, value: undefined });
+    const facade = {
+      changeOcpOperatorStatus: vi.fn(),
+      dispatchAccountRecoveryAction,
+      connectOcp,
+    };
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: facade as never,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+
+    await act(async () => {
+      result.current.onRetryConnect();
+      await Promise.resolve();
+    });
+
+    expect(dispatchAccountRecoveryAction).toHaveBeenCalledWith("retry_server");
+    expect(connectOcp).not.toHaveBeenCalled();
+  });
+
+  it("banner Retry falls back to connectOcp when retry_server is unavailable", async () => {
+    const dispatchAccountRecoveryAction = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { message: "authorization_retry_unavailable" },
+    });
+    const connectOcp = vi.fn().mockResolvedValue({ ok: true, value: undefined });
+    const facade = {
+      changeOcpOperatorStatus: vi.fn(),
+      dispatchAccountRecoveryAction,
+      connectOcp,
+    };
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: facade as never,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+
+    await act(async () => {
+      result.current.onRetryConnect();
+      await Promise.resolve();
+    });
+
+    expect(dispatchAccountRecoveryAction).toHaveBeenCalledWith("retry_server");
+    expect(connectOcp).toHaveBeenCalledOnce();
+  });
 });

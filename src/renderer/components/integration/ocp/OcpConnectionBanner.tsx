@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { useI18n } from "../../../i18n/index.js";
-import { Alert, AlertDescription, AlertTitle } from "../../ui/alert/index.js";
+import { Alert, AlertTitle } from "../../ui/alert/index.js";
 import { Button } from "../../ui/button/index.js";
 import styles from "./OcpConnectionBanner.module.css";
 
@@ -16,7 +16,7 @@ export type OcpConnectionBannerProps = Readonly<{
 /**
  * - Purpose: global OCP reconnect/failed banner (shell overlay layer).
  * - Inputs: visibility, mode, attempt counters, retry callback.
- * - Outputs: compact two-line Alert that fits the main softphone width.
+ * - Outputs: compact one-line Alert chip for main softphone width (≥360px).
  * - Note: sole user surface for unexpected-drop auto-recovery (`uiSurface: silent`).
  */
 export function OcpConnectionBanner({
@@ -32,18 +32,17 @@ export function OcpConnectionBanner({
     return null;
   }
 
-  // Primary line = status (must wrap fully on ~360px). Secondary = product label.
-  const title =
+  const productLabel =
+    mode === "reconnecting"
+      ? t("ocp.connection.reconnectingTitle")
+      : t("ocp.connection.failedTitle");
+  const statusLabel =
     mode === "reconnecting"
       ? t("ocp.connection.reconnecting", {
           attempt: reconnectAttempt,
           max: maxReconnectAttempts,
         })
       : t("ocp.connection.failed");
-  const subtitle =
-    mode === "reconnecting"
-      ? t("ocp.connection.reconnectingTitle")
-      : t("ocp.connection.failedTitle");
 
   return (
     <div
@@ -62,15 +61,20 @@ export function OcpConnectionBanner({
           className={styles.title}
           data-testid="ocp-connection-banner-message"
         >
-          {title}
+          <span className={styles.product}>{productLabel}</span>
+          <span className={styles.separator} aria-hidden="true">
+            ·
+          </span>
+          <span className={styles.status}>{statusLabel}</span>
         </AlertTitle>
-        <AlertDescription className={styles.message}>{subtitle}</AlertDescription>
         {mode === "failed" ? (
           <div className={styles.actions}>
             <Button
               type="button"
               size="sm"
-              variant="primary"
+              variant="outline"
+              fullWidth
+              className={styles.retryButton}
               data-testid="ocp-retry-connect"
               onClick={onRetry}
             >
