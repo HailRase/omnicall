@@ -40,7 +40,7 @@ describe("OcpSignInProgress", () => {
     expect(screen.queryByTestId("account-ocp-progress-overall")).not.toBeInTheDocument();
   });
 
-  it("keeps reconnect disabled while early failure still fills blue", () => {
+  it("reveals early network failure immediately and enables reconnect", () => {
     const active = applyAuthorizationExecutionStage(
       initialAuthorizationProgressProjection(),
       "requesting_authorization_token",
@@ -63,18 +63,18 @@ describe("OcpSignInProgress", () => {
 
     expect(
       screen.getByTestId("account-ocp-progress-stage-requesting_authorization_token"),
-    ).toHaveAttribute("data-state", "active");
-    expect(screen.getByTestId("account-ocp-progress-reconnect")).toBeDisabled();
+    ).toHaveAttribute("data-state", "failed");
+    expect(screen.getByTestId("account-ocp-progress-reconnect")).toBeEnabled();
   });
 
-  it("shows generic failed status with tooltip icon and reconnects from footer", async () => {
+  it("shows timeout status with tooltip icon and reconnects from footer", async () => {
     const onDisconnect = vi.fn();
     const onReconnect = vi.fn();
     const active = applyAuthorizationExecutionStage(
       initialAuthorizationProgressProjection(),
       "submitting_token_to_ocp",
       "attempt-1",
-      Date.now() - 20_000,
+      Date.now() - 1_000,
     );
     render(
       <OcpSignInProgress
@@ -90,8 +90,7 @@ describe("OcpSignInProgress", () => {
       />,
     );
 
-    expect(screen.getByText("Ошибка")).toBeInTheDocument();
-    expect(screen.queryByText("Таймаут")).not.toBeInTheDocument();
+    expect(screen.getByText("Таймаут")).toBeInTheDocument();
     expect(screen.getByTestId("account-ocp-progress-failure-icon")).toBeInTheDocument();
     expect(screen.queryByTestId("account-ocp-progress-failure")).not.toBeInTheDocument();
     await userEvent.click(screen.getByTestId("account-ocp-progress-reconnect"));

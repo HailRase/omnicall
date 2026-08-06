@@ -19,7 +19,7 @@
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
 | `shell.window.maximize` | Fill work area in settings (layout-owned, not OS maximize) | `Square` | — | `ShellWindowControls` | active |
 | `shell.window.restore` | Restore settings size from work-area fill | `SquareStack` | — | `ShellWindowControls` | active |
-| `shell.window.pin` | Pin softphone always-on-top | `Pin` | — | `ShellWindowControls` | active |
+| `shell.window.pin` | Pin softphone always-on-top | `Pin` | — | `ShellWindowControls`; F-032 always-on-top preview badge | active |
 | `shell.window.unpin` | Unpin softphone always-on-top | `PinOff` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
@@ -43,6 +43,7 @@
 | `settings.integrations.external-applications` | Settings External Applications row in Integrations cluster | `AppWindow` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-applications.open` | Open now for External Applications URL bar | `ExternalLink` | — | `ExternalApplicationsEditor` | active |
 | `settings.integrations.external-applications.history` | External Applications open history sidebar entry | `Activity` | — | `ExternalApplicationsSidebar` | active |
+| `settings.integrations.external-applications.overlays` | Toggle multi-app geometry overlays on window preview | `Layers` | `LayersIcon` | `WindowGeometryOverlays` | active |
 | `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
 | `settings.integrations.external-services.add` | New collection / quick-add in External Services; Add in External Applications sidebar | `Plus` | — | `ExternalServicesSidebar`, `ExternalApplicationsSidebar` | active |
 | `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |

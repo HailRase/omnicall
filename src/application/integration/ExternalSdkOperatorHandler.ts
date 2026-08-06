@@ -1,5 +1,5 @@
 /**
- * Application operator/logout/finish-appeal handler (DI-07 / ADR-0017 O-OCP-1).
+ * Application operator/logout/finish-appeal handler (DI-07 / ADR-0017 O-OCP-1 / ADR-0027).
  * Maps public protocol → F-028 Facade with callType "sdk". Reads peek-only.
  * Logout is single-shot `account:logout` (CRM supplies reasonId).
  * Finish appeal is `operator:finish-appeal` (OCP login + post-call processing only).
@@ -18,22 +18,22 @@ import type {
 } from "@ports/integration/ExternalCommandHandler.js";
 
 import type { ExternalSdkOperatorPort } from "./ExternalSdkOperatorPort.js";
-import {
-  readExpectedRevision,
-  sdkCallStale,
-  sdkCallSuccess,
-  sdkFail,
-} from "./externalSdkCallHelpers.js";
+import { sdkCallSuccess, sdkFail } from "./externalSdkCallHelpers.js";
 import { logoutAccountCommand } from "./externalSdkLogoutCommands.js";
 import {
   assertClientId,
   parseChangeStatusPayload,
   reasonToWire,
 } from "./externalSdkOperatorHelpers.js";
-import { mapPlatformErrorToSdkCode, isNotInPostCallProcessingError } from "./mapPlatformErrorToSdkCode.js";
+import {
+  isNotInPostCallProcessingError,
+  mapPlatformErrorToSdkCode,
+} from "./mapPlatformErrorToSdkCode.js";
 import { resolveSdkStatusReasonId } from "./mapSdkOperatorReasons.js";
-import { SdkAggregateMutex } from "./SdkAggregateMutex.js";
-import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import type {
+  SdkRevisionMutationOutcome,
+  SdkSessionRevisionCoordinator,
+} from "./SdkSessionRevisionCoordinator.js";
 
 const OPERATOR_COMMAND_TYPES = new Set<string>([
   "operator:get-reasons",
@@ -42,13 +42,11 @@ const OPERATOR_COMMAND_TYPES = new Set<string>([
   "account:logout",
 ]);
 
-const ACCOUNT_LOCK_KEY = "__sdk_account__";
 const IDEMPOTENCY_TTL_MS = 120_000;
 
 export type ExternalSdkOperatorHandlerOptions = Readonly<{
   operatorPort: ExternalSdkOperatorPort;
-  revisionClock: SdkSessionRevisionClock;
-  mutex?: SdkAggregateMutex;
+  revisionCoordinator: SdkSessionRevisionCoordinator;
   nowMs?: () => number;
 }>;
 
@@ -62,16 +60,14 @@ type CachedReply = Readonly<{
  */
 export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
   private readonly operatorPort: ExternalSdkOperatorPort;
-  private readonly revisionClock: SdkSessionRevisionClock;
-  private readonly mutex: SdkAggregateMutex;
+  private readonly revisionCoordinator: SdkSessionRevisionCoordinator;
   private readonly nowMs: () => number;
   private readonly idempotency = new Map<string, CachedReply>();
   private readonly inFlight = new Map<string, Promise<ExternalHandlerResult>>();
 
   constructor(options: ExternalSdkOperatorHandlerOptions) {
     this.operatorPort = options.operatorPort;
-    this.revisionClock = options.revisionClock;
-    this.mutex = options.mutex ?? new SdkAggregateMutex();
+    this.revisionCoordinator = options.revisionCoordinator;
     this.nowMs = options.nowMs ?? (() => Date.now());
   }
 
@@ -99,7 +95,7 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
       return Promise.resolve(sdkFail("unsupported_command"));
     }
 
-    const requestId = message.requestId;
+    const requestId = this.idempotencyKey(message.requestId, context);
     this.pruneCaches();
     const cached = this.idempotency.get(requestId);
     if (cached !== undefined && cached.expiresAt > this.nowMs()) {
@@ -110,14 +106,17 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
       return pending;
     }
 
-    const execution = this.executeCommand(message, context).then((result) => {
-      this.idempotency.set(requestId, {
-        result,
-        expiresAt: this.nowMs() + IDEMPOTENCY_TTL_MS,
+    const execution = this.executeCommand(message, context)
+      .then((result) => {
+        this.idempotency.set(requestId, {
+          result,
+          expiresAt: this.nowMs() + IDEMPOTENCY_TTL_MS,
+        });
+        return result;
+      })
+      .finally(() => {
+        this.inFlight.delete(requestId);
       });
-      this.inFlight.delete(requestId);
-      return result;
-    });
     this.inFlight.set(requestId, execution);
     return execution;
   }
@@ -134,16 +133,14 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
     if (message.type === "operator:get-reasons") {
       return Promise.resolve(this.handleGetReasons());
     }
-    return this.mutex.runExclusive(ACCOUNT_LOCK_KEY, () =>
-      this.handleMutation(message),
-    );
+    return this.handleMutation(message);
   }
 
   private handleGetReasons(): ExternalHandlerResult {
     const reasons = this.operatorPort.listOperatorReasons();
     return sdkCallSuccess(
       { reasons: reasons.map(reasonToWire) },
-      this.revisionClock.peek(),
+      this.revisionCoordinator.peek(),
     );
   }
 
@@ -152,18 +149,23 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
   ): Promise<ExternalHandlerResult> {
     switch (message.type) {
       case "operator:change-status":
-        return this.handleChangeStatus(message.payload);
-      case "operator:finish-appeal":
-        return this.handleFinishAppeal(message.payload);
-      case "account:logout":
-        return logoutAccountCommand(
-          {
-            operatorPort: this.operatorPort,
-            revisionClock: this.revisionClock,
-            requireFreshRevision: (payload: unknown) =>
-              this.requireFreshRevision(payload),
-          },
+        return this.revisionCoordinator.runMutationFromPayload(
           message.payload,
+          () => this.handleChangeStatus(message.payload),
+        );
+      case "operator:finish-appeal":
+        return this.revisionCoordinator.runMutationFromPayload(
+          message.payload,
+          () => this.handleFinishAppeal(),
+        );
+      case "account:logout":
+        return this.revisionCoordinator.runMutationFromPayload(
+          message.payload,
+          () =>
+            logoutAccountCommand(
+              { operatorPort: this.operatorPort },
+              message.payload,
+            ),
         );
       default:
         return Promise.resolve(sdkFail("unsupported_command"));
@@ -172,11 +174,7 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
 
   private async handleChangeStatus(
     payload: unknown,
-  ): Promise<ExternalHandlerResult> {
-    const gate = this.requireFreshRevision(payload);
-    if (!gate.ok) {
-      return gate;
-    }
+  ): Promise<SdkRevisionMutationOutcome> {
     const session = this.operatorPort.readOcpSession();
     if (!session.isAuthenticated || !session.hasOperatorSnapshot) {
       return sdkFail("not_found");
@@ -200,24 +198,18 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
     if (!result.ok) {
       return sdkFail(mapPlatformErrorToSdkCode(result.error));
     }
-    return sdkCallSuccess(
-      {
+    return {
+      ok: true,
+      result: {
         accepted: true,
         kind: result.value.kind,
         targetStatus: result.value.targetStatus,
         reasonId: result.value.reasonId,
       },
-      this.revisionClock.advance(),
-    );
+    };
   }
 
-  private async handleFinishAppeal(
-    payload: unknown,
-  ): Promise<ExternalHandlerResult> {
-    const gate = this.requireFreshRevision(payload);
-    if (!gate.ok) {
-      return gate;
-    }
+  private async handleFinishAppeal(): Promise<SdkRevisionMutationOutcome> {
     const session = this.operatorPort.readOcpSession();
     if (!session.isAuthenticated || !session.hasOperatorSnapshot) {
       return sdkFail("not_found");
@@ -230,29 +222,15 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
           : {}),
       });
     }
-    return sdkCallSuccess(
-      {
+    return {
+      ok: true,
+      result: {
         accepted: true,
         kind: result.value.kind,
         targetStatus: result.value.targetStatus,
         reasonId: result.value.reasonId,
       },
-      this.revisionClock.advance(),
-    );
-  }
-
-  private requireFreshRevision(
-    payload: unknown,
-  ): ExternalHandlerResult | { readonly ok: true } {
-    const expectedRevision = readExpectedRevision(payload);
-    if (expectedRevision === null) {
-      return sdkFail("invalid_payload");
-    }
-    const current = this.revisionClock.peek();
-    if (expectedRevision !== current) {
-      return sdkCallStale(current);
-    }
-    return { ok: true };
+    };
   }
 
   private pruneCaches(): void {
@@ -262,6 +240,13 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
         this.idempotency.delete(id);
       }
     }
+  }
+
+  private idempotencyKey(
+    requestId: string,
+    context: ExternalCommandContext | undefined,
+  ): string {
+    return `${context?.origin ?? ""}\u0000${context?.clientId ?? ""}\u0000${requestId}`;
   }
 }
 

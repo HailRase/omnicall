@@ -1,5 +1,10 @@
 # OmniCall Desktop SDK Integration Plan
 
+> **Live status (2026-08-03):** F-011 **`implemented`**; P12 **closed**; corrective
+> WU-00…WU-07 **PASS** — see `README.md` Current Status and
+> `sdk-production-readiness/CLOSEOUT.md`. Phase narratives below are **historical**.
+> Origin upgrade is **fail-closed** (`allowed` only; ADR-0018 amended 2026-08-03).
+
 ## Objective
 
 Implement F-011/P12 as a secure vertical slice from Electron main transport to existing
@@ -198,29 +203,28 @@ Gate: UI, accessibility, i18n, migration, and security tests pass.
 
 ## Phase DI-10 — Compatibility, E2E, and P12 Close
 
-Status: **`done`** (2026-07-21 `/sdk-review` PASS). Evidence: `evidence/DI-10-compatibility-e2e-p12-close.md`.
+Status: **`done`** — full P12/F-011 close **2026-07-27** (evidence
+`evidence/DI-10-compatibility-e2e-p12-close.md`). Packaged/browser smoke cells are
+**archival**; agents must not re-run them as gates.
 
-- Automated preflight PASS (2499/1); SDK `api:check` 47/169 held.
-- Packaged Electron `0.11.2` + Edge Chromium handshake / hostile Origin / incompat **PASS** (partial).
-- Settings pair/revoke UX, SIP/OCP call smoke, prior published SDK cells remain **OPEN**.
-- F-011 stays `in progress`; P12 **not** closed; SemVer unchanged (`0.11.2`).
+Historical mid-unit notes (partial smoke / `in progress`) below the full-close date are
+superseded by STATUS.md + Feature Registry + corrective CLOSEOUT.
 
-Gate: F-011 `implemented` + P12 close still require remaining OPEN DI-10 smoke cells
-(or an explicit human waiver) — DI-11 `/sdk-review` **PASS** 2026-07-21.
-
-## Phase DI-11 — Origin TOFU, Blacklist, Per-Origin Policy, Activate Consent
+## Phase DI-11 — Origin Trust Store, Blacklist, Per-Origin Policy, Activate Consent
 
 Status: **`done`** (`/sdk-review` PASS 2026-07-21; ADR-0018; evidence
 `evidence/DI-11-origin-tofu-blacklist-activate.md`).
 
 - Always-on loopback gateway; remove Settings listener enable toggle (env kill-switch only).
-- Origin states unknown / allowed / denied with renderer first-contact modal and blacklist
-  upgrade reject; Unblock restore rules (prior allowed → allowed+matrix).
-- Per-Origin capability matrix; pre-auth Settings → Integrations → OmniCall Kit (ADR-AF-004).
-- Discovery CORS for unknown+allowed; activate consent every login + pending guard.
+- Origin states unknown / allowed / denied; Settings Trusted/Blocked + matrix; blacklist
+  upgrade reject; Unblock restore (prior allowed → allowed+matrix).
+- **Post-DI-11 hardening (2026-08-03):** WebSocket upgrade accepts **`allowed` only**
+  (fail-closed). First-contact TOFU-on-upgrade superseded — see ADR-0018 amendment.
+- Per-Origin capability matrix; pre-auth Settings → OmniCall Kit (ADR-AF-004).
+- Discovery CORS for unknown+allowed (onboarding read; does not grant WS); activate consent.
 - Machine-common boot hydrate (`sdk-origin-trust.json`); denied wins over env seed.
 
-Gate closed for DI-11. F-011/P12 still need remaining OPEN smoke/waivers.
+Gate closed for DI-11. F-011/P12 closed; corrective track WU-07 PASS 2026-08-03.
 
 ## Rollback and Failure Policy
 

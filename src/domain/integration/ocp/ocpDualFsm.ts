@@ -235,10 +235,9 @@ export function selectPrimaryOcpRecoveryAction(
   ) {
     return resolveAllowedOcpRecoveryAction(snapshot, "retry_authorization");
   }
+  // Transport down: Retry server even if Authorization still shows authorized
+  // (stale after unexpected drop / recovery exhaustion — ADR-AF-002).
   if (snapshot.serverState === "failed" || snapshot.serverState === "disconnected") {
-    if (snapshot.authorizationState.phase === "authorized") {
-      return null;
-    }
     return resolveAllowedOcpRecoveryAction(snapshot, "retry_server");
   }
   if (

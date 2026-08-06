@@ -8,6 +8,14 @@ DOCUMENT.
 
 Accepted (2026-07-21) — decisions frozen with product owner 2026-07-21 (docs refactor).
 
+**Amended (2026-08-03) — F-011 Origin upgrade hardening (no security downgrade):**
+WebSocket **upgrade** is **fail-closed**. Only Origins already in state **`allowed`**
+(Settings → OmniCall Kit → Trusted sites, and/or seed
+`OMNICALL_SDK_ALLOWED_ORIGINS`) may open a socket. First-contact
+**TOFU-on-upgrade** (`unknown` → accept socket → renderer Allow/Deny) is
+**superseded** and must not be restored without a new ADR. Pairing Approve
+(ADR-0016) for a new browser client on an already-`allowed` Origin is unchanged.
+
 ## Context
 
 - **Features:** F-011, F-001, F-016, F-024
@@ -54,47 +62,51 @@ fixes Origin trust UX and clarifies activate-with-saved-profile consent.
 
 Every Origin is classified as exactly one of:
 
-| State | Meaning | WebSocket upgrade |
+| State | Meaning | WebSocket upgrade (current) |
 | --- | --- | --- |
-| `unknown` | Never decided (or unblocked after first-contact Deny) | Accept upgrade → Origin TOFU modal |
-| `allowed` | Operator allowed this Origin | Accept upgrade → pairing / PoP / session |
+| `unknown` | Never decided, or Unblock after never-`allowed` blacklist | **Reject upgrade** (no socket) |
+| `allowed` | Operator/IT allowed this Origin (Trusted sites or seed) | Accept upgrade → pairing / PoP / session |
 | `denied` (blacklist) | Operator blocked this Origin | **Reject upgrade** — do not open the socket |
 
 Rules:
 
 1. **Exact Origin** match only (no wildcard / suffix / substring) — unchanged from ADR-0011.
-2. **First contact (`unknown`):** desktop accepts the WebSocket, runs handshake, then shows
-   a **renderer modal** (Allow / Deny): “this Origin wants to connect”.
-   - This modal is **Origin trust only** — it is **not** the pairing/`pairing:pending`
-     client-identity ceremony (ADR-0016). Pairing / PoP / session grants run **after**
-     Origin is `allowed`.
-3. **Allow:** Origin → `allowed`; WebSocket session continues; desktop initializes the
-   **per-Origin capability matrix** to non-privileged `call_controller` defaults
-   (ADR-0016 catalog minus privileged ids). `account.activate` defaults **off**.
-   `window.hide` defaults **off** and is elevated from the Origin matrix like activate
-   (ADR-0013 amended 2026-07-27). Fine-grained matrix edits stay in Settings.
-4. **Deny (first time):** send typed wire failure **`forbidden`** with stable details key
-   **`origin_denied`**, then **close** the socket. Persist Origin as `denied`.
-5. **Repeat from blacklist:** **do not establish** the WebSocket (HTTP upgrade reject). No
-   application JSON frame. SDK maps the transport failure to non-retryable client code
-   **`origin_blocked`** (not a desktop wire code; client-side mapping like LNA errors).
+2. **Pre-allow required before connect (2026-08-03):** `unknown`, missing, malformed,
+   unconfigured, and `denied` Origins **must not** receive a WebSocket upgrade.
+   `evaluateSdkOriginUpgrade` accepts **only** `allowed` exact HTTP(S) Origins.
+   SDK maps upgrade reject to non-retryable client code **`origin_blocked`**.
+3. **How an Origin becomes `allowed`:**
+   - Operator adds the exact Origin in Settings → OmniCall Kit → **Trusted sites**, or
+   - Managed seed `OMNICALL_SDK_ALLOWED_ORIGINS` (CSV of exact Origins) merges into the
+     same trust store as `allowed`.
+   - On first allow, desktop initializes the **per-Origin capability matrix** to
+     non-privileged `call_controller` defaults (ADR-0016 catalog minus privileged ids).
+     `account.activate` and `window.hide` default **off** (ADR-0013 amended 2026-07-27).
+4. **Pairing is separate:** after the Origin is `allowed` and the socket opens, a **new**
+   browser client still needs pairing Approve / PoP (ADR-0016). Pairing is
+   **not** Origin trust.
+5. **Blacklist:** from an `allowed` Origin, quick blacklist → `denied`. **Do not
+   establish** the WebSocket on later connects (HTTP upgrade reject; no application
+   JSON). Matrix is **retained** on disk but **ignored for authorization** while
+   `denied`. Consumer cannot edit allow/policy while blacklisted — Unblock first.
 6. **Unblock** from blacklist:
-   - If the Origin **previously was `allowed`** (matrix retained from before blacklist) →
-     restore to **`allowed`** with the **retained** capability matrix.
-   - If the Origin was blacklisted from **first-contact Deny** (never `allowed`) →
-     restore to **`unknown`** so the TOFU modal appears again on next connect.
-7. **Cannot add or edit** an Origin allow/policy / capability matrix while it is
-   blacklisted — Unblock first, then add/edit permissions. While `denied`, the retained
-   matrix is stored read-only for restore and is **not** consulted for authorization.
-8. **Quick blacklist** from an allowed Origin: move to `denied`. **Per-Origin capability
-   matrix is retained** on disk but **ignored for authorization** while `denied`.
+   - If the Origin **previously was `allowed`** (matrix retained) → restore to
+     **`allowed`** with the **retained** capability matrix (socket may open again).
+   - If the Origin was never `allowed` (legacy first-contact Deny row) → restore to
+     **`unknown`**; operator must **add it again** via Trusted sites / seed before
+     connect (no upgrade-time TOFU modal).
+7. **Historical note (DI-11, superseded):** 2026-07-21 product default accepted
+   `unknown` at upgrade and showed a renderer Origin TOFU Allow/Deny modal. That
+   path expanded the hostile-Origin surface before operator decision (DI-10) and was
+   **removed** on 2026-08-03. Ceremony / pending-Origin UI may remain in code for
+   tests and non-upgrade edge paths; it is **not** the production first-contact
+   admission model. Restoring TOFU-on-upgrade requires a **new ADR**.
 
-Pre-seeded / managed Origins (IT policy files) may enter as `allowed` without a modal;
-enterprise may disable TOFU and require pre-seed only (compat mode). Default product
-behavior for consumer desktop is TOFU as above.
-
-Env `OMNICALL_SDK_ALLOWED_ORIGINS` becomes an optional **seed / managed allow** input into
+Env `OMNICALL_SDK_ALLOWED_ORIGINS` is an optional **seed / managed allow** input into
 the same store — not the only gate. Blacklist still wins over allow seed.
+Discovery CORS may still reflect `unknown` + `allowed` (ADR-0015) so a CRM page can
+read the discovery document and prompt the operator to add the Origin; discovery
+**does not** open the product WebSocket.
 
 ### C. Settings IA — OmniCall Kit (pre-auth)
 
@@ -249,29 +261,28 @@ Machine code remains authoritative.
 
 ### G. Modal ownership (renderer)
 
-1. Origin TOFU Allow/Deny, pairing Approve/Deny, and activate consent Allow/Deny are
-   **renderer** UI (explicit choice; not a dismissible toast/notification as the primary
-   control).
-2. **Connect ceremony (presentation, 2026-07-22):** a single root overlay
-   (`SdkConnectCeremonyModal`) hosts:
-   - first-contact Origin trust (transport Allow/Deny) then, after Allow, pairing in the
-     **same** modal (stepper);
-   - pairing-only when the Origin is already `allowed`.
+1. Pairing Approve/Deny and activate consent Allow/Deny are **renderer** UI (explicit
+   choice; not a dismissible toast/notification as the primary control).
+2. **Connect ceremony (presentation, 2026-07-22; admission amended 2026-08-03):** a single
+   root overlay (`SdkConnectCeremonyModal`) hosts **pairing** (and activate consent flows
+   elsewhere) when the Origin is already **`allowed`** and the socket opened under
+   fail-closed upgrade. Production first-contact Origin trust is **Settings Trusted sites /
+   seed**, not an upgrade-time Allow/Deny modal. Legacy Origin-trust ceremony code may
+   remain for tests / non-upgrade edges; it is not the product admission path.
    Settings → OmniCall Kit remains policy management (trusted/blocked, matrix, revoke,
-   diagnostics) and **must not** host pending TOFU/pairing callouts or auto-open for
-   pairing attention. Security gates stay sequential (ADR-0018 Origin before ADR-0016
-   pairing); the overlay is presentation only.
-3. **Pending lifecycle (2026-07-22):** unresolved TOFU/pairing must not outlive the socket
-   or Origin policy:
-   - socket disconnect → cancel pending Origin trust for that Origin when no other live
-     connections remain (**cancel**, not Deny — do **not** blacklist); deny pending
-     pairing bound to that `connectionId`;
+   diagnostics) and **must not** host pending pairing callouts or auto-open for pairing
+   attention. Security gates stay sequential (Origin `allowed` before ADR-0016 pairing);
+   the overlay is presentation only.
+3. **Pending lifecycle (2026-07-22):** unresolved pairing must not outlive the socket or
+   Origin policy:
+   - socket disconnect → deny pending pairing bound to that `connectionId`; cancel any
+     residual Origin-trust pending (**cancel**, not Deny — do **not** blacklist);
    - Origin leave `allowed` (remove or blacklist) → deny pending pairing for that Origin
      and close live sockets; **do not** auto-revoke durable paired clients;
-   - TTL sweeper denies expired pairing pending and cancels stale TOFU pending;
+   - TTL sweeper denies expired pairing pending and cancels stale Origin-trust pending;
    - Approve pairing after Origin is no longer `allowed` → deny (no empty-cap pair).
-4. Main owns upgrade admission and may hold the connection / command until the renderer
-   reports the decision over the typed broker/IPC (DI-11 names events in evidence).
+4. Main owns upgrade admission (**`allowed` only** as of 2026-08-03). Pairing / activate
+   decisions still use typed broker/IPC to the renderer.
 5. Main must not invent a second product composition; renderer Application owns the
    decision projection and Settings persistence path.
 6. **Operator modal deadline UI (2026-07-23):** each operator-facing SDK modal header
@@ -285,13 +296,12 @@ Machine code remains authoritative.
    | Modal / step | Default TTL | On UI/gateway expiry |
    | --- | --- | --- |
    | Activate / reauthorize consent | `SDK_ACTIVATE_CONSENT_TTL_MS` (120 s; Settings 30s–5m) | wire `timeout` + `activate_phase: consent` (no UI dismiss → `authorization_canceled_by_user`) |
-   | Origin TOFU (ceremony transport) | `SDK_ORIGIN_TRUST_PENDING_TTL_MS` (5 min; Settings 1–10m) | **cancel** (no blacklist) via `cancelOriginTrust` IPC + quiet close; Escape/Deny still Deny |
+   | Origin trust pending (legacy / test path) | `SDK_ORIGIN_TRUST_PENDING_TTL_MS` (5 min; Settings 1–10m) | **cancel** (no blacklist) via `cancelOriginTrust` IPC + quiet close |
    | Pairing approve | `SDK_PAIRING_PENDING_TTL_MS` (5 min; Settings 1–10m) | deny → `pairing:denied` |
-   | Ceremony waiting (post-Allow, pre-`pairing:request`) | `SDK_CEREMONY_WAITING_PAIRING_TIMEOUT_MS` (45 s) | close local bridge only (not a Settings field) |
+   | Ceremony waiting (pre-`pairing:request`) | `SDK_CEREMONY_WAITING_PAIRING_TIMEOUT_MS` (45 s) | close local bridge only (not a Settings field) |
    | `logout_required` info modal | none | no countdown / no auto-timeout |
-   Projections carry `expiresAt` (`pendingOriginTrust`, pairing, consent pending) so UI
-   and gateway cannot drift. Do **not** invent parallel UI-only timers that Deny Origin
-   on timeout (that would blacklist). Integrators (CRM) must **wait** for Desktop terminal
+   Projections carry `expiresAt` (pairing, consent pending; residual `pendingOriginTrust`)
+   so UI and gateway cannot drift. Integrators (CRM) must **wait** for Desktop terminal
    outcomes for ceremony/activate — do not mirror these TTLs with shorter CRM timers.
 
 ### G.7 Settings-configurable operator timeouts (2026-07-23)
@@ -307,9 +317,10 @@ Machine code remains authoritative.
 ### H. Discovery CORS (with ADR-0015)
 
 Loopback discovery `GET` reflects **exact** Origin in CORS (`Access-Control-Allow-Origin`)
-when the Origin state is **`unknown` or `allowed`** (so first-contact TOFU can reach the
-gateway). **`denied`** Origins must not receive discovery ACAO. Credentialed misuse remains
-fail-closed per ADR-0015.
+when the Origin state is **`unknown` or `allowed`** (so a CRM can read discovery and prompt
+the operator to add the Origin in Trusted sites before connect). **`denied`** Origins must
+not receive discovery ACAO. Credentialed misuse remains fail-closed per ADR-0015.
+Discovery never grants WebSocket upgrade; upgrade still requires **`allowed`**.
 
 ### I. Implementation vehicle
 
@@ -324,27 +335,27 @@ fail-closed per ADR-0015.
 
 | Alternative | Why not |
 | --- | --- |
-| Keep pre-allowlist-only upgrade | Integrator deadlock; no first-contact UX |
+| Restore TOFU-on-upgrade (`unknown` accept) | Rejected after DI-10 (2026-08-03) — hostile Origin surface before operator decision; needs new ADR if revisited |
 | Settings toggle to stop listener | Hides trust problems; breaks discovery expectations |
 | Silent ignore on activate deny | Causes reconnect/retry storms; opaque CRM bugs |
 | Send SIP/OCP passwords on activate | Violates ADR-0013; XSS exfiltration |
 | Pre-auth edit of all Settings | Violates ADR-AF-004; only OmniCall Kit is excepted |
 | Single global capability matrix | Rejected — product requires per-Origin matrix |
 | Unblock always → `unknown` | Rejected — previously allowed Origins must restore matrix |
-| Long-lived notification for TOFU | Rejected — too easy to ignore; use renderer modal |
 | Lasting activate grant skipping consent | Rejected — every activate asks again when policy allows |
 
 ## Consequences
 
-- DI-04 Origin upgrade checks must be reworked under DI-11 to implement §B.
+- DI-11 shipped trust store / Settings / pairing ceremony; **2026-08-03** hardening made
+  upgrade **`allowed`-only** (current §B).
 - DI-09 Settings card is superseded/extended by DI-11 IA (§C–D); listener enable toggle
-  removed; hide remains disabled.
+  removed.
 - ADR-0009 rollback wording updated: env kill-switch, not Settings flag.
 - ADR-AF-004 gains a narrow pre-auth exception; tests must cover deep links to OmniCall Kit
   pre-auth and continued block of OCP Module.
-- ADR-0015 CORS eligibility includes `unknown` for TOFU bootstrap.
-- SDK guides (`SECURITY`, pairing, saved-profile activation, errors) must describe TOFU,
-  blacklist, `origin_blocked`, and activate consent pending rules.
+- ADR-0015 CORS eligibility includes `unknown` for discovery onboarding (not WS upgrade).
+- SDK guides (`SECURITY`, pairing, installation, errors) must describe **pre-allow**,
+  blacklist, `origin_blocked`, pairing after allow, and activate consent rules.
 - Enterprise managed allow/deny lists remain supported as seeds into the same state machine.
 
 ## Architecture Checks

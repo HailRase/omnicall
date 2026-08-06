@@ -4,6 +4,7 @@ import type { SavedAccountProfileSelectorOption } from "@application/projections
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { OcpRecoveryAction, SipAccountInput } from "@application/index.js";
+import { useI18n } from "../../../i18n/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 import type { AccountUiSignInMode, OcpDraftFields } from "../../../hooks/accountActionsHelpers.js";
 import { AccountPanel } from "../../account/AccountPanel.js";
@@ -11,6 +12,7 @@ import { DeleteSavedAccountProfileConfirmationModal } from "../../account/Delete
 import { DiscardAccountDraftConfirmationModal } from "../../account/DiscardAccountDraftConfirmationModal.js";
 import { OverwriteSavedAccountCredentialsConfirmationModal } from "../../account/OverwriteSavedAccountCredentialsConfirmationModal.js";
 import { SavedAccountProfileSelector } from "../../account/SavedAccountProfileSelector.js";
+import { Alert, AlertDescription, AlertTitle } from "../../ui/index.js";
 import styles from "./SettingsAccountPanel.module.css";
 
 export type SettingsAccountPanelProps = Readonly<{
@@ -121,15 +123,33 @@ export function SettingsAccountPanel({
   onOverwriteCredentialsContinue = () => undefined,
   onOverwriteCredentialsCancel = () => undefined,
 }: SettingsAccountPanelProps): JSX.Element {
+  const { t } = useI18n();
   const saveProfileVisible = selectedProfileId === null;
   const sharedRememberPasswordVisible =
     selectedProfileId === null && rememberPasswordVisible;
+  const showFirstRunHint =
+    selectedProfileId === null &&
+    savedProfileOptions.length === 0 &&
+    error === null;
 
   return (
     <div
       className={styles.wrapper}
       data-testid="settings-account-panel"
     >
+      {showFirstRunHint ? (
+        <Alert
+          variant="default"
+          className={styles.firstRunHint}
+          data-testid="settings-account-first-run-hint"
+        >
+          <AlertTitle>{t("account.firstRun.hint.title")}</AlertTitle>
+          <AlertDescription>
+            {t("account.firstRun.hint.description")}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <div className={styles.tabsRow}>
         <SavedAccountProfileSelector
           options={savedProfileOptions}

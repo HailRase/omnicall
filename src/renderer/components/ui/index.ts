@@ -106,6 +106,12 @@ export { Label, type LabelProps } from "./label/index.js";
 export { Progress, type ProgressProps } from "./progress/index.js";
 export { Notification, type NotificationProps } from "./notification/index.js";
 export {
+  RadioGroup,
+  RadioGroupItem,
+  type RadioGroupItemProps,
+  type RadioGroupProps,
+} from "./radio-group/index.js";
+export {
   Select,
   type SelectItemOption,
   type SelectProps,
@@ -226,6 +232,7 @@ export type {
   ButtonSize,
   ButtonVariant,
   ControlSize,
+  RadioGroupOrientation,
   DialogSize,
   IconButtonVariant,
   InputGroupAddonAlign,

@@ -812,7 +812,7 @@ Checklist:
 
 ### RadioGroup
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P2
 
@@ -829,33 +829,42 @@ API:
 - `onValueChange`
 - `disabled?: boolean`
 - `orientation?: "horizontal" | "vertical"`
+- `RadioGroupItem`: `value`, `disabled?`, `invalid?`
 
 Stories:
 
-- [ ] Default
-- [ ] Horizontal
-- [ ] Disabled Group
-- [ ] Disabled Item
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Horizontal
+- [x] Disabled Group
+- [x] Disabled Item
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Selects an item.
-- [ ] Emits selected value.
-- [ ] Supports keyboard navigation.
+- [x] Selects an item.
+- [x] Emits selected value.
+- [x] Supports keyboard navigation.
+- [x] Controlled value, disabled group/item, invalid, ref/className, orientation.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/RadioGroup`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Applicable Universal Quality Gates satisfied (Base + Form Control + Radix Primitive)
+- [x] Storybook added under `UI Kit/RadioGroup`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
+
+Inherited gates:
+
+- Base: rest-before-controlled, className/ref on root and item, semantic tokens, no filter/brightness, light/dark stories
+- Form Control: invalid/`aria-invalid`, controlled and uncontrolled value, disabled blocking, label wiring via item ids
+- Radix Primitive: Radix owns roving focus/ARIA, CSS targets `data-state`/`data-disabled`/`data-orientation`, keyboard and controlled tests
 
 ### Select
 
@@ -1023,6 +1032,7 @@ Purpose:
 - Action menu anchored to a trigger.
 - Supports items, destructive items, separators, labels, checked items, and disabled reasons.
 - Uses Radix DropdownMenu.
+- `DropdownMenuCheckboxItem` always reserves leading space for the absolute check indicator (label stays to the right of the check; do not rely on `inset` for that gap — `inset` remains API-compatible / no-op for padding).
 
 API:
 
@@ -1031,6 +1041,7 @@ API:
 - `align?: "start" | "center" | "end"`
 - `side?: "top" | "right" | "bottom" | "left"`
 - composable trigger/content/item components
+- `DropdownMenuCheckboxItem.inset?: boolean` — retained for API parity; indicator gutter is always applied on the checkbox item itself
 
 Stories:
 
@@ -1052,6 +1063,7 @@ Tests:
 - [x] Closes on escape.
 - [x] Supports controlled open state.
 - [x] Toggles checkbox item.
+- [x] Reserves leading space for checkbox indicator (class/gutter).
 - [x] Preserves caller className on content.
 
 Checklist:

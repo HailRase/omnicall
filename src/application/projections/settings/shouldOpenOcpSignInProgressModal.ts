@@ -25,14 +25,10 @@ export function shouldOpenOcpSignInProgressModal(
   if (!view.isVisible) {
     return false;
   }
-  if (view.isReady && !view.hasFailure && !view.hasLatentFailure) {
+  if (view.isReady && !view.hasFailure) {
     return false;
   }
-  return (
-    view.overallState === "active" ||
-    view.hasLatentFailure ||
-    view.hasFailure
-  );
+  return view.overallState === "active" || view.hasFailure;
 }
 
 export function isColdIdleAuthorizationProgress(

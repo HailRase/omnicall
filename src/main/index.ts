@@ -56,6 +56,7 @@ import {
   getShellWindowAttentionController,
   getSdkHideTrayController,
   getShellTelephonyBusyMirror,
+  setSdkGatewayMainWindowResolver,
   setSdkGatewayPrimaryInstance,
   setShellWindowAttentionController,
   startSdkGateway,
@@ -646,7 +647,7 @@ void app.whenReady().then(() => {
   registerExternalServicesHttpIpc();
   registerExternalServicesCollectionFileIpc();
   registerExternalApplicationWindowIpc();
-  registerSdkBrokerIpc();
+  registerSdkBrokerIpc({ getMainWindow: getMainBrowserWindow });
   setupHidPermissions();
   registerDisplayCaptureIpc();
   installDisplayMediaRequestHandler({
@@ -657,6 +658,7 @@ void app.whenReady().then(() => {
     }),
   });
   createMainWindow();
+  setSdkGatewayMainWindowResolver(getMainBrowserWindow);
 
   shellWindowAttention = new ShellWindowAttentionController({
     getMainWindow: getMainBrowserWindow,

@@ -1,13 +1,16 @@
 # ADR-0026: Feedback Channel Law
 
-- Status: **Accepted**
+- Status: **Accepted** (amended 2026-08-06)
 - Date: 2026-08-02
+- Amended: 2026-08-06 — Account sign-in channel split (form vs server/register)
 - Deciders: Softphone platform
-- Related: F-016 / LF-060; F-029 / ADR-AF-007; F-034 / ADR-0025; ADR-0013
+- Related: F-016 / LF-060; F-029 / ADR-AF-007; F-034 / ADR-0025; ADR-0013; F-001
 
 ## Context
 
 Renderer historically mixed outcome feedback across inline `Alert` strips, modal `role="alert"` blocks, and `useNotifications` toasts. Dual presentation (same error as toast **and** strip) created noise; migrating every message to toast alone would downgrade persistent form errors, connection recovery, and rich diagnostic payloads.
+
+The 2026-08-02 decision put **all** Account sign-in errors on a persistent `AccountPanel` Alert and journaled them with `interruptClass: "critical"` (toast suppressed). Operator feedback: SIP **403 / registration failed** with System State CTA above the password field reads like a password-field error and conflicts with notification UX.
 
 Affected: Settings, Account, Contacts, History, Telephony chrome, Integrations. Layers: UI + Application capture only.
 
@@ -17,8 +20,8 @@ Affected: Settings, Account, Contacts, History, Telephony chrome, Integrations. 
 
 | Class | Channel | Examples |
 | --- | --- | --- |
-| Ephemeral outcome | `notify` → Capture → toast (+ journal) | prefs export/import, contact save/delete, history delete, call op fail, SDK/OCP/EA/ES save ops, screen-share confirm |
-| Form-persistent error | Inline Alert / FormField on owning surface | Account sign-in error; field validation |
+| Ephemeral outcome | `notify` → Capture → toast (+ journal) | prefs export/import, contact save/delete, history delete, call op fail, SDK/OCP/EA/ES save ops, screen-share confirm, **Account server/register failures** |
+| Form-persistent error | Inline Alert / FormField on owning surface | Account **validation** / required fields / missing saved profile |
 | Persistent system state | Shell banner / Alert with action | `OcpConnectionBanner`, `UpdateAvailableBanner` |
 | Blocking / multi-stage | Modal / overlay | OCP proxy conflict, sign-in progress, bootstrap/shutdown |
 | Rich diagnostic result | Inline result panel | External Services run body/status |
@@ -28,12 +31,28 @@ Affected: Settings, Account, Contacts, History, Telephony chrome, Integrations. 
 
 **OCP remote `entity: "notification"`:** sole channel is `notify` → Capture → Sonner (no inline Alert). Mapper uses wire `body` + `type` only; Softphone Notification Center prefs own presentation; see ADR-0025 / `notification-center/03-POLICY-AND-CHANNELS.md`.
 
-### 2. Account sign-in errors
+### 2. Account sign-in errors (amended 2026-08-06)
 
-- Owning surface: `AccountPanel` destructive `Alert` (persistent until next attempt).
-- Producer still calls `notify` with `module: "account"`, `functionId: "account.sign_in"`, `interruptClass: "critical"` so Capture journals and policy suppresses toast (`interrupt_not_toast`).
-- System State CTA lives on the Alert when `openSystemStateAction` is set (not on a toast).
-- Account success/warning remain toast-only (`informational`).
+Classifier (Application pure): `classifyAccountSignInErrorPresentation` / `assignAccountSignInErrorChannels`.
+
+#### Account feedback matrix
+
+| Outcome class | Channel | System State CTA | Journal |
+| --- | --- | --- | --- |
+| Form validation / required fields / profile not found | `AccountPanel` Alert (`inlineError`) | No | `notify` + `interruptClass: "critical"` (toast suppressed) |
+| Server / transport / REGISTER failure (incl. 403, 401 from SIP) | Toast via `notify` (`notificationError`) | Toast action `account.notification.openSystemStateAction` | Yes — `interruptClass: "actionable"` (toast visible under default prefs) |
+| Account success / soft warnings | Toast (`informational`) | No | Yes |
+| OCP multi-stage attempt failure | `OcpSignInProgress` modal | Modal / progress owns UX | Suppress duplicate Account toast while modal owns attempt |
+| OCP unexpected-drop recovery | `OcpConnectionBanner` only (`uiSurface: silent`) | Banner Retry | No Account toast dual |
+
+Rules:
+
+- **Form-persistent** = validation / input ownership that never left the form boundary → Alert only (no toast).
+- **Ephemeral system outcome** = SIP/OCP-server/register failures discovered after submit → **toast only**; `setError(null)` so no stale Alert above password.
+- System State CTA lives on the **toast action** for notification-class errors (not on Account Alert).
+- Do not invent password FormField “invalid” from REGISTER 401/403 — map to notification with humanized keys (`mapAccountAuthorizationError`).
+- `critical` remains “toast-suppressed journaled event” for **validation-class** Account errors only; it must **not** be used to hide server/register Account failures.
+- True ADR-0013 critical shell raises are unchanged.
 
 ### 3. Confirm dialogs
 
@@ -54,20 +73,23 @@ Delete/confirm modals must not embed outcome error strips. Failures/successes us
 ### 6. Non-goals (unchanged)
 
 - Replacing ADR-0013 critical raises with toast
-- Replacing OCP/Update banners with toast
+- Replacing OCP/Update banners with toast (compact chip polish of `OcpConnectionBanner` stays in the shell-banner channel — see `UI-Design-System.md` § OCP connection banner)
 - Moving FormField validation into toast
 - Disabling journal when popup suppressed (ADR-AF-007 / ADR-0025)
+- Redesigning OcpSignInProgress / silent recovery banner **channel** in this amendment (visual density of the banner may evolve without migrating to Sonner)
 
 ## Alternatives Considered
 
 | Alternative | Rejected because |
 | --- | --- |
-| All feedback via toast only | Downgrades persistent auth errors and recovery banners |
+| All feedback via toast only | Downgrades persistent form validation and recovery banners |
+| Keep all Account errors on Alert (2026-08-02) | 403/register above password feels like field error; conflicts with notification UX |
 | Keep dual Account Alert + toast | Noise; violates anti-dual |
 | Skip `notify` for Account errors | Loses journal trail |
+| Use `critical` for server/register (toast-suppressed) | Hides the intended ephemeral channel |
 
 ## Consequences
 
-- Positive: single ownership; Notification Center prefs apply to ephemeral outcomes; docs guide future agents.
-- Trade-offs: `critical` on account.sign_in means “toast-suppressed journaled event”, not ADR-0013 shell raise.
-- Testing: producer tagging includes preferences transfer; AccountPanel System State action; no delete-modal error strips.
+- Positive: form ownership for validation; notification channel for post-submit system failures; System State CTA on toast; docs matrix prevents Alert-for-403 regressions.
+- Trade-offs: `critical` on account.sign_in means “toast-suppressed journaled event” **only** for validation-class; server/register uses `actionable`.
+- Testing: classifier unit tests; useAccountActions channel split; useActionNotifications toast CTA; AccountPanel Alert for validation only.

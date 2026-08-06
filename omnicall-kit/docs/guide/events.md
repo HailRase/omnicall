@@ -125,10 +125,11 @@ void campaignSnapshot.sections.operator?.campaign;
 
 Rules:
 
-- **Do not** use `event.revision` alone as the next `expectedRevision` without a
-  fresh snapshot when you are unsure the cache is current.
-- Snapshot remains source of truth; the SDK does **not** patch the snapshot cache
-  from events.
+- Public events with `revision` advance latest-known `getRevision()` (monotonic).
+- Snapshot sections remain the UI source of truth; events do **not** patch the
+  snapshot cache — use `getCachedSnapshot()` only as the last full snapshot.
+- Prefer `getRevision()` for the next `expectedRevision`; after reconnect/gap
+  fetch a fresh snapshot before intentional mutations.
 - On `event.sequence_gap` diagnostics the client already triggers `getSnapshot()`.
 - Desktop **coarse-advances** the shared session revision when public coarse status
   changes (`ready|break|offline|post_call_processing|unknown`), when `reasonId` changes on

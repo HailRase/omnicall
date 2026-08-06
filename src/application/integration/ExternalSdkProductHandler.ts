@@ -17,12 +17,14 @@ import { ExternalSdkAccountHandler } from "./ExternalSdkAccountHandler.js";
 import { ExternalSdkCallHandler } from "./ExternalSdkCallHandler.js";
 import { ExternalSdkOperatorHandler } from "./ExternalSdkOperatorHandler.js";
 import { ExternalSdkReadHandler } from "./ExternalSdkReadHandler.js";
+import { ExternalSdkWindowHandler } from "./ExternalSdkWindowHandler.js";
 
 export type ExternalSdkProductHandlerOptions = Readonly<{
   readHandler: ExternalSdkReadHandler;
   callHandler: ExternalSdkCallHandler;
   operatorHandler: ExternalSdkOperatorHandler;
   accountHandler: ExternalSdkAccountHandler;
+  windowHandler: ExternalSdkWindowHandler;
 }>;
 
 export class ExternalSdkProductHandler implements ExternalCommandHandler {
@@ -30,25 +32,23 @@ export class ExternalSdkProductHandler implements ExternalCommandHandler {
   private readonly callHandler: ExternalSdkCallHandler;
   private readonly operatorHandler: ExternalSdkOperatorHandler;
   private readonly accountHandler: ExternalSdkAccountHandler;
+  private readonly windowHandler: ExternalSdkWindowHandler;
 
   constructor(options: ExternalSdkProductHandlerOptions) {
     this.readHandler = options.readHandler;
     this.callHandler = options.callHandler;
     this.operatorHandler = options.operatorHandler;
     this.accountHandler = options.accountHandler;
+    this.windowHandler = options.windowHandler;
   }
 
   getRevision(): number {
     return this.readHandler.getRevision();
   }
 
-  /**
-   * Disconnect/revoke cleanup hook (no SIP tear).
-   * Single-shot logout has no pending tokens — returns 0.
-   */
-  abortClientSession(clientId: string): number {
-    void clientId;
-    return 0;
+  /** Cancel activation work owned by one authenticated Origin + clientId. */
+  abortClientSession(origin: string, clientId: string): number {
+    return this.accountHandler.abortClientSession(origin, clientId);
   }
 
   handleCommand(
@@ -78,6 +78,9 @@ export class ExternalSdkProductHandler implements ExternalCommandHandler {
         code: denial ?? "forbidden",
         retryable: false,
       });
+    }
+    if (this.windowHandler.handlesCommandType(message.type)) {
+      return this.windowHandler.handleCommand(message, context);
     }
     if (this.accountHandler.handlesCommandType(message.type)) {
       return this.accountHandler.handleCommand(message, context);

@@ -9,7 +9,7 @@ import { SdkModuleSettingsPairedSection } from "./SdkModuleSettingsPairedSection
 type Props = Readonly<{
   pairedClients: readonly SdkPairedClientProjection[];
   busy: boolean;
-  onRevokeClient: (clientId: string) => void;
+  onRevokeClient: (clientId: string, origin: string) => void;
 }>;
 
 /** Paired clients section (window.hide lives in Origin matrix — ADR-0013). */

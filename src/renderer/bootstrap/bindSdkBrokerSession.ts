@@ -1,6 +1,7 @@
 /**
  * Bind DI-05…DI-08 SDK surface to the single Application composition.
- * Broker: ping + get-snapshot + call:* + operator/logout + activate-profile → Facade.
+ * Broker: ping + get-snapshot + window:* + call:* + operator/logout + activate-profile.
+ * Window native ops: Application coordinator → preload IPC → main BrowserWindow (WU-02).
  * Events: Domain → public draft.
  */
 
@@ -10,7 +11,9 @@ import { ExternalSdkCallHandler } from "@application/integration/ExternalSdkCall
 import { ExternalSdkOperatorHandler } from "@application/integration/ExternalSdkOperatorHandler.js";
 import { ExternalSdkProductHandler } from "@application/integration/ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "@application/integration/ExternalSdkReadHandler.js";
+import { ExternalSdkWindowHandler } from "@application/integration/ExternalSdkWindowHandler.js";
 import { createSdkAccountPortFromFacade } from "@application/integration/createSdkAccountPortFromFacade.js";
+import { createSdkNativeWindowPortFromPreload } from "@application/integration/createSdkNativeWindowPortFromPreload.js";
 import { createSdkOperatorPortFromFacade } from "@application/integration/createSdkOperatorPortFromFacade.js";
 import { mapDomainEventToSdkPublicDrafts } from "@application/integration/ExternalSdkEventMapper.js";
 import type { SdkOperatorEventMapContext } from "@application/integration/ExternalSdkEventMapper.js";
@@ -20,13 +23,12 @@ import {
   mapSdkReservedOperatorTarget,
 } from "@application/integration/mapSdkOperatorStatus.js";
 import { readSdkProductStateFromStore } from "@application/integration/readSdkProductStateFromStore.js";
-import { SdkAggregateMutex } from "@application/integration/SdkAggregateMutex.js";
 import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
 import {
   isSdkOperatorPublicEventType,
   SdkOperatorEventRevisionGate,
 } from "@application/integration/SdkOperatorEventRevisionGate.js";
-import { SdkSessionRevisionClock } from "@application/integration/SdkSessionRevisionClock.js";
+import { SdkSessionRevisionCoordinator } from "@application/integration/SdkSessionRevisionCoordinator.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { withMatrixCapability } from "@application/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -85,17 +87,18 @@ function buildSdkEventMapContext(
 export function bindSdkBrokerSession(
   options: BindSdkBrokerSessionOptions,
 ): BoundSdkBrokerSession {
-  const revisionClock = new SdkSessionRevisionClock();
+  const revisionCoordinator = new SdkSessionRevisionCoordinator();
   const operatorEventRevisionGate = new SdkOperatorEventRevisionGate();
   const ownership = new SdkCallOwnershipRegistry();
-  const accountMutex = new SdkAggregateMutex();
+  const nativeWindowPort = createSdkNativeWindowPortFromPreload();
   const readHandler = new ExternalSdkReadHandler({
     readProductState: () =>
       readSdkProductStateFromStore(useAccountBootstrapStore.getState(), {
         ocpModuleEnabled: options.ocpModuleEnabled === true,
       }),
-    revisionClock,
+    revisionCoordinator,
     ownership,
+    nativeWindowPort,
   });
   const callHandler = new ExternalSdkCallHandler({
     callPort: {
@@ -110,8 +113,7 @@ export function bindSdkBrokerSession(
       sendDtmf: (callId, tone) => options.facade.sendDtmf(callId, tone),
     },
     ownership,
-    revisionClock,
-    mutex: accountMutex,
+    revisionCoordinator,
   });
   const operatorHandler = new ExternalSdkOperatorHandler({
     operatorPort: createSdkOperatorPortFromFacade({
@@ -120,8 +122,7 @@ export function bindSdkBrokerSession(
         ? { ocpModuleEnabled: options.ocpModuleEnabled }
         : {}),
     }),
-    revisionClock,
-    mutex: accountMutex,
+    revisionCoordinator,
   });
   const accountHandler = new ExternalSdkAccountHandler({
     accountPort: createSdkAccountPortFromFacade({
@@ -148,8 +149,7 @@ export function bindSdkBrokerSession(
         };
       },
     }),
-    revisionClock,
-    mutex: accountMutex,
+    revisionCoordinator,
     consentPort: sdkActivateConsentBridge,
     isConsentPending: () => sdkActivateConsentBridge.isPending(),
     onActivateConsentDenied: async (origin) => {
@@ -187,11 +187,16 @@ export function bindSdkBrokerSession(
       notifySdkIntegrationSettingsChanged();
     },
   });
+  const windowHandler = new ExternalSdkWindowHandler({
+    windowPort: nativeWindowPort,
+    revisionCoordinator,
+  });
   const handler = new ExternalSdkProductHandler({
     readHandler,
     callHandler,
     operatorHandler,
     accountHandler,
+    windowHandler,
   });
   const sessionEpoch = `${BROKER_SESSION_EPOCH_PREFIX}${Date.now().toString(36)}`;
   const session = new RendererSdkBrokerSession({
@@ -217,11 +222,25 @@ export function bindSdkBrokerSession(
       void softphone.replySdkBrokerRequest(reply);
     });
   });
+  const unsubscribeBrokerCancel =
+    softphone.onSdkBrokerCancel?.((payload) => {
+      session.cancelRequest(payload.brokerRequestId);
+    }) ?? (() => undefined);
   const unsubscribeClientEnded = softphone.onSdkClientSessionEnded((payload) => {
-    handler.abortClientSession(payload.clientId);
+    handler.abortClientSession(payload.origin, payload.clientId);
   });
 
   const unsubscribeEvents = options.facade.eventPublisher.subscribe((event) => {
+    void publishSdkEvent(event);
+  });
+
+  const publishSdkEvent = async (
+    event: Parameters<typeof options.facade.eventPublisher.subscribe>[0] extends (
+      event: infer Event,
+    ) => unknown
+      ? Event
+      : never,
+  ): Promise<void> => {
     if (TERMINAL_CALL_EVENT_TYPES.has(event.type)) {
       const callIdValue = event["callId"];
       if (typeof callIdValue === "string" && callIdValue.length > 0) {
@@ -240,8 +259,11 @@ export function bindSdkBrokerSession(
     );
     for (const draft of drafts) {
       const revision = isSdkOperatorPublicEventType(draft.type)
-        ? operatorEventRevisionGate.preparePublish(draft, revisionClock).revision
-        : handler.getRevision();
+        ? (await operatorEventRevisionGate.preparePublish(
+            draft,
+            revisionCoordinator,
+          )).revision
+        : revisionCoordinator.peek();
       const eventType = draft.type;
       void softphone
         .publishSdkGatewayEvent({
@@ -274,7 +296,7 @@ export function bindSdkBrokerSession(
           });
         });
     }
-  });
+  };
 
   const assertBrokerReady = (): void => {
     void softphone.setSdkBrokerReady({ ready: true });
@@ -304,6 +326,7 @@ export function bindSdkBrokerSession(
       document.removeEventListener("visibilitychange", onVisibilityChange);
       session.markInactive();
       unsubscribeBroker();
+      unsubscribeBrokerCancel();
       unsubscribeClientEnded();
       unsubscribeEvents();
       ownership.clearAll();

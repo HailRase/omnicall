@@ -17,6 +17,7 @@ import type {
   TransportPort
 } from './index.js';
 import {
+  SDK_VERSION,
   createAuthClient,
   createOmniCallClient,
   createBrowserJitterSource,
@@ -47,6 +48,8 @@ describe('@softomnitel/omnicall-kit type smoke', () => {
     expectTypeOf<OmniCallClient['window']>().toHaveProperty('hide');
     expectTypeOf<OmniCallClient['window']>().toHaveProperty('show');
     expectTypeOf<OmniCallClientOptions>().toHaveProperty('origin');
+    expectTypeOf<OmniCallClientOptions>().not.toHaveProperty('sdkVersion');
+    expectTypeOf(SDK_VERSION).toEqualTypeOf<'0.2.1'>();
     expectTypeOf<OmniCallClientOptions['transportFactory']>().toEqualTypeOf<
       (() => TransportPort) | undefined
     >();

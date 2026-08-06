@@ -95,7 +95,6 @@ export function createFakePeerHarness(input?: {
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'crm-pairing-lite', version: '0.0.0-example' },
-    sdkVersion: '0.0.0-example',
     requestedProfile: 'call_controller',
     requestedCapabilities: requested,
     keyStore,

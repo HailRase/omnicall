@@ -60,7 +60,6 @@ function createHarness(input?: {
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'fixture-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-test',
     requestedProfile: 'presentation',
     requestedCapabilities: input?.requestedCapabilities ?? [
       'session.read.redacted',
@@ -164,7 +163,6 @@ describe('auth client pairing and PoP', () => {
       url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
       origin: 'https://crm.example',
       application: { name: 'fixture-crm', version: '1.0.0' },
-      sdkVersion: '0.0.0-test',
       requestedProfile: 'presentation',
       keyStore,
       transportFactory: transports.create,

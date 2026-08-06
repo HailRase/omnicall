@@ -24,8 +24,15 @@ import {
   type NameDialogState,
 } from "./externalServicesPanelDialogState.js";
 
+export type ExternalServicesWorkspaceBannerProps = Readonly<{
+  loadErrorMessage: string | null;
+  statusMessage: string | null;
+  onRetryLoad: () => void;
+}>;
+
 export type UseExternalServicesPanelDialogsResult = Readonly<{
   dialogs: ExternalServicesCollectionsDialogsProps;
+  banner: ExternalServicesWorkspaceBannerProps;
   variablesDialog: ExternalServicesVariablesDialogProps | null;
   openCreateCollectionDialog: () => void;
   openRenameCollectionDialog: (collectionId: string, name: string) => void;
@@ -161,14 +168,38 @@ export function useExternalServicesPanelDialogs(input: Readonly<{
     [actions, variablesCollection],
   );
 
+  const {
+    errorKey: shellErrorKey,
+    statusMessageKey: shellStatusMessageKey,
+    statusMessageParams: shellStatusMessageParams,
+    refresh: refreshShell,
+  } = shell;
+
+  const banner = useMemo((): ExternalServicesWorkspaceBannerProps => {
+    return {
+      loadErrorMessage: shellErrorKey !== null ? t(shellErrorKey) : null,
+      statusMessage:
+        shellStatusMessageKey !== null
+          ? formatExternalServicesStatusMessage(
+              shellStatusMessageKey,
+              shellStatusMessageParams,
+            )
+          : null,
+      onRetryLoad: () => {
+        void refreshShell();
+      },
+    };
+  }, [
+    refreshShell,
+    shellErrorKey,
+    shellStatusMessageKey,
+    shellStatusMessageParams,
+    t,
+  ]);
+
   const dialogs = useMemo((): ExternalServicesCollectionsDialogsProps => {
     return {
       busy: actions.busy,
-      errorMessage: shell.errorKey !== null ? t(shell.errorKey) : null,
-      statusMessage:
-        shell.statusMessageKey !== null
-          ? formatExternalServicesStatusMessage(shell.statusMessageKey, shell.statusMessageParams)
-          : null,
       nameDialog: {
         open: nameDialog.open,
         mode: nameDialog.mode,
@@ -181,9 +212,6 @@ export function useExternalServicesPanelDialogs(input: Readonly<{
         collectionName: deleteDialog.collectionName,
       },
       discardDialogOpen: discardOpen,
-      onRetry: () => {
-        void shell.refresh();
-      },
       onNameDialogOpenChange: (open) => {
         if (!open) {
           setNameDialog(CLOSED_NAME_DIALOG);
@@ -223,7 +251,6 @@ export function useExternalServicesPanelDialogs(input: Readonly<{
     pendingSelection,
     setDiscardOpen,
     setPendingSelection,
-    shell,
     t,
   ]);
 
@@ -245,6 +272,7 @@ export function useExternalServicesPanelDialogs(input: Readonly<{
 
   return {
     dialogs,
+    banner,
     variablesDialog,
     openCreateCollectionDialog: () => {
       setNameDialog({ ...CLOSED_NAME_DIALOG, open: true, mode: "create" });

@@ -1,0 +1,91 @@
+.trigger-host {
+  position: absolute;
+  top: var(--space-2xs);
+  right: var(--space-2xs);
+  z-index: 6;
+  pointer-events: auto;
+}
+
+.trigger {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+  box-shadow: var(--shadow-tooltip);
+  color: var(--color-text-secondary);
+}
+
+.trigger:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-bg-surface-elevated) 92%, transparent);
+}
+
+.trigger[data-active="true"] {
+  color: var(--color-accent-primary);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 45%, var(--color-border-subtle));
+}
+
+.menu {
+  min-width: 12rem;
+  max-width: min(18rem, 80vw);
+  max-height: min(16rem, 50vh);
+  overflow-y: auto;
+}
+
+.overlay-card {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px dashed color-mix(in srgb, var(--color-accent-primary) 55%, var(--color-border-control));
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--color-bg-surface-elevated) 55%, transparent);
+  box-shadow: var(--shadow-tooltip);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.overlay-titlebar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.15rem;
+  min-height: 0.55rem;
+  padding: 0.08rem 0.12rem 0.08rem 0.2rem;
+  background: color-mix(in srgb, var(--color-bg-surface-alt) 70%, var(--color-accent-primary));
+  border-bottom: 1px dashed var(--color-border-subtle);
+}
+
+.overlay-label {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 0.5rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overlay-remove {
+  flex: 0 0 auto;
+  pointer-events: auto;
+  transform: scale(0.72);
+  transform-origin: center;
+}
+
+.overlay-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  background:
+    repeating-linear-gradient(
+      12deg,
+      transparent,
+      transparent 0.35rem,
+      color-mix(in srgb, var(--color-accent-primary) 18%, transparent) 0.35rem,
+      color-mix(in srgb, var(--color-accent-primary) 18%, transparent) 0.4rem
+    );
+}
+

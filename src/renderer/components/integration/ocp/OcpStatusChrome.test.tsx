@@ -64,7 +64,7 @@ describe("OcpConnectionBanner", () => {
     expect(screen.queryByTestId("ocp-connection-banner")).not.toBeInTheDocument();
   });
 
-  it("shows reconnecting copy with attempt counter", () => {
+  it("shows compact one-line reconnecting copy with attempt counter", () => {
     render(
       <OcpConnectionBanner
         visible
@@ -74,9 +74,10 @@ describe("OcpConnectionBanner", () => {
         onRetry={vi.fn()}
       />,
     );
-    expect(screen.getByTestId("ocp-connection-banner-message")).toHaveTextContent(
-      "Reconnecting 2/6",
-    );
+    const message = screen.getByTestId("ocp-connection-banner-message");
+    expect(message).toHaveTextContent("OCP");
+    expect(message).toHaveTextContent("Reconnecting 2/6");
+    expect(message).toHaveTextContent("·");
     expect(screen.queryByTestId("ocp-retry-connect")).not.toBeInTheDocument();
   });
 
@@ -95,7 +96,7 @@ describe("OcpConnectionBanner", () => {
     );
   });
 
-  it("calls onRetry from failed banner", async () => {
+  it("shows failed one-line copy with outline retry that fits compact width", async () => {
     const user = userEvent.setup();
     const onRetry = vi.fn();
     render(
@@ -107,9 +108,15 @@ describe("OcpConnectionBanner", () => {
         onRetry={onRetry}
       />,
     );
-    await user.click(screen.getByTestId("ocp-retry-connect"));
+    const message = screen.getByTestId("ocp-connection-banner-message");
+    expect(message).toHaveTextContent("OCP");
+    expect(message).toHaveTextContent("No connection");
+    const retry = screen.getByTestId("ocp-retry-connect");
+    expect(retry.className).toContain(styles.retryButton);
+    await user.click(retry);
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
+
 });
 
 describe("OcpProxyStatusScreen", () => {

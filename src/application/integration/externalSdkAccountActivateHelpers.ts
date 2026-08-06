@@ -27,7 +27,7 @@ export type ActivateErrorContext = Readonly<{
 export function mapActivateError(
   error: PlatformError,
   context?: ActivateErrorContext,
-): ExternalHandlerResult {
+): Extract<ExternalHandlerResult, { ok: false }> {
   if (error.message === ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE) {
     return sdkFail("conflict", { logout_required: true });
   }
@@ -63,7 +63,10 @@ export function mapActivateError(
   };
 }
 
-export function consentTimeoutFailure(): ExternalHandlerResult {
+export function consentTimeoutFailure(): Extract<
+  ExternalHandlerResult,
+  { ok: false }
+> {
   return sdkFail("timeout", {
     activate_phase: "consent",
     failure_kind: "timeout",

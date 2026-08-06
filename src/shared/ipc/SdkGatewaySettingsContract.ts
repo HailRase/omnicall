@@ -65,7 +65,7 @@ export type SdkGatewaySettingsOperation =
   | Readonly<{ op: "applyPolicy"; policy: SdkGatewaySettingsPolicyPayload }>
   | Readonly<{ op: "approvePairing"; pairingRequestId: string }>
   | Readonly<{ op: "denyPairing"; pairingRequestId: string }>
-  | Readonly<{ op: "revokeClient"; clientId: string }>
+  | Readonly<{ op: "revokeClient"; clientId: string; origin: string }>
   | Readonly<{
       op: "allowOriginTrust" | "denyOriginTrust" | "cancelOriginTrust";
       origin?: string;
@@ -199,10 +199,18 @@ export function parseSdkGatewaySettingsOperation(
     }
     case "revokeClient": {
       const clientId = record["clientId"];
-      if (!isNonEmptyString(clientId) || clientId.length > MAX_ID_LENGTH) {
+      const origin = record["origin"];
+      if (
+        !isNonEmptyString(clientId) ||
+        clientId.length > MAX_ID_LENGTH ||
+        !isNonEmptyString(origin) ||
+        origin.length > MAX_ORIGIN_LENGTH ||
+        origin.toLowerCase() === "null" ||
+        origin.includes("*")
+      ) {
         return null;
       }
-      return { op, clientId: clientId.trim() };
+      return { op, clientId: clientId.trim(), origin: origin.trim() };
     }
     case "allowOriginTrust":
     case "denyOriginTrust":

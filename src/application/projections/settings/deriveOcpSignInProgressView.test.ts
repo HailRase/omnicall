@@ -15,7 +15,7 @@ describe("deriveOcpSignInProgressView", () => {
       "corr-1",
       0,
     );
-    const view = deriveOcpSignInProgressView(progress, 15_000);
+    const view = deriveOcpSignInProgressView(progress, 7_500);
 
     expect(view.overallState).toBe("active");
     const active = view.stages.find(
@@ -26,7 +26,7 @@ describe("deriveOcpSignInProgressView", () => {
     expect(view.overallPercent).toBeGreaterThan(0);
   });
 
-  it("keeps early failures blue until the stage timeout elapses", () => {
+  it("reveals network failures immediately with the real failure kind", () => {
     const active = applyAuthorizationExecutionStage(
       initialAuthorizationProgressProjection(),
       "requesting_authorization_token",
@@ -38,20 +38,20 @@ describe("deriveOcpSignInProgressView", () => {
       failureKind: "http_failed",
       failureCode: "Failed to fetch",
     });
-    const duringWindow = deriveOcpSignInProgressView(failed, 5_000);
-    const stage = duringWindow.stages.find(
+    const view = deriveOcpSignInProgressView(failed, 5_000);
+    const stage = view.stages.find(
       (entry) => entry.stage === "requesting_authorization_token",
     );
 
-    expect(duringWindow.hasLatentFailure).toBe(true);
-    expect(duringWindow.hasFailure).toBe(false);
-    expect(duringWindow.overallState).toBe("active");
-    expect(stage?.state).toBe("active");
-    expect(stage?.percent).toBeCloseTo((5_000 / 15_000) * 100);
-    expect(stage?.awaitingTimeoutReveal).toBe(true);
+    expect(view.hasFailure).toBe(true);
+    expect(view.overallState).toBe("failed");
+    expect(stage?.state).toBe("failed");
+    expect(stage?.percent).toBe(100);
+    expect(stage?.failureKind).toBe("http_failed");
+    expect(stage?.failureCode).toBe("Failed to fetch");
   });
 
-  it("reveals timeout failure after the stage timeout window for network errors", () => {
+  it("maps timeout failure kinds to the timeout visual state", () => {
     const active = applyAuthorizationExecutionStage(
       initialAuthorizationProgressProjection(),
       "submitting_token_to_ocp",
@@ -63,17 +63,15 @@ describe("deriveOcpSignInProgressView", () => {
       failureKind: "transport",
       failureCode: "Failed to fetch",
     });
-    const view = deriveOcpSignInProgressView(failed, 15_000);
-
-    expect(view.hasFailure).toBe(true);
-    expect(view.overallState).toBe("failed");
+    const view = deriveOcpSignInProgressView(failed, 1_000);
     const stage = view.stages.find(
       (entry) => entry.stage === "submitting_token_to_ocp",
     );
+
+    expect(view.hasFailure).toBe(true);
     expect(stage?.state).toBe("failed");
-    expect(stage?.failureKind).toBe("timeout");
+    expect(stage?.failureKind).toBe("transport");
     expect(stage?.failureCode).toBe("Failed to fetch");
-    expect(stage?.percent).toBe(100);
   });
 
   it("reveals SESSION_EXIST immediately without waiting for timeout", () => {
@@ -91,7 +89,6 @@ describe("deriveOcpSignInProgressView", () => {
     const view = deriveOcpSignInProgressView(failed, Date.now());
 
     expect(view.hasFailure).toBe(true);
-    expect(view.hasLatentFailure).toBe(false);
     expect(view.overallState).toBe("failed");
     const stage = view.stages.find(
       (entry) => entry.stage === "requesting_authorization_token",
@@ -99,6 +96,26 @@ describe("deriveOcpSignInProgressView", () => {
     expect(stage?.state).toBe("failed");
     expect(stage?.failureKind).toBe("session_exist");
     expect(stage?.failureCode).toBe("ocp_session_exist");
+  });
+
+  it("uses timeout visual state for auth/credentials timeouts", () => {
+    const active = applyAuthorizationExecutionStage(
+      initialAuthorizationProgressProjection(),
+      "receiving_phone_credentials",
+      "corr-creds",
+      0,
+    );
+    const failed = applyAuthorizationExecutionFailure(active, {
+      reason: "timeout",
+      failureKind: "credentials_timeout",
+      failureCode: "ocp_credentials_timeout",
+    });
+    const view = deriveOcpSignInProgressView(failed, 1_000);
+    const stage = view.stages.find(
+      (entry) => entry.stage === "receiving_phone_credentials",
+    );
+    expect(stage?.state).toBe("timeout");
+    expect(stage?.failureKind).toBe("credentials_timeout");
   });
 
   it("completes all stages when ready", () => {
@@ -135,8 +152,13 @@ describe("deriveOcpSignInProgressView", () => {
     expect(view.overallState).toBe("active");
     expect(active?.state).toBe("active");
     expect(active?.percent).toBe(50);
+    // Fresh attempt clears stale ready checklist — only the active stage is in flight.
     expect(
       view.stages.filter((entry) => entry.state === "completed"),
-    ).toHaveLength(4);
+    ).toHaveLength(0);
+    expect(
+      view.stages.filter((entry) => entry.state === "pending"),
+    ).toHaveLength(5);
   });
 });
+

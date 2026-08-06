@@ -44,7 +44,10 @@ disable-model-invocation: true
 
 ## Verification and Handoff
 
-Run focused tests and proportional preflight from the work unit and test matrix. Update
-Registry, Legacy Coverage, handoff, STATUS, and work-history only when facts changed.
+Run focused unit/integration tests and proportional preflight from the work unit and test
+matrix. Update Registry, Legacy Coverage, handoff, STATUS, and work-history only when
+facts changed.
+
+Do **not** run or require packaged Electron / Chromium / Edge / browser smoke scripts.
 
 Record exact evidence, request `/sdk-review`, and stop. Do not execute the next DI unit.

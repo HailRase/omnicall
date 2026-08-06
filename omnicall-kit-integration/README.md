@@ -22,6 +22,7 @@ Every desktop integration agent must read:
 6. [`SMOKE-CHECKLIST.md`](SMOKE-CHECKLIST.md)
 7. [`../omnicall-kit/docs/PROTOCOL.md`](../omnicall-kit/docs/PROTOCOL.md)
 8. [`../omnicall-kit/docs/SECURITY.md`](../omnicall-kit/docs/SECURITY.md)
+9. Corrective track (post P12): [`sdk-production-readiness/`](sdk-production-readiness/) — ADR-0027; WU-00…WU-07 **PASS** (`CLOSEOUT.md`)
 
 Then read the repository onboarding and current status:
 
@@ -54,30 +55,27 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **`implemented`** (2026-07-27 — DI-00…DI-11 `done`; DI-10 **full close**; Mode B npm **`0.1.0`/`latest`**)
-- ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
-- SDK-02: `@softomnitel/omnicall-protocol` `done`; desktop consumes same fixtures (DI-01)
-- P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md` (**P12 closed** 2026-07-27)
-- Baseline: `evidence/DI-00-baseline.md`
-- DI-01 evidence: `evidence/DI-01-protocol-ports-mocks.md`
-- DI-02 evidence: `evidence/DI-02-typed-main-renderer-broker.md` (`/sdk-review` PASS)
-- DI-03 evidence: `evidence/DI-03-loopback-websocket-transport.md` (`/sdk-review` PASS)
-- DI-04 evidence: `evidence/DI-04-pairing-origin-capabilities.md` (`/sdk-review` PASS)
-- DI-05 evidence: `evidence/DI-05-read-only-snapshot-events-window-show.md` (`done` — `/sdk-review` PASS)
-- DI-06 evidence: `evidence/DI-06-call-command-router.md` (`done` — `/sdk-review` PASS)
-- DI-07 evidence: `evidence/DI-07-operator-logout-workflow.md` (`done` — `/sdk-review` PASS)
-- DI-08 evidence: `evidence/DI-08-saved-profile-activation.md` (`done` — `/sdk-review` PASS)
-- DI-09 evidence: `evidence/DI-09-settings-operational-ux.md` (`done` — `/sdk-review` PASS)
-- OCP E-12 command subset: implemented
-- External gateway: loopback WS + pairing/PoP/capabilities + read-only + call + operator/logout + activate-profile (DI-08 `done`); mock retained; **ADR-0021** shared-desk call control + granular call matrix (2026-07-27)
-- External handlers: `ExternalSdkProductHandler` (read + call + operator + account activate)
-- Main-to-renderer command broker: real IPC adapter `done` (DI-02); mock retained for unit tests
-- SDK Settings UX: **`done`** (DI-09) — origins/paired/revoke/grant/diagnostics; hide disabled;
-  **listener enable toggle superseded by DI-11** (always-on gateway per ADR-0018 — `done`)
-- Read-only event/snapshot transport: implemented (DI-05 `done`)
-- DI-10 evidence: `evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; **full close** 2026-07-27)
-- DI-11 evidence: `evidence/DI-11-origin-tofu-blacklist-activate.md` (`done` — `/sdk-review` PASS 2026-07-21)
-- Next: optional npm Teams private; further SDK SemVer as needed (Mode B **`0.1.0`** shipped)
-- DI-11 planning (decisions frozen): `evidence/DI-11-origin-tofu-blacklist-activate-planning.md`
+- F-011: **`implemented`** — P12 closed (2026-07-27); corrective WU-00…WU-07 **PASS**
+  (2026-08-03). Desktop **`1.3.1`** + kit **`0.2.1`**. Gate = unit + integration +
+  desktop/kit preflight only (no packaged/browser smoke for agents).
+- Origin upgrade (ADR-0018 amended 2026-08-03): **fail-closed** — only exact
+  **`allowed`** HTTP(S) Origins receive a WebSocket; Trusted sites / seed required
+  before CRM `connect()`. Pairing Approve remains a separate step after allow.
+- ADRs: ADR-0009…0018 (+0014…0017, 0021, 0027) Accepted; ADR-0018 Origin upgrade
+  hardening amendment 2026-08-03
+- SDK-02: `@softomnitel/omnicall-protocol` `0.1.0` `done`; desktop consumes same fixtures
+- P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md` (**closed**)
+- DI-00…DI-11 evidence under `evidence/` — all **done** / `/sdk-review` PASS where noted;
+  DI-10 packaged/browser smoke = **archival only**
+- External gateway: loopback WS + pairing/PoP/capabilities + snapshot/events + call +
+  operator/logout + activate-profile + window; **ADR-0021** shared-desk call control
+- External handlers: `ExternalSdkProductHandler` + `routeSdkInbound` (fail-closed)
+- Main-to-renderer broker: real IPC `done` (DI-02); mock retained for unit tests
+- SDK Settings UX: Trusted / Blocked / matrix / revoke; always-on gateway (ADR-0018)
+- Corrective track closeout: `sdk-production-readiness/CLOSEOUT.md`
+- Next (human ops only): confirm private-registry access for integrators; no further
+  remediation WU in this track
 
-P12 / F-011 closed 2026-07-27 (DI-00…DI-11 reviewed; DI-10 full close).
+P12 / F-011 corrective track is **closed** (`implemented`). Agents must not run packaged
+Electron / Chromium / Edge smoke for F-011 gates. Do **not** restore TOFU-on-upgrade
+without a new ADR (security downgrade).

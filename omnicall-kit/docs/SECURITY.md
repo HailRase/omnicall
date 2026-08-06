@@ -33,14 +33,18 @@ Attackers include:
 
 - Origin strings are matched **exactly** (no wildcard / suffix / substring).
 - Missing or `null` Origin is rejected.
-- **Admission** follows ADR-0018 trust states:
-  - `unknown` — accept upgrade → renderer Origin TOFU modal (Allow/Deny); **not** pairing;
-  - `allowed` — accept upgrade → normal pairing / PoP / session (ADR-0016);
-  - `denied` (blacklist) — **reject upgrade** (no socket); first Deny sends wire
-    `forbidden` + details `origin_denied`, then closes.
+- **Admission** follows ADR-0018 (amended 2026-08-03) trust states:
+  - `allowed` — accept upgrade → pairing / PoP / session (ADR-0016);
+  - `unknown` — **reject upgrade** (no socket); operator/IT must pre-allow via
+    Settings → OmniCall Kit → Trusted sites or seed `OMNICALL_SDK_ALLOWED_ORIGINS`;
+  - `denied` (blacklist) — **reject upgrade** (no socket).
+- SDK maps upgrade rejects to non-retryable client code **`origin_blocked`**.
 - Unblock: previously `allowed` Origins restore to `allowed` with retained matrix;
-  first-contact-only denials restore to `unknown` (modal again).
+  never-`allowed` rows restore to `unknown` and still require Trusted sites / seed
+  before the next connect (no upgrade-time TOFU modal).
 - Origin is an additional gate, not proof of client identity.
+- Historical DI-11 TOFU-on-upgrade (`unknown` accept → renderer modal) is **superseded**;
+  do not document or restore it without a new ADR.
 - Per-Origin capability matrix (Settings) further limits which capabilities may be granted;
   matrix is ignored while the Origin is blacklisted but retained read-only for Unblock
   restore (no consumer edits while `denied`).
@@ -58,7 +62,9 @@ Attackers include:
   persisted only via IndexedDB (`ADR-0016`); never `localStorage` / `sessionStorage`.
 - Session credentials are short-lived and bound to Origin, client ID, server instance,
   and negotiated capabilities.
-- Replay is limited with nonces, unique request IDs, expiry, and a bounded deduplication cache.
+- Replay is limited with nonces, unique request IDs, expiry, and a bounded
+  deduplication cache keyed by **Origin + clientId + requestId** (pending abandon on
+  disconnect/TTL/failure; ADR-0027).
 
 ### Authorization
 
@@ -175,9 +181,10 @@ administrative feature with its own ADR, capability, local approval, audit, and 
   desktop shell above other apps per ADR-0013 local focus policy (restore/show/focus/
   z-order; temporary always-on-top pulse must restore any prior pin — never leave the
   shell permanently always-on-top). The same native helper raises the shell for
-  incoming/outgoing calls and operator-attention flows (Origin TOFU, pairing, activate
-  consent); TOFU/pairing present via root `SdkConnectCeremonyModal` (not Settings
-  auto-open). Telephony raises are
+  incoming/outgoing calls and operator-attention flows (pairing Approve, activate
+  consent); pairing presents via root `SdkConnectCeremonyModal` (not Settings
+  auto-open). Origin first-contact is Settings Trusted sites / seed (ADR-0018
+  amended 2026-08-03), not an upgrade-time TOFU modal. Telephony raises are
   not subject to the SDK `window.show` 1s rate limit (edge per callId instead).
   Successful show/raise disposes the hide-only tray.
 - Logout requires the OCP reason workflow when applicable.
@@ -199,11 +206,11 @@ old request IDs and state, reauthenticates, and obtains a fresh snapshot.
 
 ## Required Security Tests
 
-- hostile, missing, and `null` Origin;
-- first-contact Deny (typed `forbidden`+`origin_denied` + close) and blacklisted upgrade
-  reject → client `origin_blocked` (ADR-0018);
-- Unblock restore: prior allowed+matrix vs unknown after first Deny;
-- discovery CORS for unknown+allowed only;
+- hostile, missing, `null`, unknown (not pre-allowed), and malformed Origin → upgrade
+  reject → client `origin_blocked` (ADR-0018 amended 2026-08-03);
+- blacklisted Origin upgrade reject → client `origin_blocked`;
+- Unblock restore: prior allowed+matrix vs unknown (still requires Trusted sites / seed);
+- discovery CORS for unknown+allowed only (does not grant WS upgrade);
 - unauthenticated snapshot/event access;
 - replayed pairing, authentication, and command messages;
 - duplicate request IDs;
@@ -223,4 +230,15 @@ old request IDs and state, reauthenticates, and obtains a fresh snapshot.
 ## Security Release Gate
 
 Public npm publication is blocked until an independent security review reports no Blockers
-and every mandatory security test passes against a packaged desktop build.
+and mandatory security unit/integration tests + desktop/kit preflight pass. Do not require
+packaged Electron / Chromium / Edge smoke as a security gate.
+
+## Licensing / Legal Publish Gate
+
+- Packages declare `"license": "UNLICENSED"` and a placeholder `LICENSE` (all rights
+  reserved until a public license is chosen).
+- **UNLICENSED is not an open-source license.** Agents must not invent SPDX identifiers
+  or redistribute claims beyond the agreed commercial/partner contour.
+- `scripts/release-publish.mjs` fails closed unless `RELEASE_CONFIRM=1` and
+  `RELEASE_LICENSE_REVIEWED=1` (human legal review evidence outside the git tree).
+- Security review and license review are independent gates; either may block publish.

@@ -13,6 +13,9 @@ export const bgMessages: MessageShape = {
   "account.startupRegistration.retryCta": "Опитай отново регистрацията",
   "account.action.logout": "Изход",
   "account.action.signIn": "Вход",
+  "account.firstRun.hint.title": "Първо влизане",
+  "account.firstRun.hint.description":
+    "Въведете SIP данните от администратора (или модул OCP) и натиснете Вход. При нужда запазете профила на този компютър.",
   "account.mode.ocpModule": "Модул OCP",
   "account.mode.sipOnly": "Само SIP",
   "account.mode.tabsAria": "Режим за вход в акаунта",
@@ -176,6 +179,8 @@ export const bgMessages: MessageShape = {
     `DTMF клавиатура ${params.displayName}`,
   "call.dtmf.tonesAriaLabel": "Набрани тонове",
   "call.idle.message": "Въведете номер или изчакайте входящо обаждане",
+  "call.idle.needsSignIn.message": "За да се обаждате, влезте в акаунта",
+  "call.idle.needsSignIn.action": "Вход в акаунт",
   "call.line.ariaLabel": (params: Readonly<{ displayName: string }>) =>
     `Линия на обаждане ${params.displayName}`,
   "call.line.mutedBadge": "Заглушен",
@@ -631,6 +636,7 @@ export const bgMessages: MessageShape = {
   "icons.settings.integrations.externalApplications": "Външни приложения",
   "icons.settings.integrations.externalApplications.open": "Отвори сега",
   "icons.settings.integrations.externalApplications.history": "История на отварянията",
+  "icons.settings.integrations.externalApplications.overlays": "Наслагване на други приложения",
   "icons.settings.integrations.externalServices.send": "Изпрати",
   "icons.settings.integrations.externalServices.add": "Добави",
   "icons.settings.integrations.externalServices.panelExpand": "Разгъни панела за отговор",
@@ -641,6 +647,11 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "Външни приложения",
   "settings.integrations.externalApplications.add": "Добави",
   "settings.integrations.externalApplications.save": "Запази",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Има незапазени промени",
+  "settings.integrations.externalApplications.editor.discardTitle": "Отхвърляне на промените?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Незапазените промени на приложението ще бъдат загубени.",
+  "settings.integrations.externalApplications.editor.discard": "Отхвърли промените",
   "settings.integrations.externalApplications.openNow": "Отвори сега",
   "settings.integrations.externalApplications.enabled": "Включено",
   "settings.integrations.externalApplications.disabled": "Изключено",
@@ -650,9 +661,59 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Режим на отваряне",
   "settings.integrations.externalApplications.openMode.electronWindow": "Прозорец на приложението",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "Картата се отваря в отделен прозорец на OmniCall до софтфона.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Външен браузър",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "Страницата се отваря в раздел на системния браузър (Chrome, Edge и т.н.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Софтфон",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "Прозорец OmniCall",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Браузър",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Ширина",
   "settings.integrations.externalApplications.window.height": "Височина",
+  "settings.integrations.externalApplications.windowGeometry.title": "Разположение на прозореца",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Задайте размер и позиция на прозореца на работния плот. Преглед в мащаб 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Размер",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Позиция",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Предварителни размери",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Допустимо: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Въведете цяло число",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Преглед на работния плот",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Работен плот",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Плъзнете прозореца, променете размера от краища/ъгли; стрелки — 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Промяна на височината отгоре",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Промяна на височината отдолу",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Промяна на ширината отдясно",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Промяна на ширината отляво",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Диагонално оразмеряване отгоре вдясно",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Диагонално оразмеряване отгоре вляво",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Диагонално оразмеряване отдолу вдясно",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Диагонално оразмеряване отдолу вляво",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Наслагване на други приложения",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Няма други приложения с режим „Прозорец на приложение“ за наслагване.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Премахни наслагването „${params.name}“`,
   "settings.integrations.externalApplications.tabs.general": "Общи",
   "settings.integrations.externalApplications.tabs.events": "Събития",
   "settings.integrations.externalApplications.tabs.conditions": "Условия",
@@ -663,6 +724,7 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Преименувай",
   "settings.integrations.externalApplications.actions.duplicate": "Дублирай",
   "settings.integrations.externalApplications.actions.delete": "Изтрий",
+  "settings.integrations.externalApplications.actions.cancel": "Отказ",
   "settings.integrations.externalApplications.variables": "Собствени променливи",
   "settings.integrations.externalApplications.variablesAdd": "Добави променлива",
   "settings.integrations.externalApplications.variablesWhenHint": "Собствени · винаги",
@@ -685,11 +747,22 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Име на опашката",
   "settings.integrations.externalApplications.windowBehavior.title": "Поведение на прозореца",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Покажи при отваряне",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Извежда прозореца на картата на преден план при отваряне.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Над другите по време на обаждане",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Държи прозореца над другите само докато трае обаждането.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Друг прозорец",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "След обаждане",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Остави отворен",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "Прозорецът на картата остава отворен след края на обаждането.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Минимизирай",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "Прозорецът се минимизира в лентата на задачите след обаждането.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Затвори",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "Прозорецът на картата се затваря след края на обаждането.",
   "settings.integrations.externalApplications.history.nav": "История",
   "settings.integrations.externalApplications.history.title": "История на отварянията",
   "settings.integrations.externalApplications.history.loading": "Зареждане…",
@@ -1242,6 +1315,7 @@ export const bgMessages: MessageShape = {
   "account.authProgress.stage.httpToken": "Получаване на авторизационен токен",
   "account.authProgress.stage.submitToken": "Изпращане на токена към OCP сървъра",
   "account.authProgress.stage.awaitData": "Аутентикация на токена в модула",
+  "account.authProgress.stage.receiveCredentials": "Получаване на телефонни данни",
   "account.authProgress.stage.sipTransport": "Свързване със SIP сървъра",
   "account.authProgress.stage.sipAuthorization": "Регистрация на телефона",
   "account.authProgress.status.pending": "Изчаква",

@@ -41,6 +41,17 @@ export class OmniCallClientError extends Error {
   }
 }
 
+/** @public */
+export class WaitUntilTimeoutError extends Error {
+  override readonly name = 'WaitUntilTimeoutError';
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number) {
+    super('waitUntil timeout');
+    this.timeoutMs = timeoutMs;
+  }
+}
+
 export function createClientError(input: {
   readonly code: ProtocolErrorCode;
   readonly retryable: boolean;

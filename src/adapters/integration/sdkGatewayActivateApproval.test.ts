@@ -58,16 +58,28 @@ describe("denyActivateWhenOriginPolicyForbids", () => {
     connection.authState = "authenticated";
 
     const isOriginActivateAllowed = vi.fn(() => false);
+    const requestDedup = new SdkRequestDedupCache();
+    const command = createActivateCommand("req_matrix_off_001");
+    const dedupPrincipal = {
+      origin: connection.origin,
+      clientId: connection.clientId,
+      connectionId: connection.id,
+      requestId: command.requestId,
+    };
+    expect(requestDedup.begin(dedupPrincipal, NOW().getTime()).action).toBe(
+      "execute",
+    );
     const denied = denyActivateWhenOriginPolicyForbids({
       connection,
-      requestDedup: new SdkRequestDedupCache(),
+      requestDedup,
+      dedupPrincipal,
       now: NOW,
       sendJson: (_conn, message) => {
         sent.push(message);
       },
       log,
       identity: IDENTITY,
-      command: createActivateCommand("req_matrix_off_001"),
+      command,
       isOriginActivateAllowed,
     });
 
@@ -112,16 +124,23 @@ describe("denyActivateWhenOriginPolicyForbids", () => {
     );
     connection.clientId = "client_matrix_on_001";
 
+    const command = createActivateCommand("req_matrix_on_001");
     const denied = denyActivateWhenOriginPolicyForbids({
       connection,
       requestDedup: new SdkRequestDedupCache(),
+      dedupPrincipal: {
+        origin: connection.origin,
+        clientId: connection.clientId,
+        connectionId: connection.id,
+        requestId: command.requestId,
+      },
       now: NOW,
       sendJson: (_conn, message) => {
         sent.push(message);
       },
       log: () => undefined,
       identity: IDENTITY,
-      command: createActivateCommand("req_matrix_on_001"),
+      command,
       isOriginActivateAllowed: () => true,
     });
 

@@ -22,6 +22,7 @@ const ruMessages = {
   "icons.settings.integrations.externalApplications": "Внешние приложения",
   "icons.settings.integrations.externalApplications.open": "Открыть сейчас",
   "icons.settings.integrations.externalApplications.history": "История открытий",
+  "icons.settings.integrations.externalApplications.overlays": "Наложение других приложений",
   "icons.settings.integrations.externalServices.send": "Отправить",
   "icons.settings.integrations.externalServices.add": "Добавить",
   "icons.settings.integrations.externalServices.panelExpand": "Развернуть панель ответа",
@@ -32,6 +33,11 @@ const ruMessages = {
   "settings.integrations.externalApplications.title": "Внешние приложения",
   "settings.integrations.externalApplications.add": "Добавить",
   "settings.integrations.externalApplications.save": "Сохранить",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Есть несохранённые изменения",
+  "settings.integrations.externalApplications.editor.discardTitle": "Отменить изменения?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Несохранённые изменения приложения будут потеряны.",
+  "settings.integrations.externalApplications.editor.discard": "Отменить изменения",
   "settings.integrations.externalApplications.openNow": "Открыть сейчас",
   "settings.integrations.externalApplications.enabled": "Включено",
   "settings.integrations.externalApplications.disabled": "Выключено",
@@ -41,9 +47,59 @@ const ruMessages = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Способ открытия",
   "settings.integrations.externalApplications.openMode.electronWindow": "Окно приложения",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "Карточка откроется в отдельном окне OmniCall рядом с софтфоном.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Внешний браузер",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "Страница откроется во вкладке системного браузера (Chrome, Edge и т.п.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Софтфон",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "Окно OmniCall",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Браузер",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Ширина",
   "settings.integrations.externalApplications.window.height": "Высота",
+  "settings.integrations.externalApplications.windowGeometry.title": "Расположение окна",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Задайте размер и позицию окна приложения на рабочем столе. Превью масштаба 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Размер",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Позиция",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Предустановки размера",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Допустимо: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Введите целое число",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Превью рабочего стола",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Рабочий стол",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Перетащите окно, потяните края или углы для размера, стрелки — сдвиг на 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Изменить высоту сверху",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Изменить высоту снизу",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Изменить ширину справа",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Изменить ширину слева",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Изменить размер по диагонали сверху справа",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Изменить размер по диагонали сверху слева",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Изменить размер по диагонали снизу справа",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Изменить размер по диагонали снизу слева",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Наложение других приложений",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Нет других приложений с режимом «Окно приложения» для наложения.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Убрать наложение «${params.name}»`,
   "settings.integrations.externalApplications.tabs.general": "Общее",
   "settings.integrations.externalApplications.tabs.events": "События",
   "settings.integrations.externalApplications.tabs.conditions": "Условия",
@@ -54,6 +110,7 @@ const ruMessages = {
   "settings.integrations.externalApplications.actions.rename": "Переименовать",
   "settings.integrations.externalApplications.actions.duplicate": "Дублировать",
   "settings.integrations.externalApplications.actions.delete": "Удалить",
+  "settings.integrations.externalApplications.actions.cancel": "Отмена",
   "settings.integrations.externalApplications.variables": "Свои переменные",
   "settings.integrations.externalApplications.variablesAdd": "Добавить переменную",
   "settings.integrations.externalApplications.variablesWhenHint": "Свои · всегда",
@@ -75,11 +132,22 @@ const ruMessages = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Имя очереди",
   "settings.integrations.externalApplications.windowBehavior.title": "Поведение окна",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Поднять при открытии",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Выводит окно карточки на передний план при открытии.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Поверх окон во время звонка",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Держит окно поверх других только пока идёт звонок.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Другое окно",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "После звонка",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Оставить",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "Окно карточки останется открытым после завершения звонка.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Свернуть",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "Окно свернётся в панель задач после завершения звонка.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Закрыть",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "Окно карточки закроется после завершения звонка.",
   "settings.integrations.externalApplications.history.nav": "История",
   "settings.integrations.externalApplications.history.title": "История открытий",
   "settings.integrations.externalApplications.history.loading": "Загрузка…",
@@ -471,6 +539,7 @@ const ruMessages = {
   "account.authProgress.stage.httpToken": "Получение авторизационного токена",
   "account.authProgress.stage.submitToken": "Отправка токена на сервер OCP",
   "account.authProgress.stage.awaitData": "Аутентификация токена в модуле",
+  "account.authProgress.stage.receiveCredentials": "Получение учётных данных телефона",
   "account.authProgress.stage.sipTransport": "Подключение к SIP-серверу",
   "account.authProgress.stage.sipAuthorization": "Регистрация телефона",
   "account.authProgress.status.pending": "Ожидает",
@@ -1029,6 +1098,9 @@ const ruMessages = {
     "Автоматическая регистрация телефона при запуске не удалась. Повторите попытку или войдите вручную.",
   "account.startupRegistration.retryCta": "Повторить регистрацию",
   "account.action.signIn": "Войти",
+  "account.firstRun.hint.title": "Первый вход",
+  "account.firstRun.hint.description":
+    "Введите данные SIP от администратора (или модуль ОСР) и нажмите «Войти». При необходимости сохраните профиль на этом ПК.",
   "account.signIn.disabled.logoutFirst": "Необходимо выйти из аккаунта",
   "account.mode.sipOnly": "Только SIP",
   "account.mode.ocpModule": "Модуль ОСР",
@@ -1153,6 +1225,8 @@ const ruMessages = {
   "dialpad.disabled.connectingInProgress": "Соединение…",
   "dialpad.disabled.calling": "Звонок уже соединяется",
   "call.idle.message": "Введите номер или дождитесь входящего звонка",
+  "call.idle.needsSignIn.message": "Чтобы звонить, войдите в аккаунт",
+  "call.idle.needsSignIn.action": "Войти в аккаунт",
   "call.lines.ariaLabel": "Активные линии звонков",
   "call.role.source": "Исходный",
   "call.role.consultation": "Консультация",
@@ -1860,6 +1934,7 @@ const enMessages: MessageShape = {
   "icons.settings.integrations.externalApplications": "External Applications",
   "icons.settings.integrations.externalApplications.open": "Open now",
   "icons.settings.integrations.externalApplications.history": "Open history",
+  "icons.settings.integrations.externalApplications.overlays": "Overlay other applications",
   "icons.settings.integrations.externalServices.send": "Send",
   "icons.settings.integrations.externalServices.add": "Add",
   "icons.settings.integrations.externalServices.panelExpand": "Expand response pane",
@@ -1870,6 +1945,11 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "External Applications",
   "settings.integrations.externalApplications.add": "Add",
   "settings.integrations.externalApplications.save": "Save",
+  "settings.integrations.externalApplications.editor.unsavedHint": "You have unsaved changes",
+  "settings.integrations.externalApplications.editor.discardTitle": "Discard changes?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Unsaved application changes will be lost.",
+  "settings.integrations.externalApplications.editor.discard": "Discard changes",
   "settings.integrations.externalApplications.openNow": "Open now",
   "settings.integrations.externalApplications.enabled": "Enabled",
   "settings.integrations.externalApplications.disabled": "Disabled",
@@ -1879,9 +1959,59 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Open mode",
   "settings.integrations.externalApplications.openMode.electronWindow": "Application window",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "The card opens in a separate OmniCall window beside the softphone.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "External browser",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "The page opens in a system browser tab (Chrome, Edge, etc.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Softphone",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "OmniCall window",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Browser",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Width",
   "settings.integrations.externalApplications.window.height": "Height",
+  "settings.integrations.externalApplications.windowGeometry.title": "Window layout",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Set the application window size and position on the desktop. Preview scale is 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Size",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Position",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Size presets",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Allowed: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Enter a whole number",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Desktop preview",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Desktop",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Drag the window, resize from edges or corners, arrows nudge by 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Resize height from top",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Resize height from bottom",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Resize width from right",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Resize width from left",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Resize diagonally from top-right",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Resize diagonally from top-left",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Resize diagonally from bottom-right",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Resize diagonally from bottom-left",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Overlay other applications",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "No other Application Window apps are available to overlay.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Remove overlay “${params.name}”`,
   "settings.integrations.externalApplications.tabs.general": "General",
   "settings.integrations.externalApplications.tabs.events": "Events",
   "settings.integrations.externalApplications.tabs.conditions": "Conditions",
@@ -1892,6 +2022,7 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Rename",
   "settings.integrations.externalApplications.actions.duplicate": "Duplicate",
   "settings.integrations.externalApplications.actions.delete": "Delete",
+  "settings.integrations.externalApplications.actions.cancel": "Cancel",
   "settings.integrations.externalApplications.variables": "Custom variables",
   "settings.integrations.externalApplications.variablesAdd": "Add variable",
   "settings.integrations.externalApplications.variablesWhenHint": "Custom · always",
@@ -1914,11 +2045,22 @@ const enMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Queue name",
   "settings.integrations.externalApplications.windowBehavior.title": "Window behavior",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Raise on open",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Brings the card window to the front when it opens.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Always on top during call",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Keeps the window above others only while the call is active.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Other window",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "After call ends",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Leave open",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "The card window stays open after the call ends.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Minimize",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "The card window minimizes to the taskbar after the call ends.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Close",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "The card window closes after the call ends.",
   "settings.integrations.externalApplications.history.nav": "History",
   "settings.integrations.externalApplications.history.title": "Open history",
   "settings.integrations.externalApplications.history.loading": "Loading…",
@@ -2275,6 +2417,7 @@ const enMessages: MessageShape = {
   "account.authProgress.stage.httpToken": "Request authorization token",
   "account.authProgress.stage.submitToken": "Submit token to OCP server",
   "account.authProgress.stage.awaitData": "Authenticate token in module",
+  "account.authProgress.stage.receiveCredentials": "Receive phone credentials",
   "account.authProgress.stage.sipTransport": "Connect to SIP server",
   "account.authProgress.stage.sipAuthorization": "Register phone",
   "account.authProgress.status.pending": "Pending",
@@ -2859,6 +3002,9 @@ const enMessages: MessageShape = {
     "Automatic phone registration on startup failed. Retry or sign in manually.",
   "account.startupRegistration.retryCta": "Retry registration",
   "account.action.signIn": "Sign in",
+  "account.firstRun.hint.title": "First sign-in",
+  "account.firstRun.hint.description":
+    "Enter the SIP details from your administrator (or the OCP module) and press Sign in. Optionally save the profile on this PC.",
   "account.signIn.disabled.logoutFirst": "You need to sign out of the account",
   "account.mode.sipOnly": "SIP only",
   "account.mode.ocpModule": "OCP module",
@@ -2986,6 +3132,8 @@ const enMessages: MessageShape = {
   "dialpad.videoCall.disabled.captureUnavailable": "Camera unavailable",
   "dialpad.videoCall.disabled.featureNotReady": "Video calls are not ready yet",
   "call.idle.message": "Enter a number or wait for an incoming call",
+  "call.idle.needsSignIn.message": "Sign in to your account to make calls",
+  "call.idle.needsSignIn.action": "Sign in to account",
   "call.lines.ariaLabel": "Active call lines",
   "call.role.source": "Source",
   "call.role.consultation": "Consultation",
@@ -3645,6 +3793,11 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "Applications externes",
   "settings.integrations.externalApplications.add": "Ajouter",
   "settings.integrations.externalApplications.save": "Enregistrer",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Modifications non enregistrees",
+  "settings.integrations.externalApplications.editor.discardTitle": "Abandonner les modifications ?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Les modifications non enregistrees de l’application seront perdues.",
+  "settings.integrations.externalApplications.editor.discard": "Abandonner les modifications",
   "settings.integrations.externalApplications.openNow": "Ouvrir maintenant",
   "settings.integrations.externalApplications.enabled": "Activée",
   "settings.integrations.externalApplications.disabled": "Désactivée",
@@ -3654,9 +3807,59 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Mode d’ouverture",
   "settings.integrations.externalApplications.openMode.electronWindow": "Fenêtre de l’application",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "La fiche s’ouvre dans une fenêtre OmniCall séparée à côté du softphone.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Navigateur externe",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "La page s’ouvre dans un onglet du navigateur système (Chrome, Edge, etc.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Softphone",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "Fenêtre OmniCall",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Navigateur",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Largeur",
   "settings.integrations.externalApplications.window.height": "Hauteur",
+  "settings.integrations.externalApplications.windowGeometry.title": "Disposition de la fenêtre",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Définissez la taille et la position de la fenêtre sur le bureau. Aperçu à l’échelle 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Taille",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Position",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Préréglages de taille",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Autorisé : ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Saisissez un nombre entier",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Aperçu du bureau",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Bureau",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Glissez la fenêtre, redimensionnez par les bords ou coins ; flèches : 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Redimensionner la hauteur depuis le haut",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Redimensionner la hauteur depuis le bas",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Redimensionner la largeur depuis la droite",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Redimensionner la largeur depuis la gauche",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Redimensionner en diagonale depuis le haut droit",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Redimensionner en diagonale depuis le haut gauche",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Redimensionner en diagonale depuis le bas droit",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Redimensionner en diagonale depuis le bas gauche",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Superposer d’autres applications",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Aucune autre application en mode Fenêtre d’application n’est disponible pour la superposition.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Retirer la superposition « ${params.name} »`,
   "settings.integrations.externalApplications.tabs.general": "Général",
   "settings.integrations.externalApplications.tabs.events": "Événements",
   "settings.integrations.externalApplications.tabs.conditions": "Conditions",
@@ -3667,6 +3870,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Renommer",
   "settings.integrations.externalApplications.actions.duplicate": "Dupliquer",
   "settings.integrations.externalApplications.actions.delete": "Supprimer",
+  "settings.integrations.externalApplications.actions.cancel": "Annuler",
   "settings.integrations.externalApplications.variables": "Variables personnalisees",
   "settings.integrations.externalApplications.variablesAdd": "Ajouter une variable",
   "settings.integrations.externalApplications.variablesWhenHint": "Perso · toujours",
@@ -3689,11 +3893,22 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Nom de la file",
   "settings.integrations.externalApplications.windowBehavior.title": "Comportement de la fenêtre",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Mettre au premier plan",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Place la fenêtre de la fiche au premier plan à l’ouverture.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Au-dessus pendant l’appel",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Garde la fenêtre au-dessus des autres uniquement pendant l’appel.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Autre fenêtre",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "Après l’appel",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Laisser ouverte",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "La fenêtre de la fiche reste ouverte après la fin de l’appel.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Réduire",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "La fenêtre est réduite dans la barre des tâches après l’appel.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Fermer",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "La fenêtre de la fiche se ferme après la fin de l’appel.",
   "settings.integrations.externalApplications.history.nav": "Historique",
   "settings.integrations.externalApplications.history.title": "Historique d’ouverture",
   "settings.integrations.externalApplications.history.loading": "Chargement…",
@@ -3707,6 +3922,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalApplications.history.outcome.skipped_lifecycle": "Annulée",
   "settings.integrations.externalApplications.history.outcome.failed": "Échec",
   "icons.settings.integrations.externalApplications.history": "Historique d’ouverture",
+  "icons.settings.integrations.externalApplications.overlays": "Superposer d’autres applications",
   "settings.integrations.externalServices.title": "Services externes",
   "settings.integrations.externalServices.description":
     "Automations HTTP sortantes declenchees par les evenements d'appel pour le profil actif.",
@@ -4001,6 +4217,7 @@ const frMessages: MessageShape = {
   "account.authProgress.stage.httpToken": "Obtenir le jeton d'autorisation",
   "account.authProgress.stage.submitToken": "Envoyer le jeton au serveur OCP",
   "account.authProgress.stage.awaitData": "Authentifier le jeton dans le module",
+  "account.authProgress.stage.receiveCredentials": "Recevoir les identifiants telephone",
   "account.authProgress.stage.sipTransport": "Connexion au serveur SIP",
   "account.authProgress.stage.sipAuthorization": "Enregistrement du telephone",
   "account.authProgress.status.pending": "En attente",
@@ -4578,6 +4795,9 @@ const frMessages: MessageShape = {
     "L'enregistrement automatique du telephone au demarrage a echoue. Reessayez ou connectez-vous manuellement.",
   "account.startupRegistration.retryCta": "Reessayer l'enregistrement",
   "account.action.signIn": "Se connecter",
+  "account.firstRun.hint.title": "Premiere connexion",
+  "account.firstRun.hint.description":
+    "Saisissez les donnees SIP de votre administrateur (ou le module OCP) et appuyez sur Se connecter. Vous pouvez enregistrer le profil sur ce PC.",
   "account.signIn.disabled.logoutFirst": "Vous devez vous deconnecter du compte",
   "account.mode.sipOnly": "SIP uniquement",
   "account.mode.ocpModule": "Module OCP",
@@ -4706,6 +4926,8 @@ const frMessages: MessageShape = {
   "dialpad.videoCall.disabled.captureUnavailable": "Camera indisponible",
   "dialpad.videoCall.disabled.featureNotReady": "Les appels video ne sont pas encore disponibles",
   "call.idle.message": "Saisissez un numero ou attendez un appel entrant",
+  "call.idle.needsSignIn.message": "Connectez-vous pour passer des appels",
+  "call.idle.needsSignIn.action": "Se connecter au compte",
   "call.lines.ariaLabel": "Lignes d'appel actives",
   "call.role.source": "Source",
   "call.role.consultation": "Consultation",
@@ -5368,6 +5590,11 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.title": "Externe Anwendungen",
   "settings.integrations.externalApplications.add": "Hinzufügen",
   "settings.integrations.externalApplications.save": "Speichern",
+  "settings.integrations.externalApplications.editor.unsavedHint": "Ungespeicherte Aenderungen vorhanden",
+  "settings.integrations.externalApplications.editor.discardTitle": "Aenderungen verwerfen?",
+  "settings.integrations.externalApplications.editor.discardDescription":
+    "Ungespeicherte Aenderungen der Anwendung gehen verloren.",
+  "settings.integrations.externalApplications.editor.discard": "Aenderungen verwerfen",
   "settings.integrations.externalApplications.openNow": "Jetzt öffnen",
   "settings.integrations.externalApplications.enabled": "Aktiviert",
   "settings.integrations.externalApplications.disabled": "Deaktiviert",
@@ -5377,9 +5604,59 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.urlPlaceholder": "https://example.com/{{call_id}}",
   "settings.integrations.externalApplications.openMode": "Öffnungsmodus",
   "settings.integrations.externalApplications.openMode.electronWindow": "Anwendungsfenster",
+  "settings.integrations.externalApplications.openMode.electronWindow.description":
+    "Die Karte öffnet sich in einem separaten OmniCall-Fenster neben dem Softphone.",
   "settings.integrations.externalApplications.openMode.externalBrowser": "Externer Browser",
+  "settings.integrations.externalApplications.openMode.externalBrowser.description":
+    "Die Seite öffnet sich in einem Systembrowser-Tab (Chrome, Edge usw.).",
+  "settings.integrations.externalApplications.openMode.preview.softphone": "Softphone",
+  "settings.integrations.externalApplications.openMode.preview.appWindow": "OmniCall-Fenster",
+  "settings.integrations.externalApplications.openMode.preview.browser": "Browser",
+  "settings.integrations.externalApplications.openMode.preview.addressHint": "https://…",
   "settings.integrations.externalApplications.window.width": "Breite",
   "settings.integrations.externalApplications.window.height": "Höhe",
+  "settings.integrations.externalApplications.windowGeometry.title": "Fensterlayout",
+  "settings.integrations.externalApplications.windowGeometry.description":
+    "Legen Sie Größe und Position des Anwendungsfensters auf dem Desktop fest. Vorschau im Maßstab 1:5.",
+  "settings.integrations.externalApplications.windowGeometry.sizeGroup": "Größe",
+  "settings.integrations.externalApplications.windowGeometry.positionGroup": "Position",
+  "settings.integrations.externalApplications.windowGeometry.presets.label": "Größenvoreinstellungen",
+  "settings.integrations.externalApplications.windowGeometry.presets.hd16_9": "1280×720 · 16:9",
+  "settings.integrations.externalApplications.windowGeometry.presets.default": "1100×800",
+  "settings.integrations.externalApplications.windowGeometry.presets.compact": "900×700",
+  "settings.integrations.externalApplications.windowGeometry.presets.standard4_3": "800×600 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.presets.vga": "640×480 · 4:3",
+  "settings.integrations.externalApplications.windowGeometry.x": "X",
+  "settings.integrations.externalApplications.windowGeometry.y": "Y",
+  "settings.integrations.externalApplications.windowGeometry.validation.rangeHint": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `${params.min}–${params.max} px`,
+  "settings.integrations.externalApplications.windowGeometry.validation.outOfRange": (params: {
+    readonly min: number;
+    readonly max: number;
+  }) => `Erlaubt: ${params.min}–${params.max}`,
+  "settings.integrations.externalApplications.windowGeometry.validation.invalidNumber":
+    "Ganze Zahl eingeben",
+  "settings.integrations.externalApplications.windowGeometry.preview.label": "Desktop-Vorschau",
+  "settings.integrations.externalApplications.windowGeometry.preview.desktop": "Desktop",
+  "settings.integrations.externalApplications.windowGeometry.preview.dragHint":
+    "Fenster ziehen, an Kanten/Ecken skalieren; Pfeile verschieben um 10 px.",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.n": "Höhe von oben ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.s": "Höhe von unten ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.e": "Breite von rechts ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.w": "Breite von links ändern",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.ne": "Diagonal von oben rechts skalieren",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.nw": "Diagonal von oben links skalieren",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.se": "Diagonal von unten rechts skalieren",
+  "settings.integrations.externalApplications.windowGeometry.preview.resize.sw": "Diagonal von unten links skalieren",
+  "settings.integrations.externalApplications.windowGeometry.overlays.title":
+    "Andere Anwendungen überlagern",
+  "settings.integrations.externalApplications.windowGeometry.overlays.empty":
+    "Keine anderen Anwendungen im Modus Anwendungsfenster zum Überlagern verfügbar.",
+  "settings.integrations.externalApplications.windowGeometry.overlays.removeAria": (params: {
+    readonly name: string;
+  }) => `Überlagerung „${params.name}“ entfernen`,
   "settings.integrations.externalApplications.tabs.general": "Allgemein",
   "settings.integrations.externalApplications.tabs.events": "Ereignisse",
   "settings.integrations.externalApplications.tabs.conditions": "Bedingungen",
@@ -5390,6 +5667,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.actions.rename": "Umbenennen",
   "settings.integrations.externalApplications.actions.duplicate": "Duplizieren",
   "settings.integrations.externalApplications.actions.delete": "Löschen",
+  "settings.integrations.externalApplications.actions.cancel": "Abbrechen",
   "settings.integrations.externalApplications.variables": "Eigene Variablen",
   "settings.integrations.externalApplications.variablesAdd": "Variable hinzufügen",
   "settings.integrations.externalApplications.variablesWhenHint": "Eigene · immer",
@@ -5412,11 +5690,22 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.conditions.queuePlaceholder": "Name der Warteschlange",
   "settings.integrations.externalApplications.windowBehavior.title": "Fensterverhalten",
   "settings.integrations.externalApplications.windowBehavior.raiseOnOpen": "Beim Öffnen in den Vordergrund",
+  "settings.integrations.externalApplications.windowBehavior.raiseOnOpen.description":
+    "Holt das Kartenfenster beim Öffnen in den Vordergrund.",
   "settings.integrations.externalApplications.windowBehavior.alwaysOnTop": "Während des Anrufs im Vordergrund",
+  "settings.integrations.externalApplications.windowBehavior.alwaysOnTop.description":
+    "Hält das Fenster nur während des Anrufs über anderen Fenstern.",
+  "settings.integrations.externalApplications.windowBehavior.preview.otherWindow": "Anderes Fenster",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded": "Nach dem Anruf",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave": "Offen lassen",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.leave.description":
+    "Das Kartenfenster bleibt nach dem Anruf geöffnet.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize": "Minimieren",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.minimize.description":
+    "Das Kartenfenster wird nach dem Anruf in die Taskleiste minimiert.",
   "settings.integrations.externalApplications.windowBehavior.onCallEnded.close": "Schließen",
+  "settings.integrations.externalApplications.windowBehavior.onCallEnded.close.description":
+    "Das Kartenfenster wird nach dem Anruf geschlossen.",
   "settings.integrations.externalApplications.history.nav": "Verlauf",
   "settings.integrations.externalApplications.history.title": "Öffnungsverlauf",
   "settings.integrations.externalApplications.history.loading": "Laden…",
@@ -5430,6 +5719,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalApplications.history.outcome.skipped_lifecycle": "Abgebrochen",
   "settings.integrations.externalApplications.history.outcome.failed": "Fehler",
   "icons.settings.integrations.externalApplications.history": "Öffnungsverlauf",
+  "icons.settings.integrations.externalApplications.overlays": "Andere Anwendungen überlagern",
   "settings.integrations.externalServices.title": "Externe Dienste",
   "settings.integrations.externalServices.description":
     "Ausgehende HTTP-Automatisierungen fuer Anrufereignisse des aktiven Profils.",
@@ -5723,6 +6013,7 @@ const deMessages: MessageShape = {
   "account.authProgress.stage.httpToken": "Autorisierungstoken abrufen",
   "account.authProgress.stage.submitToken": "Token an OCP-Server senden",
   "account.authProgress.stage.awaitData": "Token im Modul authentifizieren",
+  "account.authProgress.stage.receiveCredentials": "Telefondaten empfangen",
   "account.authProgress.stage.sipTransport": "Mit SIP-Server verbinden",
   "account.authProgress.stage.sipAuthorization": "Telefon registrieren",
   "account.authProgress.status.pending": "Ausstehend",
@@ -6300,6 +6591,9 @@ const deMessages: MessageShape = {
     "Automatische Telefonregistrierung beim Start fehlgeschlagen. Erneut versuchen oder manuell anmelden.",
   "account.startupRegistration.retryCta": "Registrierung wiederholen",
   "account.action.signIn": "Anmelden",
+  "account.firstRun.hint.title": "Erste Anmeldung",
+  "account.firstRun.hint.description":
+    "Geben Sie die SIP-Daten Ihres Administrators ein (oder das OCP-Modul) und klicken Sie auf Anmelden. Optional speichern Sie das Profil auf diesem PC.",
   "account.signIn.disabled.logoutFirst": "Sie muessen sich zuerst abmelden",
   "account.mode.sipOnly": "Nur SIP",
   "account.mode.ocpModule": "OCP-Modul",
@@ -6428,6 +6722,8 @@ const deMessages: MessageShape = {
   "dialpad.videoCall.disabled.captureUnavailable": "Kamera nicht verfuegbar",
   "dialpad.videoCall.disabled.featureNotReady": "Videoanrufe sind noch nicht verfuegbar",
   "call.idle.message": "Nummer eingeben oder auf eingehenden Anruf warten",
+  "call.idle.needsSignIn.message": "Melden Sie sich an, um anzurufen",
+  "call.idle.needsSignIn.action": "Beim Konto anmelden",
   "call.lines.ariaLabel": "Aktive Anrufleitungen",
   "call.role.source": "Quelle",
   "call.role.consultation": "Beratung",

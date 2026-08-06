@@ -12,7 +12,10 @@ import type {
 import { createAuthOrchestrator } from '../internal/auth-orchestrator.js';
 import { createConnectionSession } from '../internal/connection-session.js';
 import type { ConnectionState } from '../internal/connection-state.js';
-import type { OmniCallClientError } from '../internal/client-errors.js';
+import {
+  WaitUntilTimeoutError,
+  type OmniCallClientError
+} from '../internal/client-errors.js';
 import type { DiagnosticsSink } from '../internal/diagnostics.js';
 import type { PopKeyStore } from '../internal/pop-key-store.js';
 import type { ReconnectPolicy } from '../internal/reconnect-policy.js';
@@ -24,6 +27,7 @@ import {
   createBrowserScheduler
 } from '../internal/scheduler.js';
 import type { TransportFactory } from '../internal/transport-port.js';
+import { SDK_VERSION } from './sdk-version.js';
 
 /**
  * Pairing-required notification for consumers.
@@ -55,7 +59,6 @@ export type AuthClientOptions = {
   readonly url: string;
   readonly origin: string;
   readonly application: ApplicationIdentity;
-  readonly sdkVersion: string;
   readonly requestedProfile: PairingProfile;
   readonly requestedCapabilities?: readonly CapabilityId[];
   readonly keyStore: PopKeyStore;
@@ -97,7 +100,7 @@ export type AuthClient = {
   ) => () => void;
   readonly waitUntil: (
     predicate: (state: ConnectionState) => boolean,
-    timeoutMs?: number
+    options?: number | Readonly<{ timeoutMs?: number; signal?: AbortSignal }>
   ) => Promise<ConnectionState>;
   readonly getConnectError: () => OmniCallClientError | undefined;
 };
@@ -142,7 +145,7 @@ export function createAuthClient(options: AuthClientOptions): AuthClient {
     connection,
     origin: options.origin,
     application: options.application,
-    sdkVersion: options.sdkVersion,
+    sdkVersion: SDK_VERSION,
     requestedProfile: options.requestedProfile,
     requestedCapabilities: options.requestedCapabilities ?? [],
     keyStore: options.keyStore,
@@ -197,23 +200,38 @@ export function createAuthClient(options: AuthClientOptions): AuthClient {
         pairingListeners.delete(listener);
       };
     },
-    waitUntil: (predicate, timeoutMs = 5_000) =>
+    waitUntil: (predicate, options = 5_000) =>
       new Promise((resolve, reject) => {
+        const normalized =
+          typeof options === 'number' ? { timeoutMs: options } : options;
+        const timeoutMs = normalized.timeoutMs ?? 5_000;
+        if (normalized.signal?.aborted === true) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
         if (predicate(connection.getState())) {
           resolve(connection.getState());
           return;
         }
         const timer = scheduler.setTimeout(() => {
           unsubscribe();
-          reject(new Error('waitUntil timeout'));
+          normalized.signal?.removeEventListener('abort', onAbort);
+          reject(new WaitUntilTimeoutError(timeoutMs));
         }, timeoutMs);
+        const onAbort = (): void => {
+          timer.clear();
+          unsubscribe();
+          reject(new DOMException('Aborted', 'AbortError'));
+        };
         const unsubscribe = connection.onStateChange((next) => {
           if (predicate(next)) {
             timer.clear();
             unsubscribe();
+            normalized.signal?.removeEventListener('abort', onAbort);
             resolve(next);
           }
         });
+        normalized.signal?.addEventListener('abort', onAbort, { once: true });
       }),
     getConnectError: () => connection.getConnectError()
   };

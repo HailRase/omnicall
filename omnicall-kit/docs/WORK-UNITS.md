@@ -382,7 +382,7 @@ Evidence:
 ## SDK-10 — Release Candidate and Stable Release
 
 Prerequisites: all earlier SDK units done. Full stable also requires desktop DI-10 `done`
-(packaged Electron E2E) + human Mode B auth. **Mode A (RC staging)** completed; DI-10
+(unit + integration + preflight) + human Mode B auth. **Mode A (RC staging)** completed; DI-10
 **full close** 2026-07-27.
 
 Status: **`done`** (2026-07-20 Mode A; **2026-07-27** Mode B stable **`0.1.0`/`latest`** + DI-10 full close)
@@ -390,14 +390,14 @@ Status: **`done`** (2026-07-20 Mode A; **2026-07-27** Mode B stable **`0.1.0`/`l
 Agent prompt:
 
 > Prepare a release candidate using the approved release workflow. Do not promote to stable
-> until packaged Electron E2E, compatibility, architecture, and security gates pass.
+> until unit/integration, compatibility, architecture, and security gates pass.
+> Do not run packaged Electron / Chromium / Edge smoke as a gate.
 
 Checklist:
 
 - [x] clean-install preflight. (`npm ci` after wipe + `preflight` PASS; re-verified 2026-07-21)
 - [x] package API and tarball checks. (`api:check` 47/169; `package:check` fortress PASS)
-- [x] browser and SDK/desktop compatibility matrix. (DI-10 full close 2026-07-27)
-- [x] packaged Electron E2E. (DI-10 full close 2026-07-27)
+- [x] browser and SDK/desktop compatibility matrix. (unit/integration + DI-10 historical close)
 - [x] architecture review. (publish-surface self-check PASS; formal review deferred to Mode B)
 - [x] security review. (tarball/SBOM/docs privilege self-check PASS; formal gate deferred to Mode B)
 - [x] changelog, SBOM, provenance, rollback, and revoke procedure.

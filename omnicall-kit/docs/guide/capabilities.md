@@ -14,7 +14,7 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | `operator.campaign.read` | No | Subscribe `operator:campaign-*` + snapshot `operator.campaign` |
 | `ocp.acd_context.read` | No | Subscribe `call:acd-context` (OCP MainCallIDInfo wire, ADR-0020) |
 | `call.originate` | No | `client.calls.originate` — CRM sends destination; OmniCall runs Call Engine |
-| `call.control` | No | Umbrella: answer/reject/hangup/hold/mute **and** DTMF |
+| `call.control` | No | Umbrella: answer/reject/hangup/hold/mute **and** DTMF — **does not** imply `call.originate` |
 | `call.answer` | No | `client.calls.answer` (also satisfied by `call.control`) |
 | `call.reject` | No | `client.calls.reject` |
 | `call.hangup` | No | `client.calls.hangup` |

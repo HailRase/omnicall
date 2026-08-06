@@ -43,8 +43,8 @@ export function isOriginDeniedWireDetails(
 }
 
 /**
- * True for blacklisted upgrade reject (`origin_blocked`) and first-contact
- * wire deny (`forbidden` + `origin_denied` details).
+ * True for upgrade reject (`origin_blocked`: not allowed / blacklisted) and
+ * residual wire deny (`forbidden` + `origin_denied` details).
  * @public
  */
 export function isOriginBlockedError(value: unknown): value is OmniCallClientError {

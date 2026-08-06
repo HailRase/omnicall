@@ -1,7 +1,9 @@
 # Desktop SDK Integration Manual Smoke Checklist
 
-Use this checklist for DI-10 and release candidates. Earlier work units may execute the
-relevant subset, but no partial run closes P12.
+> **Archive.** Agents must **not** run this checklist or packaged/browser smoke scripts
+> for F-011 / DI / WU gates. Current gate = unit + integration + preflight only.
+
+Historical DI-10 record (kept for audit). Earlier work units may have executed subsets.
 
 ## Record
 

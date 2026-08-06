@@ -19,6 +19,10 @@ import {
   parseShellWindowRaiseResponse,
 } from "@shared/ipc/ShellWindowRaiseContract.js";
 import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
+import {
+  parseSdkNativeWindowIpcPayload,
+  parseSdkNativeWindowIpcResponse,
+} from "@shared/ipc/SdkNativeWindowContract.js";
 import { parseProfilesStorageRootResponse } from "@shared/ipc/ProfilesStorageContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import type { OpenExternalUrlResponse } from "@shared/ipc/OpenExternalUrlContract.js";
@@ -47,6 +51,7 @@ import {
 } from "@shared/ipc/DisplayCaptureContract.js";
 import {
   parseSdkBrokerAckResponse,
+  parseSdkBrokerCancelIpcPayload,
   parseSdkBrokerClientSessionEndedIpcPayload,
   parseSdkBrokerReadyIpcPayload,
   parseSdkBrokerReplyIpcPayload,
@@ -364,6 +369,21 @@ const softphoneApi: SoftphonePreloadApi = {
     }
     return { ok: response.ok };
   },
+  invokeSdkNativeWindow: async (payload) => {
+    const parsed = parseSdkNativeWindowIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false, code: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkNativeWindow,
+      parsed,
+    );
+    const parsedResponse = parseSdkNativeWindowIpcResponse(response);
+    if (parsedResponse === null) {
+      return { ok: false, code: "operation_failed" };
+    }
+    return parsedResponse;
+  },
   onShellOperatorAttention: (handler) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
       const parsed = parseShellOperatorAttentionPayload(payload);
@@ -472,6 +492,18 @@ const softphoneApi: SoftphonePreloadApi = {
     ipcRenderer.on(IPC_CHANNELS.sdkBrokerRequest, listener);
     return () => {
       ipcRenderer.removeListener(IPC_CHANNELS.sdkBrokerRequest, listener);
+    };
+  },
+  onSdkBrokerCancel: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseSdkBrokerCancelIpcPayload(payload);
+      if (parsed !== null) {
+        handler(parsed);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.sdkBrokerCancel, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.sdkBrokerCancel, listener);
     };
   },
   replySdkBrokerRequest: async (payload) => {

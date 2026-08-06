@@ -41,34 +41,90 @@ function createProductSurface(
   return {
     isProductReady: () => true,
     requestProductCommand: (command) => {
-      if (command.kind !== "command" || command.type !== "sdk:get-snapshot") {
+      if (command.kind !== "command") {
         return Promise.resolve({ ok: false as const, code: "unsupported_command" });
       }
-      return Promise.resolve({
-        ok: true as const,
-        reply: {
-          protocolVersion: PROTOCOL_MAJOR,
-          kind: "reply" as const,
+      if (command.type === "sdk:get-snapshot") {
+        return Promise.resolve({
           ok: true as const,
-          requestId: command.requestId,
-          commandType: "sdk:get-snapshot" as const,
-          serverInstanceId: command.serverInstanceId,
-          sessionEpoch: command.sessionEpoch,
-          occurredAt: "2026-07-20T09:00:01.000Z",
-          revision: 3,
-          result: {
-            sections: {
-              account: { signedIn: false },
-              registration: { state: "unregistered" },
-              calls: [],
+          reply: {
+            protocolVersion: PROTOCOL_MAJOR,
+            kind: "reply" as const,
+            ok: true as const,
+            requestId: command.requestId,
+            commandType: "sdk:get-snapshot" as const,
+            serverInstanceId: command.serverInstanceId,
+            sessionEpoch: command.sessionEpoch,
+            occurredAt: "2026-07-20T09:00:01.000Z",
+            revision: 3,
+            result: {
+              sections: {
+                account: { signedIn: false },
+                registration: { state: "unregistered" },
+                calls: [],
+              },
+              windowVisible: false,
             },
           },
-        },
-      });
+        });
+      }
+      // WU-02: window commands terminate in Application via broker (mock here).
+      if (command.type === "window:show") {
+        return Promise.resolve({
+          ok: true as const,
+          reply: {
+            protocolVersion: PROTOCOL_MAJOR,
+            kind: "reply" as const,
+            ok: true as const,
+            requestId: command.requestId,
+            commandType: "window:show" as const,
+            serverInstanceId: command.serverInstanceId,
+            sessionEpoch: command.sessionEpoch,
+            occurredAt: "2026-07-20T09:00:01.000Z",
+            revision: 2,
+            result: { visible: true },
+          },
+        });
+      }
+      if (command.type === "window:get-state") {
+        return Promise.resolve({
+          ok: true as const,
+          reply: {
+            protocolVersion: PROTOCOL_MAJOR,
+            kind: "reply" as const,
+            ok: true as const,
+            requestId: command.requestId,
+            commandType: "window:get-state" as const,
+            serverInstanceId: command.serverInstanceId,
+            sessionEpoch: command.sessionEpoch,
+            occurredAt: "2026-07-20T09:00:01.000Z",
+            revision: 1,
+            result: { visible: true },
+          },
+        });
+      }
+      if (command.type === "window:hide") {
+        return Promise.resolve({
+          ok: true as const,
+          reply: {
+            protocolVersion: PROTOCOL_MAJOR,
+            kind: "reply" as const,
+            ok: true as const,
+            requestId: command.requestId,
+            commandType: "window:hide" as const,
+            serverInstanceId: command.serverInstanceId,
+            sessionEpoch: command.sessionEpoch,
+            occurredAt: "2026-07-20T09:00:01.000Z",
+            revision: 2,
+            result: { visible: false },
+          },
+        });
+      }
+      return Promise.resolve({ ok: false as const, code: "unsupported_command" });
     },
-    showWindow: () => ({ ok: true, revision: 2, visible: true }),
-    hideWindow: () => ({ ok: true, revision: 3, visible: false }),
-    getWindowState: () => ({ ok: true, visible: false, revision: 1 }),
+    showWindow: () => ({ ok: true, visible: true }),
+    hideWindow: () => ({ ok: true, visible: false }),
+    getWindowState: () => ({ ok: true, visible: false }),
     ...overrides,
   };
 }
@@ -395,16 +451,20 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
     b.ws.close();
   });
 
-  it("requires window.show for window:show and succeeds via shell path", async () => {
+  it("requires window.show for window:show and succeeds via broker path", async () => {
     const logs: string[] = [];
-    let showCount = 0;
+    let showBrokerCount = 0;
+    const base = createProductSurface();
     const adapter = await startAdapter({
-      productSurface: createProductSurface({
-        showWindow: () => {
-          showCount += 1;
-          return { ok: true, revision: 5, visible: true };
+      productSurface: {
+        ...base,
+        requestProductCommand: async (command, context) => {
+          if (command.kind === "command" && command.type === "window:show") {
+            showBrokerCount += 1;
+          }
+          return base.requestProductCommand(command, context);
         },
-      }),
+      },
       onLog: (event) => {
         logs.push(event);
       },
@@ -427,31 +487,36 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
       kind: "reply",
       ok: true,
       commandType: "window:show",
+      revision: 2,
       result: { visible: true },
     });
     const visibility = await queue.next();
     expect(visibility).toMatchObject({
       kind: "event",
       type: "window:visibility-changed",
+      revision: 2,
       payload: { visible: true },
     });
-    expect(showCount).toBe(1);
+    expect(showBrokerCount).toBe(1);
     expect(logs.join(" ")).not.toMatch(/\+1|password|nonce|signature/i);
     queue.close();
     ws.close();
   });
 
-  it("requires window.hide for window:hide and succeeds via shell path", async () => {
-    let hideCount = 0;
+  it("requires window.hide for window:hide and succeeds via broker path", async () => {
+    let hideBrokerCount = 0;
+    const base = createProductSurface();
     const adapter = await startAdapter({
-      productSurface: createProductSurface({
-        hideWindow: (expectedRevision) => {
-          hideCount += 1;
-          expect(expectedRevision).toBe(2);
-          return { ok: true, revision: 3, visible: false };
+      productSurface: {
+        ...base,
+        requestProductCommand: async (command, context) => {
+          if (command.kind === "command" && command.type === "window:hide") {
+            hideBrokerCount += 1;
+            expect(command.payload).toMatchObject({ expectedRevision: 1 });
+          }
+          return base.requestProductCommand(command, context);
         },
-        getWindowState: () => ({ ok: true, visible: true, revision: 2 }),
-      }),
+      },
     });
     const origin = adapter
       .getOriginTrustEntries()
@@ -482,10 +547,11 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
     expect(stateReply).toMatchObject({
       kind: "reply",
       ok: true,
+      revision: 1,
       result: { visible: true },
     });
     const revision =
-      stateReply.kind === "reply" && stateReply.ok ? stateReply.revision : 2;
+      stateReply.kind === "reply" && stateReply.ok ? stateReply.revision : 1;
     ws.send(
       JSON.stringify({
         protocolVersion: PROTOCOL_MAJOR,
@@ -503,15 +569,17 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
       kind: "reply",
       ok: true,
       commandType: "window:hide",
+      revision: 2,
       result: { visible: false },
     });
     const visibility = await queue.next();
     expect(visibility).toMatchObject({
       kind: "event",
       type: "window:visibility-changed",
+      revision: 2,
       payload: { visible: false },
     });
-    expect(hideCount).toBe(1);
+    expect(hideBrokerCount).toBe(1);
     queue.close();
     ws.close();
   });
@@ -637,7 +705,7 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
   it("stops snapshot after revoke without requiring SIP teardown", async () => {
     const adapter = await startAdapter();
     const { ws, queue, hello } = await pairAndAuth(adapter, "client_rev_001");
-    await adapter.revokePairedClient("client_rev_001");
+    await adapter.revokePairedClient("client_rev_001", TEST_ORIGIN);
     const revoked = await queue.next();
     expect(revoked).toMatchObject({ kind: "event", type: "sdk:revoked" });
     await once(ws, "close");

@@ -1,39 +1,27 @@
 /**
  * Single-shot account:logout command body for ExternalSdkOperatorHandler.
  * CRM selects logout reason via operator:get-reasons; no prepare/confirm token.
+ * Revision validate/advance owned by SdkSessionRevisionCoordinator (ADR-0027).
  */
 
-import type { ExternalHandlerResult } from "@ports/integration/ExternalCommandHandler.js";
-
 import type { ExternalSdkOperatorPort } from "./ExternalSdkOperatorPort.js";
-import {
-  sdkCallSuccess,
-  sdkFail,
-} from "./externalSdkCallHelpers.js";
+import { sdkFail } from "./externalSdkCallHelpers.js";
 import {
   interactionRequiredLogout,
   parseLogoutPayload,
 } from "./externalSdkOperatorHelpers.js";
 import { mapPlatformErrorToSdkCode } from "./mapPlatformErrorToSdkCode.js";
 import { filterSdkReasonsByKind } from "./mapSdkOperatorReasons.js";
-import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import type { SdkRevisionMutationOutcome } from "./SdkSessionRevisionCoordinator.js";
 
 export type LogoutCommandDeps = Readonly<{
   operatorPort: ExternalSdkOperatorPort;
-  revisionClock: SdkSessionRevisionClock;
-  requireFreshRevision: (
-    payload: unknown,
-  ) => ExternalHandlerResult | { readonly ok: true };
 }>;
 
 export async function logoutAccountCommand(
   deps: LogoutCommandDeps,
   payload: unknown,
-): Promise<ExternalHandlerResult> {
-  const gate = deps.requireFreshRevision(payload);
-  if (!gate.ok) {
-    return gate;
-  }
+): Promise<SdkRevisionMutationOutcome> {
   const parsed = parseLogoutPayload(payload);
   if (parsed === null) {
     return sdkFail("invalid_payload");
@@ -71,12 +59,12 @@ export async function logoutAccountCommand(
     return sdkFail(code);
   }
 
-  return sdkCallSuccess(
-    {
+  return {
+    ok: true,
+    result: {
       loggedOut: true,
       ocpStep: result.value.ocpStep,
       operatorSnapshotMissing: result.value.operatorSnapshotMissing,
     },
-    deps.revisionClock.advance(),
-  );
+  };
 }

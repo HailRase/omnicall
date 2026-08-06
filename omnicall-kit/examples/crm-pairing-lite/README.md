@@ -2,7 +2,8 @@
 
 **Fake peer only — not a production desktop.**
 
-Integrator-facing helpers under `src/` use **only** the public `@softomnitel/omnicall-kit` surface.
+Integrator-facing helpers under `src/` use **only** the public `@softomnitel/omnicall-kit`
+surface (depends on workspace kit **`0.2.1`** — never a nested divergent registry copy).
 The runnable fake-peer demo lives next to SDK-09 tests:
 
 - `packages/sdk/src/docs/crm-pairing-lite-demo.ts`

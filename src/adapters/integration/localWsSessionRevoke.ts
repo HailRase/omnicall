@@ -13,6 +13,7 @@ import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 
 export async function revokeLocalWsClient(input: {
   readonly clientId: string;
+  readonly origin: string;
   readonly pairingStore: SdkGatewayPairingStore;
   readonly connections: Map<string, SdkGatewayConnection>;
   readonly getIdentity: () => SdkGatewayIdentity | null;
@@ -25,13 +26,16 @@ export async function revokeLocalWsClient(input: {
   ) => void;
   readonly nextRevokeSequence: () => number;
 }): Promise<boolean> {
-  const ok = await input.pairingStore.revoke(input.clientId);
+  const ok = await input.pairingStore.revoke(input.clientId, input.origin);
   if (!ok) {
     return false;
   }
   const identity = input.getIdentity();
   for (const connection of [...input.connections.values()]) {
-    if (connection.clientId !== input.clientId) {
+    if (
+      connection.clientId !== input.clientId ||
+      connection.origin !== input.origin
+    ) {
       continue;
     }
     if (identity !== null) {

@@ -22,6 +22,9 @@ Thumbs.db
 .env
 .env.*
 !.env.production
+# Never commit auth tokens; project omnicall-kit/.npmrc (no secrets) is tracked.
+.npmrc.auth
+**/.npmrc.auth
 
 # DI-10 browser smoke ephemeral profile
 omnicall-kit-integration/evidence/.di10-edge-profile/

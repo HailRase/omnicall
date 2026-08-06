@@ -112,6 +112,8 @@ export async function executeExternalApplicationJob(
       title: job.application.name,
       width: job.application.window.width,
       height: job.application.window.height,
+      x: job.application.window.x,
+      y: job.application.window.y,
       applicationId: job.application.id,
       callId,
       raiseOnOpen: job.application.windowBehavior.raiseOnOpen,

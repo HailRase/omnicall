@@ -1,6 +1,7 @@
 /**
  * In-memory snapshot cache. Cleared on reconnect/revoke/disconnect.
- * Never persists secrets or authorization material.
+ * Holds the last full snapshot only — not the latest-known concurrency token
+ * (`getRevision()` uses a separate tracker). Never persists secrets.
  */
 
 import type { SnapshotMessage } from '@softomnitel/omnicall-protocol';

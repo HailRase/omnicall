@@ -2,20 +2,34 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-08-02
-**Version:** `1.3.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
-**Feedback channels:** ADR-0026 Feedback Channel Law — anti-dual; ephemeral outcomes → `notify` (incl. SDK/OCP/EA/ES save + screen-share confirm); Account errors → persistent Alert + journaled critical; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
-**Tests:** `main` @ `1.3.0` — release preflight 3066 passed / 1 skipped (2026-08-02)
+**Updated:** 2026-08-06
+**Version:** `1.3.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit@0.2.1` + `@softomnitel/omnicall-protocol@0.1.0`)
+**Feedback channels:** ADR-0026 (amended 2026-08-06) — anti-dual; ephemeral outcomes → `notify`; Account validation → Alert + journaled critical; Account server/register → toast (`actionable`) + System State CTA; OCP modal/banner keep ownership; list-load/RunResult/codec policy keep owning surfaces — `UI-Architecture.md` § Feedback Channel Law
+**Tests:** `1.3.1` cut — release preflight green (2026-08-03); first-run CTA unit suites green (2026-08-05); OCP progress honesty + Account feedback channel suites (2026-08-06)
+**First-run CTA (F-016 polish):** unregistered idle CTA only → Settings Account; empty saved-profile Account hint — `P11-First-Run-Sign-In-CTA.md`
 **Settings nav:** Integrations = always-open cluster (OCP + External Services + **External Applications**; canon: `UI-Design-System.md` § Settings Nav Groups)
 **Settings schema:** `UserSettings` **v19** = v18 (EA/ringtone/always-on-top) + nested `notificationPreferences` (F-034); migrates 3…18 upward (no downgrade)
-**OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); Login/Reconnect/SDK activate keep modal stages (ADR-AF-002 amendment)
+**OCP reconnect UX:** auto-drop recovery = global overlay `OcpConnectionBanner` (`transportRecoveryActive` owns banner across flaps; `--z-shell-status-banner`) + silent progress (no sign-in Dialog / no token toasts); compact one-line chip `OCP · status` + outline Retry (viewport-edge geometry for ≥360px main display — not Sonner); banner Retry = System State `retry_server` (shared Facade recovery + login cascade); Login/Reconnect/SDK activate keep **six-stage** modal (immediate failure reveal; monotonic stages — early `creds` must not regress phone→SIP order; ADR-AF-002 amendment 2026-08-06)
 **Lint / typecheck:** green at `/release` cut `1.3.0`
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + min visible dwell 4000ms + exit crossfade; do not reintroduce React loading splash handoff; do not delay `initialize` for dwell
 **OCP call context:** `docs/softphone/OCP-Call-Context.md` — queue from `get_main_acallid` (wire: `acallid` + parties + `event`; never outbound `call_id`); desktop queue badge; SDK `call:acd-context` + snapshot `calls[].acdContext` under `ocp.acd_context.read` (ADR-0020) + additive `queueLabel`; campaign single-modal FSM + `operator:campaign-*` (ADR-0019); dual UI/SDK ownership + delivery reliability sections documented
 
-**Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `1.1.0`.
+**Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, OCP progress (six stages as of 2026-08-06), crash-safe saved profiles/secrets, one-click saved-profile entry, Account validation Alert + server/register toast (ADR-0026 amend 2026-08-06), rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `1.1.0`.
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
+
+## Closed — F-011 Host Integration / SDK production-readiness
+
+| Field | Value |
+| --- | --- |
+| Feature | **F-011** Host Integration Contract + corrective WU-00…WU-07 |
+| Status | **implemented** (WU-07 PASS 2026-08-03) |
+| Task | **T-054** **done** |
+| Plan | `omnicall-kit-integration/sdk-production-readiness/` · `CLOSEOUT.md` |
+| Handoff | `handoffs/P12-External-Host-API-Master-Handoff.md` |
+| ADR | ADR-0027 (+ ADR-0009…0018 historical) |
+| Gate | unit + integration + desktop/kit preflight only — agents must not run packaged Electron / Chromium / Edge smoke |
+| Release | Desktop **`1.3.1`** + kit **`0.2.1`** (2026-08-03) |
 
 ## Closed — F-034 Notification Center
 
@@ -55,12 +69,13 @@
 | Status | **implemented** (2026-07-31) |
 | Branch | `feature/external-applications` |
 | Design | `P14-External-Applications-Design.md` |
-| ADR | ADR-0024 (**Accepted**; close-guard amendment 2026-08-02) |
-| Schema | Introduced at **v16**; current aggregate **v19** (with F-033/F-034) |
+| ADR | ADR-0024 (**Accepted**; close-guard 2026-08-02; window origin x/y 2026-08-03) |
+| Schema | Introduced at **v16**; current aggregate **v19** (with F-033/F-034); window x/y via nested parse (no bump) |
 | Release | MINOR shipped with **`1.3.0`** (2026-08-02) |
 | Non-overlap | Not F-031 HTTP; not F-011 SDK; not F-028 OCP control |
 | Extensions (2026-07-31) | App-level open conditions; sidebar History journal; raise/always-on-top/on-call-ended window lifecycle |
 | Extensions (2026-08-02) | Guest close-guard (`window.omnicall.setCloseGuard`); minimal guest preload; no-guard path unchanged |
+| Extensions (2026-08-03) | Window x/y open path + workArea clamp; General-tab geometry editor (adaptive preview); session-only multi-app overlays via Layers checkbox menu on desktop |
 
 ## Closed — F-033 Selectable Incoming Ringtone Catalog
 
@@ -126,7 +141,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 **Recently closed (TASK-QUEUE):** **T-053 / F-034** Notification Center WU-00…WU-10 (`implemented`; WU-09 OS deferred; 2026-08-02); **F-032/F-033** merged to local `main` from `feature/external-applications` (2026-08-02); **F-031/F-032** additive automatic trigger `post_call_processing` (2026-07-31); **F-014/F-028 / LF-058** OCP transport recovery UX harden (2026-07-30); **T-052 / F-031** External Services (`implemented`; 2026-07-30).
 
-**Prepared / next transport auth:** **F-011 / P12** — **`implemented`** / **closed**. Mode B cut **`0.1.0`** locally (npm `latest` **pending OTP**); RC `0.1.0-rc.0` on `rc`. DI-00…DI-11 **`done`**. Next: send OTP/automation token to finish `npm publish --tag latest`.
+**F-011 / P12 corrective track:** **T-054 / WU-07 PASS** (2026-08-03). F-011 **`implemented`**. Shipped Desktop **`1.3.1`** + kit **`0.2.1`**. Gate = unit + integration + preflight only.
 
 ## RAT (Real Adapter Track)
 
@@ -148,9 +163,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **1.3.0** (2026-08-02) — F-034 Notification Center, F-033 ringtone, F-032 External Applications, always-on-top, post-call trigger |
-| Previous | **1.2.0**, **1.1.2**, **1.1.1** / **1.1.0** tag CI failed; **1.0.0**, **0.15.0**…**0.11.2** |
-| Next cut | PATCH hotfix as needed; WU-09 OS banners deferred; npm `latest` OTP for `@softomnitel/omnicall-kit` if still pending |
+| Shipped | **1.4.0** (2026-08-06) — F-032 External Applications UX (geometry/cards/previews); F-016 first-run CTA; F-028 OCP progress/banner; F-031 journal isolation; account SIP error toasts |
+| Previous | **1.3.1** (F-011 / kit 0.2.x), **1.3.0**, **1.2.0**… |
+| Next cut | PATCH hotfix as needed; WU-09 OS banners deferred |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (public: installers + manifest) |
 | Manifest (live) | `omnicall-releases/main/update-manifest.json` |

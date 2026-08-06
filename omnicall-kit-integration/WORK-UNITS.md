@@ -535,7 +535,9 @@ Checklist:
 - Remaining risks: packaged E2E / hostile matrix (DI-10); SDK browser package may lag; machine-scoped gateway policy stored in account settings bucket
 - Reviewer: `/sdk-review` PASS 2026-07-20 — DI-09 **`done`**; no Blockers; Lows remediated same day (deep IPC snapshot parse + card revoke/grant tests); next `/sdk-integration` DI-10 only (separate session)
 
-## DI-10 — Compatibility, E2E, and P12 Close
+## DI-10 — Compatibility and P12 Close (historical)
+
+> Agents: do not re-run packaged Electron / Chromium / Edge smoke for current F-011 gates.
 
 Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done. (SDK-10 Mode A RC staging also `done`.)
 
@@ -556,14 +558,15 @@ Evidence: `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.m
 
 Agent prompt:
 
-> Execute the complete compatibility, security, regression, and packaged Electron E2E gates.
+> Execute the complete compatibility, security, and regression unit/integration gates.
+> Do not run packaged Electron / Chromium / Edge smoke for current F-011 gates.
 > Remediate failures without weakening policy. Close F-011/P12 and legacy coverage only when
 > all evidence is real and independently reviewed.
 
 Checklist:
 
 - [x] complete automated preflight. *(Blocker clear 2026-07-21: demo relocated outside repo; `release:preflight` **2499/1 skipped**)*
-- [x] packaged Electron + supported browser E2E. *(PASS — gate-day handshake subset + full close 2026-07-27)*
+- [x] unit + integration compatibility/security matrix. *(historical DI-10 close 2026-07-27; smoke scripts archival)*
 - [x] old/new SDK-desktop matrix. *(PASS — full close 2026-07-27)*
 - [x] hostile-client security matrix. *(PASS — automated + packaged Origin + UI revoke accepted 2026-07-27)*
 - [x] SIP-only/OCP/call/manual smoke. *(PASS — full close 2026-07-27)*

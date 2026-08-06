@@ -29,7 +29,8 @@ function createBaseInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
     notifications: { notify },
     accountFeedback: {
-      error: null,
+      notificationError: null,
+      inlineError: null,
       successKey: null,
       warningKey: null,
     },
@@ -56,7 +57,8 @@ describe("useActionNotifications", () => {
   it("emits account success once for stable unchanged state", () => {
     const input = createBaseInput({
       accountFeedback: {
-        error: null,
+        notificationError: null,
+        inlineError: null,
         successKey: "account.success.sipRegistrationSucceeded",
         warningKey: null,
       },
@@ -78,7 +80,8 @@ describe("useActionNotifications", () => {
   it("emits staged SIP transport and registration success keys", () => {
     const input = createBaseInput({
       accountFeedback: {
-        error: null,
+        notificationError: null,
+        inlineError: null,
         successKeys: [
           "account.success.sipTransportConnected",
           "account.success.sipRegistrationSucceeded",
@@ -112,12 +115,13 @@ describe("useActionNotifications", () => {
   it("keeps stable warning and error state from re-emitting", () => {
     const input = createBaseInput({
       accountFeedback: {
-        successKey: null,
-        warningKey: "account.warning.profileSaveFailed",
-        error: {
+        notificationError: {
           key: "account.error.serverRegistration",
           params: { detail: "503" },
         },
+        inlineError: null,
+        successKey: null,
+        warningKey: "account.warning.profileSaveFailed",
       },
     });
     const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
@@ -134,13 +138,14 @@ describe("useActionNotifications", () => {
     expect(input.notifications.notify).toHaveBeenCalledTimes(2);
   });
 
-  it("attaches System State action on the error toast when requested", () => {
+  it("attaches System State action on toast-visible account notification errors", () => {
     const onOpenSystemState = vi.fn();
     const input = createBaseInput({
       accountFeedback: {
+        notificationError: { key: "account.error.authorizationFailed" },
+        inlineError: null,
         successKey: null,
         warningKey: null,
-        error: { key: "account.error.authorizationFailed" },
         openSystemStateAction: true,
       },
       onOpenSystemState,
@@ -160,7 +165,7 @@ describe("useActionNotifications", () => {
         messageKey: "account.error.authorizationFailed",
         module: "account",
         functionId: "account.sign_in",
-        interruptClass: "critical",
+        interruptClass: "actionable",
         action: expect.objectContaining({
           labelKey: "account.notification.openSystemStateAction",
         }),
@@ -168,14 +173,15 @@ describe("useActionNotifications", () => {
     );
   });
 
-  it("journals account errors as critical without toast-owned presentation", () => {
+  it("journals validation inline errors as critical without toast action", () => {
     const notify = vi.fn();
     const input = createBaseInput({
       notifications: { notify },
       accountFeedback: {
+        notificationError: null,
+        inlineError: { key: "account.error.validationFailed" },
         successKey: null,
         warningKey: null,
-        error: { key: "account.error.validationFailed" },
         openSystemStateAction: false,
       },
       onOpenSystemState: vi.fn(),

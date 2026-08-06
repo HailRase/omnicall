@@ -45,13 +45,17 @@
   background: var(--color-bg-surface-elevated);
 }
 
+.application-row-dirty {
+  box-shadow: inset 2px 0 0 var(--color-status-warning, var(--color-accent));
+}
+
 .application-status-dot {
   position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
+  top: 0.2rem;
+  left: 0.2rem;
   z-index: 1;
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.3125rem;
+  height: 0.3125rem;
   border-radius: 999px;
   pointer-events: none;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-bg-surface-alt) 55%, transparent);
@@ -189,6 +193,21 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+.editor-save-cluster {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.unsaved-hint {
+  margin: 0;
+  color: var(--color-status-warning, var(--color-accent));
+  font-size: var(--font-size-xs);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
 .inline-rename-text {
   flex: 0 1 auto;
   max-width: 16rem;
@@ -316,6 +335,13 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-sm);
+}
+
+.editor-grid-size {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+  max-width: 28rem;
 }
 
 .general-tab,
@@ -529,6 +555,7 @@
   }
 
   .editor-grid,
+  .editor-grid-size,
   .variable-row {
     grid-template-columns: 1fr;
   }

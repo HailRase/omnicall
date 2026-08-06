@@ -1,4 +1,5 @@
 declare const classes: {
+  readonly firstRunHint: string;
   readonly formCenter: string;
   readonly formCenterRememberedSignInOnly: string;
   readonly modalBackdrop: string;

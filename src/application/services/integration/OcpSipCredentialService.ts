@@ -32,8 +32,9 @@ import type { RegisterAccountUseCase } from "../../use-cases/settings/RegisterAc
 const FEATURE_ID = "F-028";
 const BOUNDED_CONTEXT = "Integration";
 
-/** Wait for OCP `creds` after authenticated before surfacing timeout. */
-export const OCP_CREDENTIALS_TIMEOUT_MS = 15_000;
+/** Wait for OCP `creds` after authorized (SSoT: stage timeout; arm via beginCredentialsTimeout). */
+export const OCP_CREDENTIALS_TIMEOUT_MS =
+  OCP_SIGN_IN_STAGE_TIMEOUT_MS.receiving_phone_credentials;
 
 export type OcpSipCredentialsPayload = Readonly<{
   username: string;
@@ -67,11 +68,11 @@ export type OcpSipCredentialServiceDeps = Readonly<{
   ) => void;
 }>;
 
-type PendingWaiter = Readonly<{
+type PendingWaiter = {
   correlationId: CorrelationId;
   resolve: (result: Result<OcpSipCredentialApplyOutcome, PlatformError>) => void;
-  timer: ReturnType<typeof setTimeout>;
-}>;
+  timer: ReturnType<typeof setTimeout> | null;
+};
 
 /**
  * Observes OCP `creds` and authorizes + registers SIP.
@@ -107,9 +108,9 @@ export class OcpSipCredentialService {
   }
 
   /**
-   * - Purpose: wait for next `creds` entity and apply SIP authorize+register.
+   * - Purpose: arm waiter for next `creds` (no timeout yet — early creds not missed).
    * - Inputs: correlationId shared with OCP HTTP/WS sign-in.
-   * - Outputs: typed apply outcome or credentials timeout.
+   * - Outputs: typed apply outcome; call `beginCredentialsTimeout` after OCP authorized.
    */
   waitAndApplyNext(
     correlationId: CorrelationId,
@@ -125,33 +126,46 @@ export class OcpSipCredentialService {
     }
 
     return new Promise((resolve) => {
-      const timer = setTimeout(() => {
-        if (this.pendingWaiter?.correlationId !== correlationId) {
-          return;
-        }
-        this.pendingWaiter = null;
-        this.deps.logger.warn("ocp_sip_credentials_timeout", {
-          correlationId,
-          featureId: FEATURE_ID,
-          boundedContext: BOUNDED_CONTEXT,
-          operation: "ocp_sip_credentials",
-          result: "credentials_timeout",
-        });
-        resolve(
-          err(
-            createPlatformError("timeout", "ocp_credentials_timeout", {
-              reason: "ocp_credentials_timeout",
-            }),
-          ),
-        );
-      }, this.credentialsTimeoutMs);
-
       this.pendingWaiter = {
         correlationId,
         resolve,
-        timer,
+        timer: null,
       };
     });
+  }
+
+  /**
+   * Start the credentials wait budget after OCP authorization succeeds.
+   * No-op when waiter already settled or timeout already armed.
+   */
+  beginCredentialsTimeout(correlationId: CorrelationId): void {
+    const waiter = this.pendingWaiter;
+    if (waiter === null || waiter.correlationId !== correlationId) {
+      return;
+    }
+    if (waiter.timer !== null) {
+      return;
+    }
+    waiter.timer = setTimeout(() => {
+      if (this.pendingWaiter?.correlationId !== correlationId) {
+        return;
+      }
+      this.pendingWaiter = null;
+      this.deps.logger.warn("ocp_sip_credentials_timeout", {
+        correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: BOUNDED_CONTEXT,
+        operation: "ocp_sip_credentials",
+        result: "credentials_timeout",
+      });
+      waiter.resolve(
+        err(
+          createPlatformError("timeout", "ocp_credentials_timeout", {
+            reason: "ocp_credentials_timeout",
+          }),
+        ),
+      );
+    }, this.credentialsTimeoutMs);
   }
 
   /**
@@ -184,7 +198,9 @@ export class OcpSipCredentialService {
       return;
     }
     this.pendingWaiter = null;
-    clearTimeout(waiter.timer);
+    if (waiter.timer !== null) {
+      clearTimeout(waiter.timer);
+    }
     waiter.resolve(result);
   }
 

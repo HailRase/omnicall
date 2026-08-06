@@ -39,10 +39,12 @@ the complete repository preflight and packaged integration matrix.
 - occupied port and second application instance;
 - logs contain no payload, token, secret, or unauthorized PII.
 
-## DI-11 — Origin TOFU / Blacklist / Activate Consent (ADR-0018)
+## DI-11 — Origin Trust / Blacklist / Activate Consent (ADR-0018)
 
-- first-contact `unknown` → renderer modal; Allow → `allowed` + base matrix; Deny →
-  `forbidden`+`origin_denied` + close + blacklist;
+- only exact configured `allowed` HTTP(S) Origins may upgrade; missing, malformed,
+  wildcard-like, suffix-confused, denied, and unconfigured Origins reject before pairing;
+- trusted-Origin edits use Settings or the managed allowlist; pairing remains a separate
+  per-client approval after the trusted socket opens;
 - blacklisted Origin → upgrade reject; client maps `origin_blocked` (non-retryable);
 - Unblock prior-`allowed` restores `allowed`+matrix; first-Deny-only → `unknown`;
 - cannot edit allow/policy while denied; matrix retained but ignored while denied;
@@ -103,8 +105,9 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 - focus behavior follows local policy (ADR-0013) and rate limit;
 - incoming ringing raises shell once per callId (IPC `shell:window-raise`);
 - outgoing Connecting raises shell once per callId;
-- Origin TOFU / pairing pending raise from main; root `SdkConnectCeremonyModal` (no Settings redirect);
-- pending cancelled on disconnect / Origin leave-allowed / TTL sweeper (no blacklist on TOFU cancel);
+- Pairing pending raise from main; root `SdkConnectCeremonyModal` (no Settings redirect);
+  Origin first-contact = Trusted sites / seed (fail-closed upgrade); no TOFU-on-upgrade;
+- pairing pending cancelled on disconnect / Origin leave-allowed / TTL sweeper;
 - activate consent pending raises via renderer IPC;
 - login activate: matrix enables `account.activate`; consent method picker; same-client
   idempotent; different client reauthorize; logout_required; cancel vs deny details;
@@ -143,7 +146,7 @@ Run at least:
 Required before public release:
 
 1. Install a packaged OmniCall build (gateway always-on per ADR-0018; no Settings listener toggle).
-2. Approve a test Origin via first-contact TOFU (or Settings) and complete pairing.
+2. Configure a test Origin through the managed allowlist or Settings and complete pairing.
 3. Connect from each supported browser.
 4. Verify authenticated snapshot and redaction.
 5. Exercise approved call and operator workflows against controlled infrastructure.
@@ -154,26 +157,16 @@ Required before public release:
 
 ## Verification Commands
 
-During implementation use focused commands first. Before DI-10:
+Agents use focused unit/integration tests first, then:
 
 ```text
 npm run release:preflight
 npm run i18n:check
-npm run ui:catalog:check
-```
-
-DI-10 canonical verification names (2026-07-21):
-
-```text
-npm run release:preflight
-npm run i18n:check
-npm run ui:catalog:check
-npx vitest run src/adapters/integration/LocalWsServerAdapter.compat.test.ts
-node omnicall-kit-integration/scripts/di10-packaged-smoke.mjs
-node omnicall-kit-integration/scripts/di10-browser-smoke.mjs
 # from omnicall-kit/:
 npm run api:check
 npm run preflight
 ```
 
-Evidence: `evidence/DI-10-compatibility-e2e-p12-close.md`.
+Do **not** run `di10-packaged-smoke.mjs`, `di10-browser-smoke.mjs`, or any packaged
+Electron / Chromium / Edge smoke for F-011 / DI / WU gates. Those scripts are archival.
+Gate evidence = unit + integration + preflight only.

@@ -307,19 +307,35 @@ lookup saved profile → method picker when SIP and OCP are both complete. No Se
 
 After Allow (OCP mode) — and for any other **user-initiated** OCP-backed sign-in (Account Login,
 modal Reconnect, SDK activate with `uiSurface: modal`) — the **same** root overlay
-`OcpSignInProgress` shows stage progress with Disconnect/Reconnect.
+`OcpSignInProgress` shows **six** timed stages (HTTP token → submit → module auth → phone
+credentials → SIP transport → SIP register) with Disconnect/Reconnect.
 It is mounted in `SoftphoneReadyShell` (not inside Settings Account), so dialpad / contacts /
 history / settings all share it. Density: `comfortable` when Settings is open, `compact` on
 the main softphone window (smaller type/gaps; stage status **icons only**, failure tooltip
-retained).
+retained). **Any terminal stage failure reveals immediately** (destructive / timeout status +
+real failure tooltip); do not keep a blue “in progress” fill until the stage timeout elapses.
+Stage order is **monotonic**: early phone `creds` must complete «получение данных телефона»
+before/with SIP transport — never leave SIP green while the phone-credentials bar is still
+filling (Application: `applyAuthorizationExecutionStage` + `enterCredentialsWait`).
+While the progress Dialog owns the attempt, suppress duplicate `authFeedback` toasts.
 
 **Unexpected OCP socket drop (auto-recovery):** do **not** open `OcpSignInProgress`. Use
 global `OcpConnectionBanner` in the shell **overlay layer** (same mount family as
 `OcpSignInProgress`) with `--z-shell-status-banner` so it stays visible over dialpad,
 contacts, history, video, and Settings fullscreen (`reconnecting` N/max → `failed` + Retry).
 Still below Dialog/modals. Background recovery uses `authorizationProgress.uiSurface: silent`
-so the sign-in Dialog gate stays closed. Manual banner Retry / System State Retry server may
-open the modal when the Application marks progress `modal` again.
+so the sign-in Dialog gate stays closed. Manual banner **Retry** must call the same
+Application path as System State **Retry server** (`dispatchAccountRecoveryAction`) and must
+reuse the last known OCP login (never a false “enter login” toast when the session already
+had one). Recovery may open the modal when the Application marks progress `modal` again.
+
+**OCP banner compact visual (2026-08-06):** not a toast and not a Dialog. One-line chip
+`OCP · Переподключение N/M` / `OCP · Нет соединения`; geometry matches top-center banners
+below titlebar (`left: 50%` + `translateX(calc(-50% + 5px))` optical nudge past dialpad
+avatar, viewport edge width clamp — see `UI-Design-System.md` § Floating UI / OCP
+connection banner). Failed Retry is full-width `outline` with normal outline hover
+(never `primary` accent, never danger-fill hover). Do not reintroduce titlebar
+horizontal safe-inset width subtraction or migrate this surface to Sonner.
 
 Activate consent footer: **Cancel** split-button (chevron → **Block site** / Deny) + **Allow**.
 Deny persists `account.activate=false` on the Origin matrix (ADR-0018 §E); Settings Trusted
@@ -386,14 +402,14 @@ Never let cosmetic UI obscure call state.
 
 Do not show the same outcome as both a toast and an inline error/success block.
 
-- Ephemeral operation outcomes → Notification Center (`notify` / Capture / toast + journal).
-- Form-persistent auth errors → owning form Alert (Account); journal without toast.
+- Ephemeral operation outcomes → Notification Center (`notify` / Capture / toast + journal), including Account **server/register** failures (SIP 403 etc.) with System State CTA on the toast.
+- Form-persistent Account **validation** → owning form Alert; journal without toast (`critical`).
 - Field validation → FormField under the control.
 - Persistent connection/update state → shell banners with actions.
-- Blocking conflicts / multi-stage sign-in → modals / overlays.
+- Blocking conflicts / multi-stage sign-in → modals / overlays (OCP progress owns stage failures; no duplicate Account toast).
 - Confirm dialogs → no embedded outcome strips; toast on fail/success.
 
-Details: `docs/softphone/adr/ADR-0026-feedback-channel-law.md`, `UI-Architecture.md` § Feedback Channel Law.
+Account matrix: ADR-0026 § Account feedback matrix; `UI-Architecture.md` § Feedback Channel Law.
 
 ## Component Design Protocol
 

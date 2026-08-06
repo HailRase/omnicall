@@ -76,10 +76,11 @@ const externalServicesDefaults = {
   welcome: { journal },
   requestsView: null,
   requestEditor: null,
+  loadErrorMessage: null,
+  statusMessage: null,
+  onRetryLoad: vi.fn(),
   dialogs: {
     busy: false,
-    errorMessage: null,
-    statusMessage: null,
     nameDialog: {
       open: false,
       mode: "create" as const,
@@ -92,7 +93,6 @@ const externalServicesDefaults = {
       collectionName: "",
     },
     discardDialogOpen: false,
-    onRetry: vi.fn(),
     onNameDialogOpenChange: vi.fn(),
     onNameDialogValueChange: vi.fn(),
     onNameDialogSubmit: vi.fn(),
@@ -114,6 +114,8 @@ const externalApplicationsDefaults = {
   busy: false,
   loadError: false,
   forceNameEditKey: 0,
+  isDirty: false,
+  discardDialogOpen: false,
   onSelectApplication: vi.fn(),
   onSelectHistory: vi.fn(),
   onRetryHistory: vi.fn(),
@@ -125,6 +127,8 @@ const externalApplicationsDefaults = {
   onChange: vi.fn(),
   onSave: vi.fn(),
   onOpenNow: vi.fn(),
+  onDiscardDialogOpenChange: vi.fn(),
+  onDiscardConfirm: vi.fn(),
 } satisfies ExternalApplicationsPanelProps;
 
 export const settingsIntegrationsTestDefaults = {
@@ -181,9 +185,11 @@ export const settingsIntegrationsStoryDefaults = {
           onRetry: () => undefined,
         },
       },
+      loadErrorMessage: null,
+      statusMessage: null,
+      onRetryLoad: () => undefined,
       dialogs: {
         ...externalServicesDefaults.dialogs,
-        onRetry: () => undefined,
         onNameDialogOpenChange: () => undefined,
         onNameDialogValueChange: () => undefined,
         onNameDialogSubmit: () => undefined,
@@ -207,6 +213,8 @@ export const settingsIntegrationsStoryDefaults = {
       onChange: () => undefined,
       onSave: () => undefined,
       onOpenNow: () => undefined,
+      onDiscardDialogOpenChange: () => undefined,
+      onDiscardConfirm: () => undefined,
     } satisfies ExternalApplicationsPanelProps,
   },
 } as const;

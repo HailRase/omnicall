@@ -3,12 +3,9 @@
 Canonical release procedure for `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit`.
 This page documents **RC staging readiness** and fail-closed stable promotion.
 
-**Mode B (current):** stable **`0.1.4`** on npm dist-tag **`latest`** (revision-cache
-semantics and reply-format documentation, 2026-07-28).
-**Prior:** `0.1.3` (reply-format and operator-reservation docs), `0.1.2` (npm README
-self-contained), `0.1.1` (docs refresh), `0.1.0`
-(Mode B after DI-10).
-**RC:** `0.1.0-rc.0` remains on dist-tag **`rc`**.
+**Current (verified npm + workspace):** kit **`0.2.0`** / protocol **`0.1.0`** on
+dist-tag **`latest`**. **RC:** `0.1.0-rc.0` on **`rc`**.
+**Prior kit patches:** `0.1.3` … `0.1.0` (Mode B after DI-10).
 
 ## Versioning strategy
 
@@ -16,11 +13,15 @@ self-contained), `0.1.1` (docs refresh), `0.1.0`
 | --- | --- |
 | First RC | `0.1.0-rc.0` (tag `rc`) — published 2026-07-27 |
 | First stable | **`0.1.0`** (tag `latest`) — Mode B after DI-10 full close |
+| Current kit `latest` | **`0.2.0`** (workspace matches) |
+| Current protocol `latest` | **`0.1.0`** |
+| ADR-0027 corrective | Kit **MINOR** if additive public DX; else **PATCH**. Desktop **PATCH** for behavior fixes. No bump until authorized release cut (WU-07). |
 | npm access | **`public`** on Free org (future Teams → `restricted` optional) |
+| License | **`UNLICENSED`** — not OSS; publish requires `RELEASE_LICENSE_REVIEWED=1` |
 | Tooling | `@changesets/cli` — see `.changeset/` |
 | Playbook | `guides/RELEASE-PLAYBOOK.md` |
 
-Linked packages: bump `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit` together.
+Linked packages: bump `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit` together when wire changes; kit-only patches may leave protocol at `0.1.0`.
 
 ### Mode B stable (completed 2026-07-27)
 
@@ -96,18 +97,22 @@ Clients must never persist pairing secrets, tokens, or PoP private material in
 | --- | --- |
 | Integrators | Follow `docs/guide/`; public surface = `etc/api/sdk.api.md` (count in report / api-reference inventory) |
 | Protocol | `etc/api/protocol.api.md` (allowlisted; report wins) |
-| Desktop gate | F-011 remains **in progress** until DI-10 / P12 close |
-| Browser baseline | Chromium / Edge (Chromium) only until DI-10 matrix expands |
+| Desktop gate | F-011 corrective WU-07 **PASS**; human SemVer/license/publish remain open |
+| Browser baseline | Chromium / Edge (Chromium); smoke scripts are not gate blockers |
 | Security issues | Fail closed; do not weaken `sanitizeRequestedCapabilities` for DX |
 
-## Stable promotion gate (Mode B — not claimed here)
+## Stable promotion gate (Mode B — completed 2026-07-27)
 
-All of the following must be true before `latest`:
+All of the following were required before first `latest` (`0.1.0`):
 
-1. DI-10 `done` with packaged Electron E2E evidence attached.
-2. SDK↔desktop compatibility / hostile matrix cells recorded PASS (or waived by name).
+1. DI-10 / F-011 unit + integration + desktop/kit preflight green.
+2. SDK↔desktop compatibility / hostile matrix cells covered by unit/integration tests.
 3. Architecture + security reviews Blocker-free for the publish surface.
 4. RC on non-default tag validated for the agreed window.
 5. Changelog + SBOM + provenance verified for the exact tarballs being promoted.
 
-Until then: **RC-ready / stable-blocked**.
+Do not require packaged Electron / Chromium / Edge smoke for Mode B or corrective closes.
+
+**Further publishes** while `"license": "UNLICENSED"` also require
+`RELEASE_LICENSE_REVIEWED=1` (human legal review; do not invent SPDX). Corrective
+track SemVer bumps wait for an authorized release cut (WU-07+).

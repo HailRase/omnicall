@@ -2,6 +2,8 @@
  * - Purpose: validate IPC payloads for External Application screen-pop windows.
  * - Inputs: unknown renderer payloads.
  * - Outputs: trusted window DTOs or null.
+ * - Geometry: width/height plus origin x/y (same clamps as domain; required integers).
+ * - Rejects non-integer or out-of-range x/y (no silent defaults on IPC).
  */
 
 import { isAllowedHttpsUrl } from "@shared/validation/isAllowedHttpsUrl.js";
@@ -11,6 +13,10 @@ const MIN_WIDTH = 320;
 const MAX_WIDTH = 3840;
 const MIN_HEIGHT = 240;
 const MAX_HEIGHT = 2160;
+const MIN_X = -10000;
+const MAX_X = 10000;
+const MIN_Y = -10000;
+const MAX_Y = 10000;
 const ON_CALL_ENDED_ACTIONS = ["leave", "minimize", "close"] as const;
 
 export type OpenExternalApplicationWindowPayload = Readonly<{
@@ -18,6 +24,8 @@ export type OpenExternalApplicationWindowPayload = Readonly<{
   title: string;
   width: number;
   height: number;
+  x: number;
+  y: number;
   applicationId: string;
   callId: string;
   raiseOnOpen: boolean;
@@ -48,6 +56,8 @@ export function parseOpenExternalApplicationWindowPayload(
   const title = value["title"];
   const width = value["width"];
   const height = value["height"];
+  const x = value["x"];
+  const y = value["y"];
   const applicationId = value["applicationId"];
   const callId = value["callId"];
   const raiseOnOpen = value["raiseOnOpen"];
@@ -61,6 +71,8 @@ export function parseOpenExternalApplicationWindowPayload(
     title.trim().length > MAX_TITLE_LENGTH ||
     !isDimension(width, MIN_WIDTH, MAX_WIDTH) ||
     !isDimension(height, MIN_HEIGHT, MAX_HEIGHT) ||
+    !isCoordinate(x, MIN_X, MAX_X) ||
+    !isCoordinate(y, MIN_Y, MAX_Y) ||
     !isIdentifier(applicationId) ||
     !isIdentifier(callId) ||
     typeof raiseOnOpen !== "boolean" ||
@@ -74,6 +86,8 @@ export function parseOpenExternalApplicationWindowPayload(
     title: title.trim(),
     width,
     height,
+    x,
+    y,
     applicationId,
     callId,
     raiseOnOpen,
@@ -100,6 +114,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isDimension(value: unknown, min: number, max: number): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max;
+}
+
+function isCoordinate(value: unknown, min: number, max: number): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max;
 }
 

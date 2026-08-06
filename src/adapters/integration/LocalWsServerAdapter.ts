@@ -411,14 +411,14 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     return this.pairingStore.listPublic();
   }
 
-  revokePairedClient(clientId: string): Promise<boolean> {
+  revokePairedClient(clientId: string, origin: string): Promise<boolean> {
     if (this.pairingStore === null) {
       return Promise.resolve(false);
     }
     if (this.sessions === null) {
-      return this.pairingStore.revoke(clientId);
+      return this.pairingStore.revoke(clientId, origin);
     }
-    return this.sessions.revokeClient(clientId);
+    return this.sessions.revokeClient(clientId, origin);
   }
 
   validateWireInbound(

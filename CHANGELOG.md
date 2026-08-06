@@ -7,6 +7,66 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-06
+
+### Added
+
+- **F-032** External Applications settings UX: illustrated open-mode and
+  after-call window-behavior choice cards; raise / always-on-top switch preview
+  scenes; interactive window geometry editor (size/position, Layers overlay menu,
+  live drag/resize on the preview stage).
+- **F-016** First-run sign-in CTA on the idle dialpad when SIP is not registered
+  (opens Settings → Account); empty-profile hint on the Account New tab.
+
+### Fixed
+
+- **F-028** OCP sign-in progress: early phone `creds` no longer make
+  «Получение данных телефона» fill after «Подключение к SIP» — stages are
+  monotonic (prefix completed; no regress); `enterCredentialsWait` does not
+  overwrite an active SIP stage.
+- **F-028** OCP connection banner on compact main display: one-line chip
+  `OCP · status`, viewport-edge geometry (no titlebar safe-inset width clip),
+  failed Retry uses theme `outline` (not bright primary blue); same edge
+  geometry for `UpdateAvailableBanner`.
+- **F-028** OCP recovery Retry (banner / System State): reuses last OCP login and
+  saved API key instead of falsely asking for login when SIP identity is missing;
+  banner Retry shares dual-FSM `retry_server` with System State.
+- **F-028** OCP sign-in progress: terminal stage failures reveal immediately with
+  the real failure reason (no latent blue fill until timeout); Reconnect enables
+  at once; modal attempt suppresses duplicate `authFeedback` toasts.
+- **F-031** External Services Settings: corrupt or unavailable journal no longer
+  blocks loading collections/requests; `QueryExternalServicesUseCase` returns
+  settings with `journalStatus` (`ready` / `skipped` / `error`). Workspace load
+  error uses a top banner instead of a broken flex Alert; History keeps a
+  compact local retry state.
+
+### Changed
+
+- **F-001 / F-029 / F-016** Account sign-in feedback (ADR-0026 amendment): SIP
+  server/register failures (incl. 403) show as Notification Center toasts with
+  «Состояние системы» action; form validation stays on Account Alert; anti-dual
+  (no Alert + toast for the same error).
+- **F-028** OCP progress shows six stages (added phone-credentials wait after
+  module auth); stage timeouts stay aligned with Application waiters; credentials
+  timeout budget starts only after OCP authorized.
+
+## [1.3.1] - 2026-08-03
+
+### Fixed
+
+- **F-011** SDK production-readiness (ADR-0027): single Application revision
+  coordinator for call/account/operator/window; activation reservation without
+  long-held consent/auth lock; Origin+clientId pairing and
+  Origin+clientId+requestId dedup; fail-closed WebSocket Origin upgrade;
+  inbound session identity isolation; coherent snapshot under coordinator lock;
+  native SDK IPC sender authorization.
+
+### Changed
+
+- OmniCall Kit companion release **`@softomnitel/omnicall-kit@0.2.0`** (protocol
+  unchanged at `0.1.0`): package-owned `SDK_VERSION`, `discoverOmniCallDesktop`,
+  typed `waitUntil` timeout/`AbortSignal`, latest-known `getRevision()`.
+
 ## [1.3.0] - 2026-08-02
 
 ### Added
@@ -467,7 +527,9 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.3.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.4.0...main
+[1.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.4.0
+[1.3.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.1
 [1.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.0
 [1.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.2.0
 [1.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.2

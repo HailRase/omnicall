@@ -28,7 +28,11 @@ import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 import { releasesSdkInboundQueueWhilePending } from "@shared/integration/sdkActivateTimeouts.js";
 import { dispatchSdkProductRoute } from "./sdkGatewayProductDispatch.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
-import { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import { gateSdkCommandDedup } from "./sdkGatewayDedupGate.js";
+import {
+  createSdkDedupPrincipal,
+  SdkRequestDedupCache,
+} from "./sdkGatewayRequestDedup.js";
 import { routeSdkInbound } from "./sdkGatewayRouteInbound.js";
 import {
   handleAuthProof,
@@ -163,7 +167,7 @@ function buildOriginTrustSessionContext(input: {
   };
 }
 
-export function handleSdkCommandRoute(input: {
+export async function handleSdkCommandRoute(input: {
   readonly connection: SdkGatewayConnection;
   readonly route: SdkCommandRoute;
   readonly getIdentity: () => SdkGatewayIdentity | null;
@@ -177,7 +181,7 @@ export function handleSdkCommandRoute(input: {
   ) => void;
   /** ADR-0018: matrix deny while grant still present. */
   readonly denyDetails?: Readonly<Record<string, boolean | string | number>>;
-}): void {
+}): Promise<void> {
   const identity = input.getIdentity();
   if (identity === null) {
     input.closeConnection(input.connection, "not_ready");
@@ -186,18 +190,20 @@ export function handleSdkCommandRoute(input: {
   const requestId = input.route.requestId;
   const commandType =
     input.route.action === "command_ping" ? "sdk:ping" : input.route.commandType;
-  const nowMs = input.now().getTime();
-  const dedup = input.requestDedup.begin(requestId, nowMs);
-  if (dedup.action === "replay") {
-    input.sendJson(input.connection, dedup.reply);
+  const gate = await gateSdkCommandDedup({
+    connection: input.connection,
+    requestDedup: input.requestDedup,
+    requestId,
+    commandType,
+    identity,
+    now: input.now,
+    sendJson: input.sendJson,
+    log: input.log,
+  });
+  if (gate.action === "terminal") {
     return;
   }
-  if (dedup.action === "await") {
-    void dedup.promise.then((reply) => {
-      input.sendJson(input.connection, reply);
-    });
-    return;
-  }
+  const { principal } = gate;
   if (input.route.action === "command_ping") {
     const reply = buildCommandSuccessReply({
       requestId,
@@ -205,7 +211,7 @@ export function handleSdkCommandRoute(input: {
       identity,
       now: input.now,
     });
-    input.requestDedup.complete(requestId, reply, input.now().getTime());
+    input.requestDedup.complete(principal, reply, input.now().getTime());
     input.sendJson(input.connection, reply);
     input.log("sdk_gateway_command", {
       commandType: "sdk:ping",
@@ -224,7 +230,7 @@ export function handleSdkCommandRoute(input: {
     now: input.now,
     ...(input.denyDetails !== undefined ? { details: input.denyDetails } : {}),
   });
-  input.requestDedup.complete(requestId, reply, input.now().getTime());
+  input.requestDedup.complete(principal, reply, input.now().getTime());
   input.sendJson(input.connection, reply);
   input.log("sdk_gateway_command", {
     commandType,
@@ -361,7 +367,7 @@ export async function dispatchSdkValidatedMessage(input: {
         originPolicyCapabilities,
         required: requiredCapabilityForCommand(route.commandType),
       });
-    handleSdkCommandRoute({
+    await handleSdkCommandRoute({
       connection: input.connection,
       route,
       getIdentity: input.getIdentity,
@@ -374,7 +380,7 @@ export async function dispatchSdkValidatedMessage(input: {
     });
     return;
   }
-  if (route.action === "command_broker" || route.action === "command_window") {
+  if (route.action === "command_broker") {
     const productWork = dispatchSdkProductRoute({
       route,
       productSurface: input.productSurface,
@@ -395,8 +401,8 @@ export async function dispatchSdkValidatedMessage(input: {
           return caps.includes("account.activate");
         },
       },
-      onNotReady: (productRoute) => {
-        handleSdkCommandRoute({
+      onNotReady: async (productRoute) => {
+        await handleSdkCommandRoute({
           connection: input.connection,
           route: {
             action: "command_not_ready",
@@ -419,6 +425,11 @@ export async function dispatchSdkValidatedMessage(input: {
       releasesSdkInboundQueueWhilePending(route.commandType)
     ) {
       void productWork.catch((error: unknown) => {
+        const principal = createSdkDedupPrincipal(
+          input.connection,
+          route.requestId,
+        );
+        input.requestDedup.abandon(principal, "failed");
         const message =
           error instanceof Error ? error.message.slice(0, 120) : "unknown";
         input.log("sdk_gateway_detached_command_failed", {

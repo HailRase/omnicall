@@ -2,6 +2,9 @@
  * - Purpose: define immutable External Applications settings aggregate.
  * - Inputs: validated application definitions with URL templates and triggers.
  * - Outputs: profile-scoped screen-pop configuration.
+ * - Window geometry: width/height plus origin x/y for electron_window opens.
+ * - Position clamps: integer x/y in [-10000, 10000] (multi-monitor); defaults 100,100.
+ * - Missing persisted x/y fill defaults at parse (no UserSettings schema bump).
  */
 
 import type { ExternalServiceAutomaticEventType } from "../external-services/ExternalServiceEventType.js";
@@ -16,6 +19,12 @@ export const MIN_EXTERNAL_APPLICATION_WINDOW_HEIGHT = 240;
 export const MAX_EXTERNAL_APPLICATION_WINDOW_HEIGHT = 2160;
 export const DEFAULT_EXTERNAL_APPLICATION_WINDOW_WIDTH = 1100;
 export const DEFAULT_EXTERNAL_APPLICATION_WINDOW_HEIGHT = 800;
+export const MIN_EXTERNAL_APPLICATION_WINDOW_X = -10000;
+export const MAX_EXTERNAL_APPLICATION_WINDOW_X = 10000;
+export const MIN_EXTERNAL_APPLICATION_WINDOW_Y = -10000;
+export const MAX_EXTERNAL_APPLICATION_WINDOW_Y = 10000;
+export const DEFAULT_EXTERNAL_APPLICATION_WINDOW_X = 100;
+export const DEFAULT_EXTERNAL_APPLICATION_WINDOW_Y = 100;
 export const MAX_EXTERNAL_APPLICATION_TRIGGER_DELAY_SECONDS = 180;
 export const MAX_EXTERNAL_APPLICATION_QUEUE_NAME_LENGTH = 120;
 export const MAX_EXTERNAL_APPLICATION_QUEUE_NAMES = 20;
@@ -49,6 +58,8 @@ export type ExternalApplicationOnCallEndedAction =
 export type ExternalApplicationWindowSize = Readonly<{
   width: number;
   height: number;
+  x: number;
+  y: number;
 }>;
 
 export type ExternalApplicationTriggerBinding = Readonly<{

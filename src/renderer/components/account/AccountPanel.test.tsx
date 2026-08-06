@@ -101,30 +101,30 @@ describe("AccountPanel", () => {
     expect(onSignInModeChange).toHaveBeenCalledWith("ocp");
   });
 
-  it("renders persistent error feedback without legacy success feedback", () => {
+  it("renders persistent validation Alert without legacy success feedback", () => {
     render(
       <AccountPanel
         {...baseProps}
         successKey="account.success.sipRegistrationSucceeded"
-        error={{ key: "account.error.invalidCredentials" }}
+        error={{ key: "account.error.validationFailed" }}
         authorizeDisabledReason={null}
       />,
     );
 
     expect(screen.queryByTestId("account-success")).not.toBeInTheDocument();
     expect(screen.getByTestId("account-error")).toHaveTextContent(
-      "Неверный логин или пароль",
+      "Заполните обязательные поля аккаунта",
     );
     expect(screen.queryByTestId("account-error-open-system-state")).not.toBeInTheDocument();
   });
 
-  it("renders System State action on persistent account error when requested", async () => {
+  it("keeps optional System State action on Alert for presentational callers", async () => {
     const user = userEvent.setup();
     const onOpenSystemState = vi.fn();
     render(
       <AccountPanel
         {...baseProps}
-        error={{ key: "account.error.authorizationFailed" }}
+        error={{ key: "account.error.validationFailed" }}
         openSystemStateAction
         onOpenSystemState={onOpenSystemState}
         authorizeDisabledReason={null}
@@ -135,21 +135,17 @@ describe("AccountPanel", () => {
     expect(onOpenSystemState).toHaveBeenCalledTimes(1);
   });
 
-  it("renders parameterized serverRegistration error without crashing", () => {
+  it("does not require Alert for serverRegistration 403 (toast channel owns UX)", () => {
     render(
       <AccountPanel
         {...baseProps}
-        error={{
-          key: "account.error.serverRegistration",
-          params: { detail: "403 Forbidden" },
-        }}
+        error={null}
         authorizeDisabledReason={null}
       />,
     );
 
-    expect(screen.getByTestId("account-error")).toHaveTextContent(
-      "Ошибка регистрации на сервере: 403 Forbidden",
-    );
+    expect(screen.queryByTestId("account-error")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("account-error-open-system-state")).not.toBeInTheDocument();
   });
 
   it("toggles password visibility", () => {

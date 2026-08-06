@@ -10,10 +10,25 @@ import {
 } from "@domain/index.js";
 
 export type SdkOriginUpgradeDecision =
-  | Readonly<{ action: "reject"; reason: "origin_denied" | "origin_missing" }>
-  | Readonly<{ action: "accept"; trustState: "allowed" | "unknown" }>;
+  | Readonly<{
+      action: "reject";
+      reason: "origin_denied" | "origin_missing" | "origin_not_allowed";
+    }>
+  | Readonly<{ action: "accept"; trustState: "allowed" }>;
 
-/** Parse comma-separated exact Origin strings (trim; drop empties). */
+function isExactHttpOrigin(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      url.origin === value
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Parse configured exact HTTP(S) Origins; malformed values are discarded. */
 export function parseSdkOriginAllowlist(
   raw: string | undefined,
 ): readonly string[] {
@@ -23,7 +38,7 @@ export function parseSdkOriginAllowlist(
   return raw
     .split(",")
     .map((part) => part.trim())
-    .filter((part) => part.length > 0);
+    .filter(isExactHttpOrigin);
 }
 
 /** Load default allow seed from `OMNICALL_SDK_ALLOWED_ORIGINS` (exact CSV). */
@@ -46,7 +61,7 @@ function normalizeOriginHeader(
   if (origin.toLowerCase() === "null") {
     return null;
   }
-  return origin;
+  return isExactHttpOrigin(origin) ? origin : null;
 }
 
 export function resolveSdkOriginTrustState(
@@ -59,8 +74,8 @@ export function resolveSdkOriginTrustState(
 
 /**
  * Upgrade admission:
- * - denied → reject (no socket)
- * - allowed / unknown → accept (unknown continues to TOFU after handshake)
+ * - only configured `allowed` Origins may receive a socket
+ * - denied, unknown, missing, malformed, and unconfigured Origins reject
  */
 export function evaluateSdkOriginUpgrade(
   originHeader: string | undefined,
@@ -74,10 +89,10 @@ export function evaluateSdkOriginUpgrade(
   if (state === "denied") {
     return { action: "reject", reason: "origin_denied" };
   }
-  return {
-    action: "accept",
-    trustState: state === "allowed" ? "allowed" : "unknown",
-  };
+  if (state !== "allowed") {
+    return { action: "reject", reason: "origin_not_allowed" };
+  }
+  return { action: "accept", trustState: "allowed" };
 }
 
 /**
@@ -117,12 +132,14 @@ export function isAllowedUpgradeOrigin(
 export function trustEntriesFromAllowlist(
   allowlist: readonly string[],
 ): readonly SdkOriginTrustEntry[] {
-  return allowlist.map((origin) => ({
-    origin,
-    state: "allowed" as const,
-    matrix: createDefaultSdkOriginCapabilityMatrix(),
-    previouslyAllowed: true,
-  }));
+  return allowlist
+    .filter(isExactHttpOrigin)
+    .map((origin) => ({
+      origin,
+      state: "allowed" as const,
+      matrix: createDefaultSdkOriginCapabilityMatrix(),
+      previouslyAllowed: true,
+    }));
 }
 
 /**

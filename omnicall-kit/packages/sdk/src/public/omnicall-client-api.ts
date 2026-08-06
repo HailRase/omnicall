@@ -161,14 +161,19 @@ export type OmniCallClient = {
   ) => () => void;
   readonly waitUntil: (
     predicate: (state: ConnectionState) => boolean,
-    timeoutMs?: number
+    options?: number | Readonly<{ timeoutMs?: number; signal?: AbortSignal }>
   ) => Promise<ConnectionState>;
   readonly getConnectError: () => OmniCallClientError | undefined;
   /** Fresh authenticated snapshot (also after reconnect). */
   readonly getSnapshot: () => Promise<SnapshotMessage>;
   /** Last cached snapshot; `undefined` before first successful fetch. */
   readonly getCachedSnapshot: () => SnapshotMessage | undefined;
-  /** Aggregate revision from cache, if any. */
+  /**
+   * Latest-known aggregate concurrency token from snapshots, successful replies,
+   * public events, and `stale_state.currentRevision`. `undefined` only before the
+   * first observation or after invalidate (disconnect/reconnect/revoke). Does not
+   * mutate or pretend `getCachedSnapshot()` is current.
+   */
   readonly getRevision: () => number | undefined;
   /**
    * Subscribe to a public product event. Listener payload is narrowed by `type`.

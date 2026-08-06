@@ -10,6 +10,8 @@
 
 Corrective track completed: SIP/OCP Account sign-in, avatar-only Application-owned logout, dual OCP FSM, five-stage progress, Settings gate, crash-safe profiles/secrets, selected-profile secret boundary, and rolling notification journal.
 
+**Superseded (Account error channel):** any earlier “all Account sign-in errors → Alert only” wording is replaced by **ADR-0026 amendment 2026-08-06** — validation → Alert; server/register → toast + System State CTA.
+
 ## ADR gate (WU-00)
 
 | ADR | Title | Status |

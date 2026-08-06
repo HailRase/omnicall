@@ -31,8 +31,8 @@ import { readSipEnvDefaults } from "../bootstrap/readSipEnvDefaults.js";
 import type { TranslationKey } from "../i18n/messages.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import {
+  assignAccountSignInErrorChannels,
   deriveAccountSignInNotificationFeedback,
-  shouldAttachOpenSystemStateAction,
 } from "@application/projections/settings/deriveAccountSignInNotificationFeedback.js";
 import {
   buildAccountSignInCommand,
@@ -41,6 +41,12 @@ import {
   type AccountUiSignInMode,
   type OcpDraftFields,
 } from "./accountActionsHelpers.js";
+
+function ocpProgressOwnsSignInFailure(
+  progress: AccountSignInViewModel["authorizationProgress"],
+): boolean {
+  return shouldOpenOcpSignInProgressModal(progress);
+}
 
 const EMPTY_FORM: SipAccountInput = {
   username: "",
@@ -126,10 +132,14 @@ type UseAccountActionsResult = Readonly<{
   ocpDraft: OcpDraftFields;
   signInMode: AccountUiSignInMode;
   submitting: boolean;
+  /** Form-persistent validation errors for AccountPanel Alert. */
   error: AccountAuthorizationErrorProjection | null;
+  /** Server/register failures for toast channel (never Alert). */
+  notificationError: AccountAuthorizationErrorProjection | null;
   /** Last success key for inline panel feedback (toasts use `successKeys`). */
   successKey: TranslationKey | null;
   successKeys: ReadonlyArray<TranslationKey>;
+  /** System State CTA on toast for notification-class sign-in failures. */
   openSystemStateAction: boolean;
   warningKey: TranslationKey | null;
   panelMode: SavedProfilePanelMode;
@@ -197,6 +207,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const [signInMode, setSignInModeState] = useState<AccountUiSignInMode>("sip_only");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<AccountAuthorizationErrorProjection | null>(null);
+  const [notificationError, setNotificationError] =
+    useState<AccountAuthorizationErrorProjection | null>(null);
   const [successKeys, setSuccessKeys] = useState<ReadonlyArray<TranslationKey>>([]);
   const [openSystemStateAction, setOpenSystemStateAction] = useState(false);
   const [warningKey, setWarningKey] = useState<TranslationKey | null>(null);
@@ -335,10 +347,24 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     }
   }, []);
 
+  const applySignInErrorChannels = useCallback(
+    (
+      mapped: AccountAuthorizationErrorProjection,
+      options: Readonly<{ suppressNotification?: boolean }> = {},
+    ): void => {
+      const channels = assignAccountSignInErrorChannels(mapped, options);
+      setError(channels.inlineError);
+      setNotificationError(channels.notificationError);
+      setOpenSystemStateAction(channels.attachOpenSystemStateAction);
+    },
+    [],
+  );
+
   const scheduleFeedbackClear = useCallback((): void => {
     clearFeedbackTimer();
     feedbackClearTimerRef.current = setTimeout(() => {
       setError(null);
+      setNotificationError(null);
       setSuccessKeys([]);
       setOpenSystemStateAction(false);
       setWarningKey(null);
@@ -354,6 +380,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
 
   const clearFeedback = useCallback((): void => {
     setError(null);
+    setNotificationError(null);
     setSuccessKeys([]);
     setOpenSystemStateAction(false);
     setWarningKey(null);
@@ -631,10 +658,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
             setOverwriteConfirmationOpen(false);
           }
           const mapped = mapAccountAuthorizationError(result.error);
-          setError(mapped);
-          setOpenSystemStateAction(shouldAttachOpenSystemStateAction(mapped));
           const progressSnapshot =
             useAccountBootstrapStore.getState().ocpSessionProjection.authorizationProgress;
+          const modalOwnsFailure =
+            signInMode === "ocp" && ocpProgressOwnsSignInFailure(progressSnapshot);
           if (
             signInMode === "ocp" &&
             progressSnapshot.executionStage === null &&
@@ -643,6 +670,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           ) {
             setOcpSignInModalOpen(false);
           }
+          applySignInErrorChannels(mapped, { suppressNotification: modalOwnsFailure });
           return;
         }
 
@@ -663,7 +691,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           overwriteExistingCredentials,
         });
         setSuccessKeys(feedback.successKeys);
-        setError(feedback.error);
+        setError(feedback.inlineError);
+        setNotificationError(feedback.notificationError);
         setOpenSystemStateAction(feedback.attachOpenSystemStateAction);
         if (overwriteExistingCredentials) {
           setOverwriteConfirmationOpen(false);
@@ -675,13 +704,13 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
         if (overwriteExistingCredentials) {
           setOverwriteConfirmationOpen(false);
         }
-        setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
-        setOpenSystemStateAction(true);
+        applySignInErrorChannels({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
       } finally {
         setSubmitting(false);
       }
     })();
   }, [
+    applySignInErrorChannels,
     clearFeedback,
     duplicateSavedProfile,
     facade,
@@ -741,7 +770,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       const result = await facade.deleteSavedAccountProfile(profileId);
       if (isErr(result)) {
         setDeleteSubmitting(false);
-        setError(mapAccountAuthorizationError(result.error));
+        applySignInErrorChannels(mapAccountAuthorizationError(result.error));
         return;
       }
 
@@ -754,6 +783,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       cancelDeleteSelectedProfile();
     })();
   }, [
+    applySignInErrorChannels,
     cancelDeleteSelectedProfile,
     deleteTargetProfileId,
     facade,
@@ -871,14 +901,14 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           scheduleFeedbackClear();
           reloadSavedProfiles();
         } catch {
-          setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
-          setOpenSystemStateAction(true);
+          applySignInErrorChannels({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
         } finally {
           setSubmitting(false);
         }
       })();
     },
     [
+      applySignInErrorChannels,
       clearFeedback,
       facade,
       reloadSavedProfiles,
@@ -920,10 +950,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       try {
         const result = await facade.recoverOcpSignInFromModal();
         if (isErr(result)) {
-          const mapped = mapAccountAuthorizationError(result.error);
-          setError(mapped);
-          setOpenSystemStateAction(shouldAttachOpenSystemStateAction(mapped));
-          // Keep modal open so recovery failure stays visible (progress already seeded).
+          // Modal owns failure UX — never dual toast/Alert for the same outcome.
+          applySignInErrorChannels(mapAccountAuthorizationError(result.error), {
+            suppressNotification: true,
+          });
           return;
         }
         setSuccessKeys([...SIP_READY_SUCCESS_KEYS]);
@@ -932,13 +962,16 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
         refreshSignInViewModel();
         reloadSavedProfiles();
       } catch {
-        setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
-        setOpenSystemStateAction(true);
+        applySignInErrorChannels(
+          { key: ACCOUNT_ERROR_UNKNOWN_KEY },
+          { suppressNotification: true },
+        );
       } finally {
         setSubmitting(false);
       }
     })();
   }, [
+    applySignInErrorChannels,
     clearFeedback,
     facade,
     refreshSignInViewModel,
@@ -967,11 +1000,17 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
         setForm((current) => ({ ...current, password: "" }));
         refreshSignInViewModel();
       } else {
-        setError(mapAccountAuthorizationError(result.error));
+        applySignInErrorChannels(mapAccountAuthorizationError(result.error));
       }
       setSubmitting(false);
     })();
-  }, [facade, refreshSignInViewModel, selectedProfileId, submitting]);
+  }, [
+    applySignInErrorChannels,
+    facade,
+    refreshSignInViewModel,
+    selectedProfileId,
+    submitting,
+  ]);
 
   return {
     form,
@@ -979,6 +1018,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     signInMode,
     submitting,
     error,
+    notificationError,
     successKey,
     successKeys,
     openSystemStateAction,

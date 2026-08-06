@@ -32,7 +32,7 @@ describe("authorizationProgressProjection", () => {
       "ready",
       "corr-ready",
     );
-    expect(ready.completedExecutionStages).toHaveLength(5);
+    expect(ready.completedExecutionStages).toHaveLength(6);
 
     const preparing = applyAuthorizationProgressStage(ready, "preparing", "corr-2");
     expect(preparing.stage).toBe("preparing");
@@ -40,7 +40,7 @@ describe("authorizationProgressProjection", () => {
     expect(preparing.executionStage).toBeNull();
   });
 
-  it("removes the active stage from a stale completed checklist", () => {
+  it("clears a stale ready checklist when restarting at the first stage", () => {
     const ready = applyAuthorizationProgressStage(
       initialAuthorizationProgressProjection(),
       "ready",
@@ -52,10 +52,8 @@ describe("authorizationProgressProjection", () => {
       "corr-reconnect",
       1_000,
     );
-    expect(token.completedExecutionStages).not.toContain(
-      "requesting_authorization_token",
-    );
     expect(token.executionStage).toBe("requesting_authorization_token");
+    expect(token.completedExecutionStages).toEqual([]);
   });
 
   it("tracks completed execution stages and the exact timeout stage", () => {
@@ -87,6 +85,48 @@ describe("authorizationProgressProjection", () => {
     expect(failed.stageStartedAtMs).toBe(2_000);
   });
 
+  it("marks skipped prefix stages completed when jumping ahead to SIP transport", () => {
+    const awaiting = applyAuthorizationExecutionStage(
+      initialAuthorizationProgressProjection(),
+      "awaiting_authorization_data",
+      "corr-early",
+      1_000,
+    );
+    const sip = applyAuthorizationExecutionStage(
+      awaiting,
+      "connecting_sip_transport",
+      "corr-early",
+      2_000,
+    );
+
+    expect(sip.executionStage).toBe("connecting_sip_transport");
+    expect(sip.completedExecutionStages).toEqual([
+      "requesting_authorization_token",
+      "submitting_token_to_ocp",
+      "awaiting_authorization_data",
+      "receiving_phone_credentials",
+    ]);
+  });
+
+  it("does not regress from SIP transport back to receiving credentials", () => {
+    const sip = applyAuthorizationExecutionStage(
+      initialAuthorizationProgressProjection(),
+      "connecting_sip_transport",
+      "corr-sip",
+      1_000,
+    );
+    const regress = applyAuthorizationExecutionStage(
+      sip,
+      "receiving_phone_credentials",
+      "corr-late",
+      2_000,
+    );
+
+    expect(regress).toBe(sip);
+    expect(regress.executionStage).toBe("connecting_sip_transport");
+    expect(regress.stageStartedAtMs).toBe(1_000);
+  });
+
   it("marks retry on failure stages", () => {
     const next = applyAuthorizationProgressStage(
       initialAuthorizationProgressProjection(),
@@ -107,7 +147,7 @@ describe("authorizationProgressProjection", () => {
       initialAuthorizationProgressProjection(),
     );
     expect(progressed.stage).toBe("ready");
-    expect(progressed.completedExecutionStages).toHaveLength(5);
+    expect(progressed.completedExecutionStages).toHaveLength(6);
   });
 
   it("maps failure reasons to stages", () => {

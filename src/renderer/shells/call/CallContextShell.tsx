@@ -10,6 +10,7 @@ import { CallSessionStack } from "../../components/call/CallSessionStack.js";
 import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import { TransferSuccessOverlay } from "../../components/call/TransferSuccessOverlay.js";
+import { useAuthShellFlags } from "../../hooks/useAuthShellFlags.js";
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import { useCallContextBadges } from "../../hooks/useCallContextBadges.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
@@ -19,6 +20,7 @@ import styles from "./CallContextShell.module.css";
 type CallContextShellProps = Readonly<{
   bindings: CallFeatureShellBindings;
   ocpRejectWithBreak: UseOcpRejectWithBreakResult;
+  onOpenAccount?: () => void;
 }>;
 
 /**
@@ -41,7 +43,9 @@ function BoundCallSessionCard(
 export function CallContextShell({
   bindings,
   ocpRejectWithBreak,
+  onOpenAccount,
 }: CallContextShellProps): JSX.Element {
+  const { isSipRegistered } = useAuthShellFlags();
   const incomingContextBadges = useCallContextBadges(
     bindings.incomingCallProjection.callId,
     bindings.incomingCallShell.identity.callerNumber,
@@ -264,7 +268,14 @@ export function CallContextShell({
         </>
       ) : null}
 
-      {showIdleState && !isVideoFullscreen ? <CallIdleEmptyState /> : null}
+      {showIdleState && !isVideoFullscreen ? (
+        <CallIdleEmptyState
+          needsSignIn={!isSipRegistered}
+          {...(!isSipRegistered && onOpenAccount !== undefined
+            ? { onSignIn: onOpenAccount }
+            : {})}
+        />
+      ) : null}
 
       {showOutgoingCard &&
       !isTransferMode &&

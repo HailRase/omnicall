@@ -39,11 +39,16 @@ describe("sdkGatewayOriginPolicy", () => {
     expect(isAllowedUpgradeOrigin("https://crm.example", [])).toBe(false);
   });
 
-  it("parses CSV allowlist", () => {
+  it("parses only exact HTTP(S) Origins from the CSV allowlist", () => {
     expect(parseSdkOriginAllowlist(" https://a.example , https://b.example ")).toEqual([
       "https://a.example",
       "https://b.example",
     ]);
+    expect(
+      parseSdkOriginAllowlist(
+        "*, https://crm.example.evil/path, https://crm.example/, file:///tmp, http://localhost:3000",
+      ),
+    ).toEqual(["http://localhost:3000"]);
     expect(parseSdkOriginAllowlist(undefined)).toEqual([]);
   });
 
@@ -56,16 +61,20 @@ describe("sdkGatewayOriginPolicy", () => {
     );
   });
 
-  it("evaluates upgrade: allowed and unknown accept, denied rejects", () => {
+  it("accepts only exact allowed Origins at upgrade", () => {
     expect(evaluateSdkOriginUpgrade("https://crm.example", trustEntries)).toEqual({
       action: "accept",
       trustState: "allowed",
     });
     expect(evaluateSdkOriginUpgrade("https://new.example", trustEntries)).toEqual({
-      action: "accept",
-      trustState: "unknown",
+      action: "reject",
+      reason: "origin_not_allowed",
     });
     expect(evaluateSdkOriginUpgrade(undefined, trustEntries)).toEqual({
+      action: "reject",
+      reason: "origin_missing",
+    });
+    expect(evaluateSdkOriginUpgrade("https://crm.example/", trustEntries)).toEqual({
       action: "reject",
       reason: "origin_missing",
     });

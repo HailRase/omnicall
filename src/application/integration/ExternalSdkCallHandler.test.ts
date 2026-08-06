@@ -19,8 +19,22 @@ import type { ExternalSdkCallPort } from "./ExternalSdkCallPort.js";
 import { ExternalSdkOperatorHandler } from "./ExternalSdkOperatorHandler.js";
 import { ExternalSdkProductHandler } from "./ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "./ExternalSdkReadHandler.js";
+import { ExternalSdkWindowHandler } from "./ExternalSdkWindowHandler.js";
 import { SdkCallOwnershipRegistry } from "./SdkCallOwnershipRegistry.js";
-import { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import { SdkSessionRevisionCoordinator } from "./SdkSessionRevisionCoordinator.js";
+
+function stubWindowHandler(
+  revisionCoordinator: SdkSessionRevisionCoordinator,
+): ExternalSdkWindowHandler {
+  return new ExternalSdkWindowHandler({
+    windowPort: {
+      show: () => Promise.resolve({ ok: true, visible: true }),
+      hide: () => Promise.resolve({ ok: true, visible: false }),
+      getState: () => Promise.resolve({ ok: true, visible: true }),
+    },
+    revisionCoordinator,
+  });
+}
 
 const BASE = {
   protocolVersion: 1,
@@ -51,18 +65,24 @@ function createPort(overrides: Partial<ExternalSdkCallPort> = {}): ExternalSdkCa
 
 function createHandler(port: ExternalSdkCallPort = createPort()) {
   const ownership = new SdkCallOwnershipRegistry();
-  const revisionClock = new SdkSessionRevisionClock();
+  const revisionCoordinator = new SdkSessionRevisionCoordinator();
   const handler = new ExternalSdkCallHandler({
     callPort: port,
     ownership,
-    revisionClock,
+    revisionCoordinator,
   });
-  return { handler, ownership, revisionClock, port };
+  return {
+    handler,
+    ownership,
+    revisionClock: revisionCoordinator,
+    revisionCoordinator,
+    port,
+  };
 }
 
 function createProductSurface(port: ExternalSdkCallPort = createPort()) {
   const ownership = new SdkCallOwnershipRegistry();
-  const revisionClock = new SdkSessionRevisionClock();
+  const revisionCoordinator = new SdkSessionRevisionCoordinator();
   const readHandler = new ExternalSdkReadHandler({
     readProductState: () => ({
       signedIn: false,
@@ -79,13 +99,13 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
       reservedReasonId: null,
       activeCampaign: null,
     }),
-    revisionClock,
+    revisionCoordinator,
     ownership,
   });
   const callHandler = new ExternalSdkCallHandler({
     callPort: port,
     ownership,
-    revisionClock,
+    revisionCoordinator,
   });
   const operatorHandler = new ExternalSdkOperatorHandler({
     operatorPort: {
@@ -112,7 +132,7 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
           }),
         ),
     },
-    revisionClock,
+    revisionCoordinator,
   });
   const accountHandler = new ExternalSdkAccountHandler({
     accountPort: {
@@ -131,15 +151,22 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
         profileLabel: null,
       }),
     },
-    revisionClock,
+    revisionCoordinator,
   });
   const product = new ExternalSdkProductHandler({
     readHandler,
     callHandler,
     operatorHandler,
     accountHandler,
+    windowHandler: stubWindowHandler(revisionCoordinator),
   });
-  return { product, ownership, revisionClock, port };
+  return {
+    product,
+    ownership,
+    revisionClock: revisionCoordinator,
+    revisionCoordinator,
+    port,
+  };
 }
 
 describe("ExternalSdkCallHandler", () => {

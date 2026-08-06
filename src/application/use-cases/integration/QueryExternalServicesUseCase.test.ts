@@ -4,7 +4,8 @@
  * - Outputs: matchingEnabled and journal visibility assertions.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { ExternalServicesJournalRepository } from "@ports/integration/ExternalServicesJournalRepository.js";
 import {
   createDefaultUserSettings,
   createSettingsAccountKey,
@@ -91,8 +92,69 @@ describe("QueryExternalServicesUseCase", () => {
     }
     expect(active.value.matchingEnabled).toBe(true);
     expect(active.value.settingsRevision).toBe(4);
+    expect(active.value.journalStatus).toBe("ready");
     expect(active.value.journal.map((entry) => entry.id)).toEqual(["a1"]);
     expect(other.value.matchingEnabled).toBe(false);
     expect(other.value.journal.map((entry) => entry.id)).toEqual(["b1"]);
+  });
+
+  it("skips journal I/O when journalLimit is 0", async () => {
+    const settingsRepository = new InMemorySettingsRepository();
+    const journal = new InMemoryExternalServicesJournalRepository();
+    const settings = createExternalServicesTestSettings();
+    await settingsRepository.saveUserSettings(profileA, {
+      ...createDefaultUserSettings(),
+      externalServices: settings,
+    });
+    const listSpy = vi.spyOn(journal, "list");
+    const registry = new ExternalServicesRuntimeRegistry();
+    registry.activateProfile(profileA, settings, 1);
+    const useCase = new QueryExternalServicesUseCase({
+      settingsRepository,
+      journalRepository: journal,
+      registry,
+    });
+
+    const result = await useCase.execute({ profileKey: profileA, journalLimit: 0 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.journalStatus).toBe("skipped");
+    expect(result.value.journal).toEqual([]);
+    expect(listSpy).not.toHaveBeenCalled();
+  });
+
+  it("keeps settings ok when journal repository fails", async () => {
+    const settingsRepository = new InMemorySettingsRepository();
+    const settings = createExternalServicesTestSettings();
+    await settingsRepository.saveUserSettings(profileA, {
+      ...createDefaultUserSettings(),
+      externalServices: settings,
+    });
+    const journal: ExternalServicesJournalRepository = {
+      list: () =>
+        Promise.reject(
+          new Error("external_services_journal_document_requires_recovery"),
+        ),
+      append: () => Promise.resolve(undefined),
+    };
+    const registry = new ExternalServicesRuntimeRegistry();
+    registry.activateProfile(profileA, settings, 2);
+    const useCase = new QueryExternalServicesUseCase({
+      settingsRepository,
+      journalRepository: journal,
+      registry,
+    });
+
+    const result = await useCase.execute({ profileKey: profileA, journalLimit: 10 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.journalStatus).toBe("error");
+    expect(result.value.journal).toEqual([]);
+    expect(result.value.settings.collections).toHaveLength(1);
+    expect(result.value.settingsRevision).toBe(2);
   });
 });

@@ -1,6 +1,7 @@
 /**
- * Application account-activate handler (login path / ADR-0013 §B / ADR-0018 §E).
+ * Application account-activate handler (login path / ADR-0013 §B / ADR-0018 §E / ADR-0027).
  * Capability + Origin matrix gated in main; consent modal for activate / reauthorize.
+ * Aggregate revision via SdkSessionRevisionCoordinator.
  */
 
 import type { CommandMessage } from "@softomnitel/omnicall-protocol";
@@ -32,22 +33,20 @@ import {
 import {
   readExpectedRevision,
   readStringField,
-  sdkCallStale,
-  sdkCallSuccess,
   sdkFail,
 } from "./externalSdkCallHelpers.js";
-import { SdkAggregateMutex } from "./SdkAggregateMutex.js";
-import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
 import { assertClientId } from "./externalSdkOperatorHelpers.js";
+import type {
+  SdkRevisionMutationOutcome,
+  SdkSessionRevisionCoordinator,
+} from "./SdkSessionRevisionCoordinator.js";
 
 const ACTIVATE_COMMAND = "account:activate-profile" as const;
-const ACCOUNT_LOCK_KEY = "__sdk_account__";
 const IDEMPOTENCY_TTL_MS = 120_000;
 
 export type ExternalSdkAccountHandlerOptions = Readonly<{
   accountPort: ExternalSdkAccountPort;
-  revisionClock: SdkSessionRevisionClock;
-  mutex?: SdkAggregateMutex;
+  revisionCoordinator: SdkSessionRevisionCoordinator;
   nowMs?: () => number;
   consentPort?: SdkActivateConsentPort;
   isConsentPending?: () => boolean;
@@ -64,8 +63,7 @@ type CachedReply = Readonly<{
  */
 export class ExternalSdkAccountHandler implements ExternalCommandHandler {
   private readonly accountPort: ExternalSdkAccountPort;
-  private readonly revisionClock: SdkSessionRevisionClock;
-  private readonly mutex: SdkAggregateMutex;
+  private readonly revisionCoordinator: SdkSessionRevisionCoordinator;
   private readonly nowMs: () => number;
   private readonly consentPort: SdkActivateConsentPort | undefined;
   private readonly isConsentPending: (() => boolean) | undefined;
@@ -75,11 +73,11 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
   private readonly idempotency = new Map<string, CachedReply>();
   private readonly inFlight = new Map<string, Promise<ExternalHandlerResult>>();
   private readonly lastAuthorizedClientByOrigin = new Map<string, string>();
+  private readonly activationControllers = new Map<string, Set<AbortController>>();
 
   constructor(options: ExternalSdkAccountHandlerOptions) {
     this.accountPort = options.accountPort;
-    this.revisionClock = options.revisionClock;
-    this.mutex = options.mutex ?? new SdkAggregateMutex();
+    this.revisionCoordinator = options.revisionCoordinator;
     this.nowMs = options.nowMs ?? (() => Date.now());
     this.consentPort = options.consentPort;
     this.isConsentPending = options.isConsentPending;
@@ -88,6 +86,21 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
 
   handlesCommandType(commandType: string): boolean {
     return commandType === ACTIVATE_COMMAND;
+  }
+
+  /**
+   * Cancels activation work owned by the exact authenticated SDK identity.
+   */
+  abortClientSession(origin: string, clientId: string): number {
+    const key = this.clientIdentityKey(origin, clientId);
+    const controllers = this.activationControllers.get(key);
+    if (controllers === undefined) {
+      return 0;
+    }
+    for (const controller of controllers) {
+      controller.abort();
+    }
+    return controllers.size;
   }
 
   handleCommand(
@@ -110,7 +123,7 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       return Promise.resolve(sdkFail("unsupported_command"));
     }
 
-    const requestId = message.requestId;
+    const requestId = this.idempotencyKey(message.requestId, context);
     this.pruneCaches();
     const cached = this.idempotency.get(requestId);
     if (cached !== undefined && cached.expiresAt > this.nowMs()) {
@@ -121,14 +134,17 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       return pending;
     }
 
-    const execution = this.executeCommand(message, context).then((result) => {
-      this.idempotency.set(requestId, {
-        result,
-        expiresAt: this.nowMs() + IDEMPOTENCY_TTL_MS,
+    const execution = this.executeCommand(message, context)
+      .then((result) => {
+        this.idempotency.set(requestId, {
+          result,
+          expiresAt: this.nowMs() + IDEMPOTENCY_TTL_MS,
+        });
+        return result;
+      })
+      .finally(() => {
+        this.inFlight.delete(requestId);
       });
-      this.inFlight.delete(requestId);
-      return result;
-    });
     this.inFlight.set(requestId, execution);
     return execution;
   }
@@ -142,25 +158,66 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     if (clientGate !== null || clientId === undefined) {
       return Promise.resolve(clientGate ?? sdkFail("unauthenticated"));
     }
-    return this.mutex.runExclusive(ACCOUNT_LOCK_KEY, () =>
-      this.handleActivate(message.payload, context?.origin, clientId),
-    );
+    const expectedRevision = readExpectedRevision(message.payload);
+    if (expectedRevision === null) {
+      return Promise.resolve(sdkFail("invalid_payload"));
+    }
+    if (isSignalAborted(context?.signal)) {
+      return Promise.resolve(sdkFail("operation_failed"));
+    }
+    const origin = context?.origin ?? "";
+    const activation = this.createActivationSignal(origin, clientId, context?.signal);
+    return this.reserveAndActivate(
+      expectedRevision,
+      message.payload,
+      origin,
+      clientId,
+      activation.signal,
+    ).finally(activation.dispose);
+  }
+
+  private async reserveAndActivate(
+    expectedRevision: number,
+    payload: unknown,
+    origin: string | undefined,
+    clientId: string,
+    signal: AbortSignal | undefined,
+  ): Promise<ExternalHandlerResult> {
+    const reservation =
+      await this.revisionCoordinator.reserveMutation(expectedRevision);
+    if ("ok" in reservation) {
+      return reservation;
+    }
+    try {
+      // Consent and authentication can wait on UI/network; neither retains the
+      // aggregate mutex. The reservation makes final revision validation explicit.
+      const outcome = await this.handleActivate(payload, origin, clientId, signal);
+      if (!outcome.ok) {
+        await this.revisionCoordinator.cancelReservation(reservation);
+        return outcome;
+      }
+      return this.revisionCoordinator.commitReservation(
+        reservation,
+        () =>
+          Promise.resolve(
+            isSignalAborted(signal) ? sdkFail("operation_failed") : outcome,
+          ),
+      );
+    } catch (error: unknown) {
+      await this.revisionCoordinator.cancelReservation(reservation);
+      throw error;
+    }
   }
 
   private async handleActivate(
     payload: unknown,
     origin: string | undefined,
     clientId: string,
-  ): Promise<ExternalHandlerResult> {
-    const expectedRevision = readExpectedRevision(payload);
-    if (expectedRevision === null) {
-      return sdkFail("invalid_payload");
+    signal: AbortSignal | undefined,
+  ): Promise<SdkRevisionMutationOutcome> {
+    if (isSignalAborted(signal)) {
+      return sdkFail("operation_failed");
     }
-    const current = this.revisionClock.peek();
-    if (expectedRevision !== current) {
-      return sdkCallStale(current);
-    }
-
     const loginRaw = readStringField(payload, "login");
     if (loginRaw === null || trimSdkAccountLogin(loginRaw).length === 0) {
       return sdkFail("invalid_payload");
@@ -173,6 +230,9 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     }
 
     const lookup = await this.accountPort.lookupSavedProfileByLogin(login);
+    if (isSignalAborted(signal)) {
+      return sdkFail("operation_failed");
+    }
     if (!lookup.ok) {
       return mapActivateError(lookup.error);
     }
@@ -211,6 +271,7 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
         availableModes,
         profileLabel: lookup.value.profileLabel,
         sessionMode: session.currentMode,
+        signal,
       });
     }
 
@@ -226,18 +287,21 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
         availableModes,
         ...(preferredMode !== null ? { preferredMode } : {}),
       });
+      if (isSignalAborted(signal)) {
+        return sdkFail("operation_failed");
+      }
       const consentGate = await this.mapConsentDecision(decision, origin);
       if (consentGate !== null) {
         return consentGate;
       }
-      if (decision.decision !== "allow") {
-        return sdkFail("forbidden", { permission_denied: true });
+      if (decision.decision === "allow") {
+        return this.completeActivation(login, decision.mode, origin, clientId, signal);
       }
-      return this.completeActivation(login, decision.mode, origin, clientId);
+      return sdkFail("forbidden", { permission_denied: true });
     }
 
     const mode = preferredMode ?? availableModes[0]!;
-    return this.completeActivation(login, mode, origin ?? "", clientId);
+    return this.completeActivation(login, mode, origin ?? "", clientId, signal);
   }
 
   private async handleSameLoginActivate(input: {
@@ -248,14 +312,16 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     readonly availableModes: readonly SdkActivateMode[];
     readonly profileLabel: string;
     readonly sessionMode: SdkActivateMode | null;
-  }): Promise<ExternalHandlerResult> {
+    readonly signal: AbortSignal | undefined;
+  }): Promise<SdkRevisionMutationOutcome> {
     const lastClientId = this.lastAuthorizedClientByOrigin.get(
       input.origin ?? "",
     );
     if (lastClientId === input.clientId) {
-      const revision = this.revisionClock.peek();
-      return sdkCallSuccess(
-        {
+      return {
+        ok: true,
+        advance: false,
+        result: {
           activated: true,
           alreadyAuthenticated: true,
           mode: input.sessionMode ?? input.availableModes[0]!,
@@ -263,8 +329,7 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
             ? { profileLabel: input.profileLabel }
             : {}),
         },
-        revision,
-      );
+      };
     }
     if (this.consentPort === undefined || input.origin === undefined) {
       return sdkFail("forbidden", { permission_denied: true });
@@ -279,6 +344,9 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
         ? { preferredMode: input.preferredMode }
         : {}),
     });
+    if (isSignalAborted(input.signal)) {
+      return sdkFail("operation_failed");
+    }
     const consentGate = await this.mapConsentDecision(decision, input.origin);
     if (consentGate !== null) {
       return consentGate;
@@ -287,9 +355,10 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       return sdkFail("forbidden", { permission_denied: true });
     }
     this.lastAuthorizedClientByOrigin.set(input.origin, input.clientId);
-    const revision = this.revisionClock.peek();
-    return sdkCallSuccess(
-      {
+    return {
+      ok: true,
+      advance: false,
+      result: {
         activated: true,
         alreadyAuthenticated: true,
         mode: decision.mode,
@@ -297,14 +366,13 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
           ? { profileLabel: input.profileLabel }
           : {}),
       },
-      revision,
-    );
+    };
   }
 
   private async mapConsentDecision(
     decision: Awaited<ReturnType<SdkActivateConsentPort["requestConsent"]>>,
     origin: string,
-  ): Promise<ExternalHandlerResult | null> {
+  ): Promise<SdkRevisionMutationOutcome | null> {
     if (decision.decision === "timeout") {
       return consentTimeoutFailure();
     }
@@ -329,12 +397,15 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     mode: SdkActivateMode,
     origin: string,
     clientId: string,
-  ): Promise<ExternalHandlerResult> {
-    const result = await activateSavedProfileWithAuthBudget(
-      this.accountPort,
-      login,
-      mode,
-    );
+    signal: AbortSignal | undefined,
+  ): Promise<SdkRevisionMutationOutcome> {
+    if (isSignalAborted(signal)) {
+      return sdkFail("operation_failed");
+    }
+    const result = await this.awaitAuthentication(login, mode, signal);
+    if (isSignalAborted(signal)) {
+      return sdkFail("operation_failed");
+    }
     if (!result.ok) {
       return mapActivateError(result.error, {
         activatePhase: "sign_in",
@@ -342,17 +413,16 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       });
     }
     this.lastAuthorizedClientByOrigin.set(origin, clientId);
-    const revision = this.revisionClock.advance();
-    return sdkCallSuccess(
-      {
+    return {
+      ok: true,
+      result: {
         activated: true,
         mode: result.value.mode,
         ...(result.value.profileLabel !== undefined
           ? { profileLabel: result.value.profileLabel }
           : {}),
       },
-      revision,
-    );
+    };
   }
 
   private pruneCaches(): void {
@@ -363,6 +433,73 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       }
     }
   }
+
+  private idempotencyKey(
+    requestId: string,
+    context: ExternalCommandContext | undefined,
+  ): string {
+    return `${context?.origin ?? ""}\u0000${context?.clientId ?? ""}\u0000${requestId}`;
+  }
+
+  private createActivationSignal(
+    origin: string,
+    clientId: string,
+    parentSignal: AbortSignal | undefined,
+  ): Readonly<{ signal: AbortSignal; dispose: () => void }> {
+    const controller = new AbortController();
+    const key = this.clientIdentityKey(origin, clientId);
+    const controllers = this.activationControllers.get(key) ?? new Set<AbortController>();
+    controllers.add(controller);
+    this.activationControllers.set(key, controllers);
+    const abortFromParent = (): void => controller.abort();
+    parentSignal?.addEventListener("abort", abortFromParent, { once: true });
+    if (parentSignal?.aborted === true) {
+      controller.abort();
+    }
+    return {
+      signal: controller.signal,
+      dispose: () => {
+        parentSignal?.removeEventListener("abort", abortFromParent);
+        controllers.delete(controller);
+        if (controllers.size === 0) {
+          this.activationControllers.delete(key);
+        }
+      },
+    };
+  }
+
+  private async awaitAuthentication(
+    login: string,
+    mode: SdkActivateMode,
+    signal: AbortSignal | undefined,
+  ): Promise<Awaited<ReturnType<typeof activateSavedProfileWithAuthBudget>>> {
+    if (signal === undefined) {
+      return activateSavedProfileWithAuthBudget(this.accountPort, login, mode);
+    }
+    return new Promise((resolve) => {
+      const onAbort = (): void => {
+        void Promise.resolve(this.accountPort.cancelInFlightActivateSignIn?.(mode));
+        resolve({
+          ok: false,
+          error: {
+            code: "operation_failed",
+            message: "sdk_activate_canceled",
+          },
+        });
+      };
+      signal.addEventListener("abort", onAbort, { once: true });
+      void activateSavedProfileWithAuthBudget(this.accountPort, login, mode).then(
+        (result) => {
+          signal.removeEventListener("abort", onAbort);
+          resolve(result);
+        },
+      );
+    });
+  }
+
+  private clientIdentityKey(origin: string, clientId: string): string {
+    return `${origin}\u0000${clientId}`;
+  }
 }
 
 function readOptionalMode(payload: unknown): SdkActivateMode | null {
@@ -371,4 +508,8 @@ function readOptionalMode(payload: unknown): SdkActivateMode | null {
     return raw;
   }
   return null;
+}
+
+function isSignalAborted(signal: AbortSignal | undefined): boolean {
+  return signal?.aborted === true;
 }

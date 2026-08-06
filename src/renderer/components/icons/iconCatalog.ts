@@ -140,6 +140,7 @@ export type IconSemanticId =
   | "settings.integrations.external-applications"
   | "settings.integrations.external-applications.open"
   | "settings.integrations.external-applications.history"
+  | "settings.integrations.external-applications.overlays"
   | "settings.integrations.external-services.send"
   | "settings.integrations.external-services.add"
   | "settings.integrations.external-services.panelExpand"
@@ -252,7 +253,10 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     static: Pin,
     defaultLabelKey: "icons.shell.window.pin",
     defaultSize: 16,
-    usage: ["ShellWindowControls: control-window-pin"],
+    usage: [
+      "ShellWindowControls: control-window-pin",
+      "WindowBehaviorSwitchSchematicParts: PinBadge (always-on-top preview)",
+    ],
   },
   "shell.window.unpin": {
     static: PinOff,
@@ -400,6 +404,13 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.externalApplications.history",
     defaultSize: 14,
     usage: ["ExternalApplicationsSidebar: external-applications-history-nav"],
+  },
+  "settings.integrations.external-applications.overlays": {
+    static: Layers,
+    animated: LayersIcon,
+    defaultLabelKey: "icons.settings.integrations.externalApplications.overlays",
+    defaultSize: 16,
+    usage: ["WindowGeometryOverlays: external-applications-geometry-overlays-trigger"],
   },
   "settings.integrations.external-services.send": {
     static: Send,

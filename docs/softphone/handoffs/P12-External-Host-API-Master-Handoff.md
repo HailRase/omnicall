@@ -7,7 +7,7 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **`implemented`** (2026-07-27 — DI-01…DI-11 `done`; DI-10 **full close**; P12 **closed**) |
+| Feature status | **`implemented`** — T-054 / WU-07 corrective track **PASS** (2026-08-03); P12 closed for unit/integration gate |
 | Branch | `feature/omnicall-kit` |
 | Desktop version | `0.12.0` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
@@ -23,7 +23,7 @@
 | DI-09 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-09-settings-operational-ux.md` |
 | DI-10 | **`done`** — `/sdk-review` PASS 2026-07-21; **full close** 2026-07-27 — `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
 | DI-11 | **`done`** — `/sdk-review` **PASS** 2026-07-21 (boot hydrate + machine-common `sdk-origin-trust.json`; denied wins over env seed); evidence `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` |
-| Next | Mode B **`0.1.0`/`latest` published**. Optional: npm Teams private; further SDK MINOR/PATCH. |
+| Next | Corrective WU-07 **PASS**. Human SemVer / license / npm publish only. Agents: unit + integration + preflight; do not run packaged Electron / Chromium / Edge smoke. |
 
 ## Mission
 
@@ -57,6 +57,8 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 | [ADR-0016](../adr/ADR-0016-sdk-pop-pairing-capability-profiles.md) | PoP, pairing ceremony, capability profiles | Accepted (SDK-01) |
 | [ADR-0017](../adr/ADR-0017-sdk-privacy-ownership-ocp-map-deprecation.md) | PII, ownership, campaign, OCP map, deprecation | Accepted (SDK-01) |
 | [ADR-0018](../adr/ADR-0018-sdk-origin-tofu-blacklist-activate-consent.md) | Origin TOFU, blacklist, per-Origin caps, always-on gateway, activate consent | Accepted (2026-07-21); amends ADR-0011/0013/AF-004 |
+| [ADR-0021](../adr/ADR-0021-sdk-shared-desk-call-control.md) | Shared desk call control + granular caps | Accepted (2026-07-27) |
+| [ADR-0027](../adr/ADR-0027-sdk-session-revision-coordinator.md) | Single session revision coordinator (corrective) | Accepted; WU-00…WU-07 **done / PASS** (unit + integration + preflight) |
 
 ### Architecture non-negotiables (gate)
 
@@ -113,9 +115,9 @@ Previously open O-* rows are **closed** in ADR-0014…0017 and
 9. **DI-07 + SDK-07** — operator/logout.
 10. **DI-08 + SDK-08** — privileged saved-profile activation.
 11. **DI-09 + SDK-09** — settings and developer experience.
-12. **DI-10 + SDK-10** — compatibility, security, packaged E2E (F-011 close only with full evidence).
+12. **DI-10 + SDK-10** — compatibility/security closed historically; F-011 corrective WU-07 closes on unit + integration + preflight only.
 13. **DI-11** — Origin TOFU, blacklist, per-Origin capability matrix, always-on gateway,
-    activate consent (ADR-0018); does not by itself close F-011 without smoke evidence.
+    activate consent (ADR-0018); F-011 corrective close uses unit + integration + preflight.
 
 Independent `/sdk-review` is required after every work unit.
 
@@ -133,7 +135,7 @@ Independent `/sdk-review` is required after every work unit.
 | DI-07 | Operator/logout via existing orchestration; `callType: "sdk"` | DI-06 + SDK-07 |
 | DI-08 | Opaque profile activation; no secrets on wire; AF-003/005/006 green | DI-07 + SDK-08 |
 | DI-09 | Settings UX + i18n; hide disabled until tray ADR | DI-04 stable |
-| DI-10 | Full matrix + packaged E2E; F-011 → implemented only with real evidence | DI-01…09 + SDK-00…09 |
+| DI-10 | Historical compatibility close; current F-011 gate = unit + integration + preflight only | DI-01…09 + SDK-00…09 |
 | DI-11 | ADR-0018 TOFU/blacklist/per-Origin matrix/always-on/activate consent; AF-004 SDK pre-auth | ADR-0018; DI-04/09 done; DI-10 done for code merge |
 
 ## Regression Gate (unchanged; execute subsets per WU, full at DI-10)
@@ -177,23 +179,22 @@ Automated matrix: `omnicall-kit-integration/TEST-MATRIX.md`.
 - Production `src/` untouched; no new runtime dependencies.
 - `/sdk-review` High/Low remediated: docs SHA split, F-011 `callType: 'sdk'`, SECURITY.md `window.hide` vs ADR-0013.
 
-## Completion (P12 close — future)
+## Completion (P12 close)
 
-P12 closes only when:
+P12 / F-011 corrective track is **closed** when:
 
-- DI-00…DI-11 and SDK-00…SDK-10 are independently reviewed (DI-11 = ADR-0018 behavior, or
-  an explicit human waiver recorded in evidence);
-- the complete automated and manual matrices pass;
-- packaged Electron interoperates with the release-candidate SDK;
-- compatibility and rollback are verified;
-- F-011 is moved to `implemented` with real evidence;
+- DI-00…DI-11 and SDK-00…SDK-10 are independently reviewed;
+- unit + integration matrices and desktop/kit preflight pass;
+- F-011 is `implemented` with corrective WU-07 evidence;
 - no Blocker remains.
+
+Agents must **not** run or require packaged Electron / Chromium / Edge smoke for F-011 gates.
 
 ## Next Agent Prompt
 
-1. DI-10 **full close** + Mode B **`0.1.0`/`latest`** — F-011 **`implemented`**; P12 **closed**.
+1. F-011 / T-054 / WU-07 are **done / PASS** — do not reopen for smoke scripts.
 2. DI-11 is **`done`** — do **not** invent DI-12.
-3. Further SDK releases: normal SemVer + `RELEASE_CONFIRM=1` (no DI-10 blocker).
+3. Human-only next: SemVer cut, license review, npm publish authorization.
 4. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import
    Facades/Call Engine.
 5. `window.hide` is product-available (ADR-0013 amendment 2026-07-27) — do not re-disable it;

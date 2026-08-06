@@ -4,12 +4,15 @@
 
 ```ts
 
-import type { ApplicationIdentity } from '@softomnitel/omnicall-protocol';
+import { ApplicationIdentity } from '@softomnitel/omnicall-protocol';
 import { CapabilityId } from '@softomnitel/omnicall-protocol';
+import { DiscoveryDocument } from '@softomnitel/omnicall-protocol';
 import type { EventMessage } from '@softomnitel/omnicall-protocol';
-import type { PairingProfile } from '@softomnitel/omnicall-protocol';
+import { PairingProfile } from '@softomnitel/omnicall-protocol';
 import { ProtocolErrorCode } from '@softomnitel/omnicall-protocol';
+import { ProtocolVersion } from '@softomnitel/omnicall-protocol';
 import { PublicOperatorStatus } from '@softomnitel/omnicall-protocol';
+import { Revision } from '@softomnitel/omnicall-protocol';
 import { SDK_ACTIVATE_CLIENT_TIMEOUT_MS } from '@softomnitel/omnicall-protocol';
 import { SDK_ACTIVATE_CONSENT_TTL_MS } from '@softomnitel/omnicall-protocol';
 import { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS } from '@softomnitel/omnicall-protocol';
@@ -18,6 +21,7 @@ import { SnapshotCallSummary } from '@softomnitel/omnicall-protocol';
 import { SnapshotMessage } from '@softomnitel/omnicall-protocol';
 import { SnapshotSections } from '@softomnitel/omnicall-protocol';
 import { WireJsonObject } from '@softomnitel/omnicall-protocol';
+import { WireJsonValue } from '@softomnitel/omnicall-protocol';
 
 // @public
 export type ActivateProfileMode = 'sip_only' | 'ocp';
@@ -31,6 +35,8 @@ export type ActivateProfileResult = {
     readonly revision: number;
 };
 
+export { ApplicationIdentity }
+
 // @public
 export type AuthClient = {
     readonly getState: () => ConnectionState;
@@ -41,7 +47,10 @@ export type AuthClient = {
     readonly disconnect: () => void;
     readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
     readonly onPairingRequired: (listener: (info: PairingRequiredInfo) => void) => () => void;
-    readonly waitUntil: (predicate: (state: ConnectionState) => boolean, timeoutMs?: number) => Promise<ConnectionState>;
+    readonly waitUntil: (predicate: (state: ConnectionState) => boolean, options?: number | Readonly<{
+        timeoutMs?: number;
+        signal?: AbortSignal;
+    }>) => Promise<ConnectionState>;
     readonly getConnectError: () => OmniCallClientError | undefined;
 };
 
@@ -50,7 +59,6 @@ export type AuthClientOptions = {
     readonly url: string;
     readonly origin: string;
     readonly application: ApplicationIdentity;
-    readonly sdkVersion: string;
     readonly requestedProfile: PairingProfile;
     readonly requestedCapabilities?: readonly CapabilityId[];
     readonly keyStore: PopKeyStore;
@@ -177,6 +185,11 @@ export type DiagnosticsSink = {
 };
 
 // @public
+export function discoverOmniCallDesktop(options: OmniCallDiscoveryOptions): Promise<DiscoveryDocument>;
+
+export { DiscoveryDocument }
+
+// @public
 export type FakeScheduler = Scheduler & {
     readonly advanceBy: (ms: number) => void;
     readonly advanceByAsync: (ms: number) => Promise<void>;
@@ -293,7 +306,10 @@ export type OmniCallClient = {
     readonly disconnect: () => void;
     readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
     readonly onPairingRequired: (listener: (info: PairingRequiredInfo) => void) => () => void;
-    readonly waitUntil: (predicate: (state: ConnectionState) => boolean, timeoutMs?: number) => Promise<ConnectionState>;
+    readonly waitUntil: (predicate: (state: ConnectionState) => boolean, options?: number | Readonly<{
+        timeoutMs?: number;
+        signal?: AbortSignal;
+    }>) => Promise<ConnectionState>;
     readonly getConnectError: () => OmniCallClientError | undefined;
     readonly getSnapshot: () => Promise<SnapshotMessage>;
     readonly getCachedSnapshot: () => SnapshotMessage | undefined;
@@ -325,6 +341,14 @@ export class OmniCallClientError extends Error {
 
 // @public (undocumented)
 export type OmniCallClientOptions = AuthClientOptions;
+
+// @public
+export type OmniCallDiscoveryOptions = Readonly<{
+    readonly fetch: (input: string, init: Readonly<{
+        signal?: AbortSignal;
+    }>) => Promise<Response>;
+    readonly signal?: AbortSignal;
+}>;
 
 // @public
 export type OmniCallEvent = Extract<EventMessage, {
@@ -400,6 +424,8 @@ export type OperatorStatusChangeResult = {
     readonly revision: number;
 };
 
+export { PairingProfile }
+
 // @public
 export type PairingRequiredInfo = {
     readonly origin: string;
@@ -415,6 +441,8 @@ export type PopKeyStore = {
 };
 
 export { ProtocolErrorCode }
+
+export { ProtocolVersion }
 
 // @public
 export const PUBLIC_EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "call:acd-context", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "operator:campaign-offered", "operator:campaign-cleared", "window:visibility-changed", "sdk:server-shutdown"];
@@ -441,6 +469,8 @@ export type ReconnectPolicy = {
     readonly jitterRatio: number;
 };
 
+export { Revision }
+
 // @public
 export type Scheduler = {
     readonly now: () => number;
@@ -454,6 +484,9 @@ export { SDK_ACTIVATE_CONSENT_TTL_MS }
 export { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS }
 
 export { SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS }
+
+// @public
+export const SDK_VERSION: "0.2.1";
 
 export { SnapshotCallSummary }
 
@@ -501,6 +534,17 @@ export type TransportPort = {
     readonly onError: (handler: (info: TransportErrorInfo) => void) => () => void;
 };
 
+// @public (undocumented)
+export class WaitUntilTimeoutError extends Error {
+    constructor(timeoutMs: number);
+    // (undocumented)
+    readonly name = "WaitUntilTimeoutError";
+    // (undocumented)
+    readonly timeoutMs: number;
+}
+
 export { WireJsonObject }
+
+export { WireJsonValue }
 
 ```

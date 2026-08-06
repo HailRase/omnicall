@@ -23,9 +23,8 @@ const keyStore =
 
 const client = createOmniCallClient({
   url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
-  origin: 'https://crm.example', // exact Origin; must be allowed (or first-contact TOFU — ADR-0018)
+  origin: 'https://crm.example', // exact Origin; must already be Trusted (allowed) — ADR-0018
   application: { name: 'my-crm', version: '1.2.0' },
-  sdkVersion: '0.0.0',
   requestedProfile: 'call_controller',
   // Non-privileged only. Privileged ids are stripped — do not request them.
   requestedCapabilities: [
@@ -43,9 +42,9 @@ const client = createOmniCallClient({
 });
 
 client.onPairingRequired((info) => {
-  // After Origin is allowed (TOFU modal Allow on first contact — ADR-0018), desktop may
-  // still require pairing approval for this client install (ADR-0016).
-  // Denied / blacklisted Origins never open the socket (`origin_blocked` on reconnect).
+  // Origin must already be Trusted sites / seed (allowed). Desktop may still require
+  // pairing Approve for this browser install (ADR-0016). Unknown / denied Origins never
+  // open the socket (`origin_blocked`).
   console.info('pairing required', info.origin, info.requestedProfile);
 });
 
@@ -81,8 +80,8 @@ void revision;
 
 ## Checklist
 
-- [ ] Origin exact match; unknown → renderer Allow/Deny modal (ADR-0018); then pairing
-- [ ] Blacklisted → no upgrade (`origin_blocked`); Unblock restores prior `allowed` matrix when applicable
+- [ ] Origin exact match; pre-allow in Trusted sites / seed before `connect()` (ADR-0018)
+- [ ] Unknown / blacklisted → no upgrade (`origin_blocked`); Unblock prior-`allowed` restores matrix; never-allowed → add again via Settings
 - [ ] PoP in IndexedDB (browser) or memory (tests) — never Web Storage
 - [ ] Privileged caps **not** in `requestedCapabilities` (and would be stripped anyway)
 - [ ] After ready: grant privileged window-hide / saved-profile activate only in OmniCall

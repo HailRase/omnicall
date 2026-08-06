@@ -17,8 +17,22 @@ import type {
 import { ExternalSdkCallHandler } from "./ExternalSdkCallHandler.js";
 import { ExternalSdkProductHandler } from "./ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "./ExternalSdkReadHandler.js";
+import { ExternalSdkWindowHandler } from "./ExternalSdkWindowHandler.js";
 import { SdkCallOwnershipRegistry } from "./SdkCallOwnershipRegistry.js";
-import { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import { SdkSessionRevisionCoordinator } from "./SdkSessionRevisionCoordinator.js";
+
+function stubWindowHandler(
+  revisionCoordinator: SdkSessionRevisionCoordinator,
+): ExternalSdkWindowHandler {
+  return new ExternalSdkWindowHandler({
+    windowPort: {
+      show: () => Promise.resolve({ ok: true, visible: true }),
+      hide: () => Promise.resolve({ ok: true, visible: false }),
+      getState: () => Promise.resolve({ ok: true, visible: true }),
+    },
+    revisionCoordinator,
+  });
+}
 
 const BASE = {
   protocolVersion: 1,
@@ -70,12 +84,12 @@ function createPort(
 }
 
 function createHandler(port: ExternalSdkOperatorPort = createPort()) {
-  const revisionClock = new SdkSessionRevisionClock();
+  const revisionCoordinator = new SdkSessionRevisionCoordinator();
   const handler = new ExternalSdkOperatorHandler({
     operatorPort: port,
-    revisionClock,
+    revisionCoordinator,
   });
-  return { handler, revisionClock, port };
+  return { handler, revisionClock: revisionCoordinator, revisionCoordinator, port };
 }
 
 describe("ExternalSdkOperatorHandler", () => {
@@ -468,7 +482,7 @@ describe("ExternalSdkOperatorHandler", () => {
   });
 
   it("product abortClientSession is a no-op (no pending logout tokens)", () => {
-    const { handler, port, revisionClock } = createHandler();
+    const { handler, port, revisionCoordinator } = createHandler();
     const product = new ExternalSdkProductHandler({
       readHandler: new ExternalSdkReadHandler({
         readProductState: () => ({
@@ -486,7 +500,7 @@ describe("ExternalSdkOperatorHandler", () => {
           reservedReasonId: null,
           activeCampaign: null,
         }),
-        revisionClock,
+        revisionCoordinator,
         ownership: new SdkCallOwnershipRegistry(),
       }),
       callHandler: new ExternalSdkCallHandler({
@@ -502,7 +516,7 @@ describe("ExternalSdkOperatorHandler", () => {
           sendDtmf: vi.fn(),
         },
         ownership: new SdkCallOwnershipRegistry(),
-        revisionClock,
+        revisionCoordinator,
       }),
       operatorHandler: handler,
       accountHandler: new ExternalSdkAccountHandler({
@@ -522,17 +536,18 @@ describe("ExternalSdkOperatorHandler", () => {
             profileLabel: null,
           }),
         },
-        revisionClock,
+        revisionCoordinator,
       }),
+      windowHandler: stubWindowHandler(revisionCoordinator),
     });
-    expect(product.abortClientSession(CLIENT)).toBe(0);
+    expect(product.abortClientSession("https://crm.example.com", CLIENT)).toBe(0);
     expect(port.logoutAccountSession).not.toHaveBeenCalled();
   });
 });
 
-describe("ExternalSdkOperatorHandler shared revision clock", () => {
+describe("ExternalSdkOperatorHandler shared revision coordinator", () => {
   it("snapshot revision is valid expectedRevision for operator mutate", async () => {
-    const revisionClock = new SdkSessionRevisionClock();
+    const revisionCoordinator = new SdkSessionRevisionCoordinator();
     const ownership = new SdkCallOwnershipRegistry();
     const changeOperatorStatus = vi.fn(() =>
       Promise.resolve(
@@ -559,7 +574,7 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
         reservedReasonId: null,
         activeCampaign: null,
       }),
-      revisionClock,
+      revisionCoordinator,
       ownership,
     });
     const callHandler = new ExternalSdkCallHandler({
@@ -575,7 +590,7 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
         sendDtmf: vi.fn(),
       },
       ownership,
-      revisionClock,
+      revisionCoordinator,
     });
     const operatorHandler = new ExternalSdkOperatorHandler({
       operatorPort: {
@@ -597,7 +612,7 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
         }),
         logoutAccountSession: vi.fn(),
       },
-      revisionClock,
+      revisionCoordinator,
     });
     const accountHandler = new ExternalSdkAccountHandler({
       accountPort: {
@@ -616,13 +631,14 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
           profileLabel: null,
         }),
       },
-      revisionClock,
+      revisionCoordinator,
     });
     const product = new ExternalSdkProductHandler({
       readHandler,
       callHandler,
       operatorHandler,
       accountHandler,
+      windowHandler: stubWindowHandler(revisionCoordinator),
     });
 
     const snapshot = await product.handleCommand(
@@ -658,7 +674,7 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
       return;
     }
     expect(status.revision).toBe(2);
-    expect(revisionClock.peek()).toBe(2);
+    expect(revisionCoordinator.peek()).toBe(2);
     expect(product.getRevision()).toBe(2);
     expect(changeOperatorStatus).toHaveBeenCalledOnce();
   });

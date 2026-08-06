@@ -8,6 +8,7 @@ import type { JSX } from "react";
 import type { ExternalApplicationsJournalEntryVm } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
 import type { ExternalServicesAutomaticEventType } from "../external-services/ExternalServicesTriggerList.js";
+import { ExternalApplicationsDiscardDialog } from "./ExternalApplicationsDiscardDialog.js";
 import { ExternalApplicationsEditor } from "./ExternalApplicationsEditor.js";
 import { ExternalApplicationsHistoryPanel } from "./ExternalApplicationsHistoryPanel.js";
 import { ExternalApplicationsSidebar } from "./ExternalApplicationsSidebar.js";
@@ -27,6 +28,10 @@ export type ExternalApplicationsPanelProps = Readonly<{
   busy: boolean;
   loadError: boolean;
   forceNameEditKey: number;
+  isDirty: boolean;
+  discardDialogOpen: boolean;
+  onDiscardDialogOpenChange: (open: boolean) => void;
+  onDiscardConfirm: () => void;
   onSelectApplication: (id: ExternalApplicationsPanelApplication["id"]) => void;
   onSelectHistory: () => void;
   onRetryHistory: () => void;
@@ -46,7 +51,7 @@ export type ExternalApplicationsPanelApplication = Readonly<{
   enabled: boolean;
   urlTemplate: string;
   openMode: "electron_window" | "external_browser";
-  window: Readonly<{ width: number; height: number }>;
+  window: Readonly<{ width: number; height: number; x: number; y: number }>;
   variables: ReadonlyArray<Readonly<{ key: string; value: string }>>;
   triggers: ReadonlyArray<
     Readonly<{ eventType: ExternalServicesAutomaticEventType; delaySeconds: number }>
@@ -75,6 +80,10 @@ export function ExternalApplicationsPanel({
   busy,
   loadError,
   forceNameEditKey,
+  isDirty,
+  discardDialogOpen,
+  onDiscardDialogOpenChange,
+  onDiscardConfirm,
   onSelectApplication,
   onSelectHistory,
   onRetryHistory,
@@ -97,6 +106,7 @@ export function ExternalApplicationsPanel({
         selectedId={selectedApplication?.id ?? null}
         historySelected={historySelected}
         busy={busy}
+        isDirty={isDirty}
         onSelect={onSelectApplication}
         onSelectHistory={onSelectHistory}
         onCreate={onCreate}
@@ -129,14 +139,21 @@ export function ExternalApplicationsPanel({
         ) : (
           <ExternalApplicationsEditor
             application={selectedApplication}
+            applications={applications}
             busy={busy}
             forceNameEditKey={forceNameEditKey}
+            isDirty={isDirty}
             onChange={onChange}
             onSave={onSave}
             onOpenNow={onOpenNow}
           />
         )}
       </div>
+      <ExternalApplicationsDiscardDialog
+        open={discardDialogOpen}
+        onOpenChange={onDiscardDialogOpenChange}
+        onConfirm={onDiscardConfirm}
+      />
     </div>
   );
 }

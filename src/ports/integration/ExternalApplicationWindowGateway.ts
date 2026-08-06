@@ -1,6 +1,6 @@
 /**
  * - Purpose: abstract opening and call-tied lifecycle for External Application windows.
- * - Inputs: validated resolved URL, screen-pop identity, and call-ended actions.
+ * - Inputs: validated resolved URL, geometry (W×H + x/y), identity, call-ended actions.
  * - Outputs: window-open / lifecycle results without Electron dependency.
  */
 
@@ -13,6 +13,8 @@ export type OpenExternalApplicationWindowPayload = Readonly<{
   title: string;
   width: number;
   height: number;
+  x: number;
+  y: number;
   applicationId: ExternalApplicationId;
   callId: CallId;
   raiseOnOpen: boolean;

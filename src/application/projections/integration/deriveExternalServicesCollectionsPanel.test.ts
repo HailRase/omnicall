@@ -39,6 +39,7 @@ describe("deriveExternalServicesCollectionsPanel", () => {
         ],
         enabledCollectionCount: 1,
         journal: [],
+        journalStatus: "ready",
       },
       "ready",
     );

@@ -32,6 +32,7 @@ const STAGE_KEY: Record<OcpSignInExecutionStage, TranslationKey> = {
   requesting_authorization_token: "account.authProgress.stage.httpToken",
   submitting_token_to_ocp: "account.authProgress.stage.submitToken",
   awaiting_authorization_data: "account.authProgress.stage.awaitData",
+  receiving_phone_credentials: "account.authProgress.stage.receiveCredentials",
   connecting_sip_transport: "account.authProgress.stage.sipTransport",
   authorizing_sip: "account.authProgress.stage.sipAuthorization",
 };
@@ -54,10 +55,8 @@ type OcpSignInProgressProps = Readonly<{
   onSuccessSettled?: () => void;
 }>;
 
-function resolveTone(
-  state: OcpSignInStageVisualState | "idle" | "active" | "completed" | "failed",
-): ProgressTone {
-  if (state === "failed") {
+function resolveTone(state: OcpSignInStageVisualState): ProgressTone {
+  if (state === "failed" || state === "timeout") {
     return "destructive";
   }
   if (state === "completed") {
@@ -67,6 +66,9 @@ function resolveTone(
 }
 
 function resolveStatusTextKey(state: OcpSignInStageVisualState): TranslationKey {
+  if (state === "timeout") {
+    return "account.authProgress.status.timeout";
+  }
   if (state === "failed") {
     return "account.authProgress.status.failed";
   }
@@ -99,11 +101,12 @@ export function OcpSignInProgress({
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [liveStatus, setLiveStatus] = useState("");
   const view = deriveOcpSignInProgressView(progress, nowMs);
-  const shouldTick =
-    open && (view.overallState === "active" || view.hasLatentFailure);
+  const shouldTick = open && view.overallState === "active";
   const lastAnnouncedRef = useRef<string>("");
   const activeStage = view.stages.find((stage) => stage.state === "active");
-  const failedStage = view.stages.find((stage) => stage.state === "failed");
+  const failedStage = view.stages.find(
+    (stage) => stage.state === "failed" || stage.state === "timeout",
+  );
 
   // Reset wall-clock when attempt/stage ownership changes so a new run never
   // inherits a stale percent from the previous attempt.
@@ -124,7 +127,7 @@ export function OcpSignInProgress({
   }, [shouldTick, progress.executionStage, progress.stageStartedAtMs]);
 
   useEffect(() => {
-    if (!open || !view.isReady || view.hasFailure || view.hasLatentFailure) {
+    if (!open || !view.isReady || view.hasFailure) {
       return;
     }
     const timer = window.setTimeout(() => {
@@ -133,7 +136,7 @@ export function OcpSignInProgress({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [open, view.hasFailure, view.hasLatentFailure, view.isReady, onSuccessSettled]);
+  }, [open, view.hasFailure, view.isReady, onSuccessSettled]);
 
   // Announce only semantic stage/state changes — never 50ms percent ticks.
   useEffect(() => {
@@ -146,7 +149,7 @@ export function OcpSignInProgress({
     if (view.isReady && !view.hasFailure) {
       next = t("account.authProgress.status.completed");
     } else if (failedStage !== undefined) {
-      next = `${t(STAGE_KEY[failedStage.stage])}: ${t("account.authProgress.status.failed")}`;
+      next = `${t(STAGE_KEY[failedStage.stage])}: ${t(resolveStatusTextKey(failedStage.state))}`;
     } else if (activeStage !== undefined) {
       next = `${t(STAGE_KEY[activeStage.stage])}: ${t("account.authProgress.status.active")}`;
     }
@@ -226,7 +229,7 @@ export function OcpSignInProgress({
         <ol className={styles.list} aria-label={t("account.authProgress.stagesAria")}>
           {view.stages.map((stageView) => {
             const failureLabel =
-              stageView.state === "failed"
+              stageView.state === "failed" || stageView.state === "timeout"
                 ? formatOcpSignInFailureTooltip(
                     t(
                       mapOcpSignInFailureToMessageKey(

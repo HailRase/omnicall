@@ -321,8 +321,8 @@ export function useSdkSettingsPanel(
     onDenyPairing: (id) => {
       void runOp({ op: "denyPairing", pairingRequestId: id });
     },
-    onRevokeClient: (clientId) => {
-      void runOp({ op: "revokeClient", clientId });
+    onRevokeClient: (clientId, origin) => {
+      void runOp({ op: "revokeClient", clientId, origin });
     },
     onAllowOriginTrust: (originTrustRequestId) => {
       void runOp({ op: "allowOriginTrust", originTrustRequestId });

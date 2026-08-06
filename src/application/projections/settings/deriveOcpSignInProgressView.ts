@@ -3,8 +3,8 @@
  * - Inputs: authorization progress projection + wall clock + stage timeouts.
  * - Outputs: per-stage and overall percent/tone without React ownership.
  *
- * Early transport/network failures keep the active (blue) fill until the stage
- * timeout window elapses; only then the stage is revealed as failed/timeout.
+ * Terminal failures reveal immediately (real failureKind preserved). Progress bars
+ * only animate while a stage is still in flight — never after failedExecutionStage.
  */
 
 import {
@@ -21,7 +21,8 @@ export type OcpSignInStageVisualState =
   | "pending"
   | "active"
   | "completed"
-  | "failed";
+  | "failed"
+  | "timeout";
 
 export type OcpSignInStageProgressView = Readonly<{
   stage: OcpSignInExecutionStage;
@@ -30,18 +31,13 @@ export type OcpSignInStageProgressView = Readonly<{
   timeoutMs: number;
   failureKind: AuthorizationProgressFailureKind | null;
   failureCode: string | null;
-  /** Projection already failed, but UI still fills blue until timeout. */
-  awaitingTimeoutReveal: boolean;
 }>;
 
 export type OcpSignInProgressView = Readonly<{
   stages: ReadonlyArray<OcpSignInStageProgressView>;
   overallPercent: number;
   overallState: "idle" | "active" | "completed" | "failed";
-  /** True only after a failure is revealed (timeout window elapsed). */
   hasFailure: boolean;
-  /** Projection failed but bar is still animating to timeout. */
-  hasLatentFailure: boolean;
   isReady: boolean;
   isVisible: boolean;
 }>;
@@ -68,33 +64,13 @@ function resolveActivePercent(
   return clampPercent((elapsed / timeoutMs) * 100);
 }
 
-function hasElapsedTimeoutWindow(
-  stageStartedAtMs: number | null,
-  timeoutMs: number,
-  nowMs: number,
-): boolean {
-  if (stageStartedAtMs === null || timeoutMs <= 0) {
-    return true;
-  }
-  return nowMs - stageStartedAtMs >= timeoutMs;
-}
-
-/**
- * Definitive server answers (HTTP 200 SESSION_EXIST, invalid API key, …)
- * must surface immediately — the request already completed successfully.
- * Network/transport drops still wait out the stage timeout bar.
- */
-function shouldRevealFailureImmediately(
+function resolveFailedVisualState(
   failureKind: AuthorizationProgressFailureKind | null,
-): boolean {
-  return (
-    failureKind === "session_exist" ||
-    failureKind === "invalid_api_key" ||
-    failureKind === "sip_identity_mismatch" ||
-    failureKind === "sip_authorize_failed" ||
-    failureKind === "sip_register_failed" ||
-    failureKind === "cancelled"
-  );
+): Extract<OcpSignInStageVisualState, "failed" | "timeout"> {
+  if (failureKind === "timeout" || failureKind === "credentials_timeout") {
+    return "timeout";
+  }
+  return "failed";
 }
 
 /**
@@ -112,7 +88,6 @@ export function deriveOcpSignInProgressView(
     projectionFailed ||
     isReady;
 
-  let hasLatentFailure = false;
   let hasRevealedFailure = false;
 
   const stages = OCP_SIGN_IN_EXECUTION_STAGES.map(
@@ -123,43 +98,14 @@ export function deriveOcpSignInProgressView(
       const active = progress.executionStage === stage && !failed;
 
       if (failed) {
-        const immediate = shouldRevealFailureImmediately(progress.failureKind);
-        const reveal =
-          immediate ||
-          hasElapsedTimeoutWindow(
-            progress.stageStartedAtMs,
-            timeoutMs,
-            nowMs,
-          );
-        if (!reveal) {
-          hasLatentFailure = true;
-          return {
-            stage,
-            state: "active",
-            percent: resolveActivePercent(
-              progress.stageStartedAtMs,
-              timeoutMs,
-              nowMs,
-            ),
-            timeoutMs,
-            failureKind: null,
-            failureCode: null,
-            awaitingTimeoutReveal: true,
-          };
-        }
         hasRevealedFailure = true;
-        // Immediate server answers keep their real kind; latent network waits
-        // become timeout after the bar finishes.
         return {
           stage,
-          state: "failed",
+          state: resolveFailedVisualState(progress.failureKind),
           percent: 100,
           timeoutMs,
-          failureKind: immediate
-            ? progress.failureKind
-            : "timeout",
+          failureKind: progress.failureKind,
           failureCode: progress.failureCode,
-          awaitingTimeoutReveal: false,
         };
       }
 
@@ -176,7 +122,6 @@ export function deriveOcpSignInProgressView(
           timeoutMs,
           failureKind: null,
           failureCode: null,
-          awaitingTimeoutReveal: false,
         };
       }
 
@@ -188,7 +133,6 @@ export function deriveOcpSignInProgressView(
           timeoutMs,
           failureKind: null,
           failureCode: null,
-          awaitingTimeoutReveal: false,
         };
       }
 
@@ -199,7 +143,6 @@ export function deriveOcpSignInProgressView(
         timeoutMs,
         failureKind: null,
         failureCode: null,
-        awaitingTimeoutReveal: false,
       };
     },
   );
@@ -228,7 +171,6 @@ export function deriveOcpSignInProgressView(
     overallPercent,
     overallState,
     hasFailure: hasRevealedFailure,
-    hasLatentFailure,
     isReady,
     isVisible,
   };

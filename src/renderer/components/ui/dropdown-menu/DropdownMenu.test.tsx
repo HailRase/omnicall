@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./DropdownMenu.js";
+import styles from "./DropdownMenu.module.css";
 
 afterEach(() => {
   cleanup();
@@ -199,6 +200,14 @@ describe("DropdownMenu", () => {
     await user.click(checkboxItem);
 
     expect(checkboxItem).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("reserves leading space for checkbox indicator", async () => {
+    render(<CheckboxMenu />);
+
+    const checkboxItem = await screen.findByRole("menuitemcheckbox", { name: "Status bar" });
+    expect(checkboxItem).toHaveClass(styles.checkboxItem);
+    expect(checkboxItem.firstElementChild).toHaveClass(styles.checkboxIndicator);
   });
 
   it("preserves caller className on content", async () => {

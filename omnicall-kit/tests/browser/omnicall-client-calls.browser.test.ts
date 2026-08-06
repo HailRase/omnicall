@@ -43,7 +43,6 @@ test('browser OmniCallClient call originate settles typed after mocked ready', a
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'browser-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-browser',
     requestedProfile: 'call_controller',
     requestedCapabilities: [
       'session.read.redacted',

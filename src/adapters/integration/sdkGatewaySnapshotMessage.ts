@@ -51,6 +51,14 @@ export function extractProductSectionsFromReplyResult(
   return parsed.success ? parsed.data : null;
 }
 
+export function extractSnapshotWindowVisible(
+  result: WireJsonObject,
+): boolean | null {
+  return typeof result["windowVisible"] === "boolean"
+    ? result["windowVisible"]
+    : null;
+}
+
 function mergeSnapshotSections(input: {
   readonly clientId: string;
   readonly grantedCapabilities: readonly CapabilityId[];

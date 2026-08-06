@@ -51,15 +51,16 @@ export type LocalWsServerAdapterOptions = Readonly<{
   pairingApprover?: SdkPairingApprover;
   autoApprovePairing?: boolean;
   originTrustApprover?: SdkOriginTrustApprover;
-  /** Test helper: auto-allow unknown Origins (skip TOFU modal). */
+  /** Test helper: auto-allow unknown Origins (production upgrade rejects unknown). */
   autoAllowOriginTrust?: boolean;
   /** DI-05 product surface (broker + window). Absent → product cmds stay not_ready. */
   productSurface?: SdkGatewayProductSurface;
-  /** Persist Origin trust mutations from TOFU / Settings (main wires this). */
+  /** Persist Origin trust mutations from Settings / test helpers (main wires this). */
   onOriginTrustChanged?: (entries: readonly SdkOriginTrustEntry[]) => void;
   /**
-   * Fired when a new deferred Origin-trust (TOFU) request awaits operator decision.
-   * Main uses this for shell raise (ADR-0013). Not used with auto-allow.
+   * Fired when a deferred Origin-trust request awaits operator decision (legacy/test path).
+   * Production admission is Trusted sites / seed (ADR-0018 amended 2026-08-03).
+   * Main may use this for shell raise (ADR-0013). Not used with auto-allow.
    */
   onOriginTrustPending?: (pending: SdkOriginTrustPending) => void;
   /**

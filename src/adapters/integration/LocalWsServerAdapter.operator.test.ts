@@ -42,9 +42,9 @@ function createSurface(
     isProductReady: () => true,
     requestProductCommand: () =>
       Promise.resolve({ ok: false as const, code: "unsupported_command" }),
-    showWindow: () => ({ ok: true, revision: 1, visible: true }),
-    hideWindow: () => ({ ok: true, revision: 1, visible: false }),
-    getWindowState: () => ({ ok: true, visible: false, revision: 1 }),
+    showWindow: () => ({ ok: true, visible: true }),
+    hideWindow: () => ({ ok: true, visible: false }),
+    getWindowState: () => ({ ok: true, visible: false }),
     ...overrides,
   };
 }
@@ -444,11 +444,11 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
   });
 
   it("notifies onClientSessionEnded on disconnect without requiring SIP teardown", async () => {
-    const ended: string[] = [];
+    const ended: Array<Readonly<{ origin: string; clientId: string }>> = [];
     const adapter = await startAdapter({
       productSurface: createSurface({
-        onClientSessionEnded: (clientId) => {
-          ended.push(clientId);
+        onClientSessionEnded: (identity) => {
+          ended.push(identity);
         },
       }),
     });
@@ -457,7 +457,10 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     ws.close();
     await once(ws, "close");
     await new Promise((r) => setTimeout(r, 40));
-    expect(ended).toContain("client_op_end_001");
+    expect(ended).toContainEqual({
+      origin: TEST_ORIGIN,
+      clientId: "client_op_end_001",
+    });
   });
 
   it("DI-08: denies account:activate-profile without capability", async () => {

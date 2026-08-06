@@ -79,6 +79,11 @@
   user-select: none;
 }
 
+/* CheckboxItem always reserves leading space for the absolute check indicator. */
+.checkbox-item {
+  padding-left: calc(var(--space-sm) + var(--icon-size-sm) + var(--space-xs));
+}
+
 .item[data-highlighted],
 .checkbox-item[data-highlighted] {
   background: var(--color-bg-surface-alt);

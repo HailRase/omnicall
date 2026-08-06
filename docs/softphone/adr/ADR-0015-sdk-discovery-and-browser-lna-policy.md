@@ -42,12 +42,13 @@ bootstrap (harder to version, no cacheable GET, poorer CRM diagnostics).
 
 3. **Method/headers:** GET only. No cookies. No `Authorization`. CORS for browser tabs:
    reflect **exact** Origin in `Access-Control-Allow-Origin` when Origin state is
-   **`unknown` or `allowed`** (ADR-0018 — required so first-contact TOFU can discover the
-   gateway). **`denied` (blacklist) must not** receive discovery ACAO. Documented loopback
+   **`unknown` or `allowed`** (ADR-0018 — so a not-yet-trusted CRM can read discovery and
+   instruct the operator to add the Origin in Trusted sites before connect).
+   **`denied` (blacklist) must not** receive discovery ACAO. Documented loopback
    tooling Origins may be treated as eligible when policy allows. Otherwise omit ACAO /
    fail closed for credentialed misuse. Discovery itself reveals no product PII.
-   WebSocket upgrade admission remains ADR-0018 (`unknown` → renderer modal; `denied` →
-   reject upgrade).
+   WebSocket upgrade admission remains ADR-0018 amended 2026-08-03: only **`allowed`**
+   Origins upgrade; `unknown` / `denied` / malformed reject (`origin_blocked`).
 
 4. **Response schema (`discoveryVersion: 1`)** — JSON object, all fields required unless
    marked optional:

@@ -32,6 +32,8 @@ export type ExternalCommandContext = Readonly<{
   clientId?: string;
   /** Exact Origin of the authenticated SDK connection (ADR-0018 activate consent). */
   origin?: string;
+  /** Broker-owned cancellation signal; mutation handlers must check before commit. */
+  signal?: AbortSignal;
 }>;
 
 /**

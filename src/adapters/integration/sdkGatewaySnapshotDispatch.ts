@@ -12,10 +12,14 @@ import {
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
-import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import type {
+  SdkDedupPrincipal,
+  SdkRequestDedupCache,
+} from "./sdkGatewayRequestDedup.js";
 import {
   buildSdkSnapshotMessage,
   extractProductSectionsFromReplyResult,
+  extractSnapshotWindowVisible,
 } from "./sdkGatewaySnapshotMessage.js";
 
 export type SnapshotDispatchInput = Readonly<{
@@ -25,6 +29,7 @@ export type SnapshotDispatchInput = Readonly<{
   command: Extract<WireMessage, { kind: "command" }>;
   reply: Extract<WireMessage, { kind: "reply" }>;
   requestDedup: SdkRequestDedupCache;
+  dedupPrincipal: SdkDedupPrincipal;
   now: () => Date;
   sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   log: (
@@ -41,7 +46,7 @@ export function deliverSdkSnapshotReply(
   const { command, reply } = input;
   if (!reply.ok) {
     input.requestDedup.complete(
-      command.requestId,
+      input.dedupPrincipal,
       reply,
       input.now().getTime(),
     );
@@ -54,12 +59,11 @@ export function deliverSdkSnapshotReply(
     return;
   }
   const productSections = extractProductSectionsFromReplyResult(reply.result);
-  if (productSections === null) {
+  const windowVisible = extractSnapshotWindowVisible(reply.result);
+  if (productSections === null || windowVisible === null) {
     cacheFailure(input, "operation_failed");
     return;
   }
-  const windowState = input.product.getWindowState();
-  const windowVisible = windowState.ok ? windowState.visible : false;
   const clientId = input.connection.clientId;
   if (clientId === null) {
     cacheFailure(input, "unauthenticated");
@@ -93,7 +97,7 @@ export function deliverSdkSnapshotReply(
     result: { accepted: true },
   });
   input.requestDedup.complete(
-    command.requestId,
+    input.dedupPrincipal,
     successReply,
     input.now().getTime(),
   );
@@ -118,7 +122,7 @@ function cacheFailure(
     now: input.now,
   });
   input.requestDedup.complete(
-    input.command.requestId,
+    input.dedupPrincipal,
     reply,
     input.now().getTime(),
   );

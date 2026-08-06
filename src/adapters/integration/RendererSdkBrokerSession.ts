@@ -73,6 +73,7 @@ export class RendererSdkBrokerSession {
   private readonly serverInstanceId: string;
   private readonly sessionEpoch: string;
   private readonly createOccurredAt: () => string;
+  private readonly cancellations = new Map<string, AbortController>();
   private active = false;
 
   constructor(options: RendererSdkBrokerSessionOptions) {
@@ -93,6 +94,19 @@ export class RendererSdkBrokerSession {
 
   markInactive(): void {
     this.active = false;
+    for (const controller of this.cancellations.values()) {
+      controller.abort();
+    }
+    this.cancellations.clear();
+  }
+
+  cancelRequest(brokerRequestId: string): boolean {
+    const controller = this.cancellations.get(brokerRequestId);
+    if (controller === undefined) {
+      return false;
+    }
+    controller.abort();
+    return true;
   }
 
   async handleRequest(input: unknown): Promise<SdkBrokerReplyIpcPayload> {
@@ -109,11 +123,18 @@ export class RendererSdkBrokerSession {
       return failureReply(envelope.brokerRequestId, "not_ready");
     }
 
-    return this.dispatch(envelope);
+    const controller = new AbortController();
+    this.cancellations.set(envelope.brokerRequestId, controller);
+    try {
+      return await this.dispatch(envelope, controller.signal);
+    } finally {
+      this.cancellations.delete(envelope.brokerRequestId);
+    }
   }
 
   private async dispatch(
     envelope: SdkBrokerRequestIpcPayload,
+    signal: AbortSignal,
   ): Promise<SdkBrokerReplyIpcPayload> {
     const validated = validateWireMessage(envelope.command);
     if (!validated.success) {
@@ -130,12 +151,19 @@ export class RendererSdkBrokerSession {
       return failureReply(envelope.brokerRequestId, denial ?? "forbidden");
     }
 
+    if (signal.aborted) {
+      return failureReply(envelope.brokerRequestId, "operation_failed");
+    }
     const handlerResult = await this.handler.handleCommand(message, {
       ...(envelope.clientId !== undefined
         ? { clientId: envelope.clientId }
         : {}),
       ...(envelope.origin !== undefined ? { origin: envelope.origin } : {}),
+      signal,
     });
+    if (signal.aborted) {
+      return failureReply(envelope.brokerRequestId, "operation_failed");
+    }
     return this.toIpcReply(envelope.brokerRequestId, message, handlerResult);
   }
 

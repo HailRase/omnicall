@@ -34,6 +34,9 @@ export type UseExternalServicesPanelResult = Readonly<{
   welcome: ExternalServicesWelcomeProps | null;
   requestsView: ExternalServicesRequestsViewProps | null;
   requestEditor: ExternalServicesRequestEditorProps | null;
+  loadErrorMessage: string | null;
+  statusMessage: string | null;
+  onRetryLoad: () => void;
   dialogs: ExternalServicesCollectionsDialogsProps;
   variablesDialog: ExternalServicesVariablesDialogProps | null;
 }>;
@@ -113,6 +116,9 @@ export function useExternalServicesPanel(
     welcome: workspace.welcome,
     requestsView: workspace.requestsView,
     requestEditor: workspace.requestEditor,
+    loadErrorMessage: dialogsApi.banner.loadErrorMessage,
+    statusMessage: dialogsApi.banner.statusMessage,
+    onRetryLoad: dialogsApi.banner.onRetryLoad,
     dialogs: dialogsApi.dialogs,
     variablesDialog: dialogsApi.variablesDialog,
   };

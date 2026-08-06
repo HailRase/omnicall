@@ -84,11 +84,20 @@ describe("SdkBrokerContract parsers", () => {
 
   it("parses client-session-ended payload", () => {
     expect(
-      parseSdkBrokerClientSessionEndedIpcPayload({ clientId: "client_a" }),
-    ).toEqual({ clientId: "client_a" });
+      parseSdkBrokerClientSessionEndedIpcPayload({
+        clientId: "client_a",
+        origin: "https://crm.example.com",
+      }),
+    ).toEqual({
+      clientId: "client_a",
+      origin: "https://crm.example.com",
+    });
     expect(parseSdkBrokerClientSessionEndedIpcPayload({})).toBeNull();
     expect(
       parseSdkBrokerClientSessionEndedIpcPayload({ clientId: "" }),
+    ).toBeNull();
+    expect(
+      parseSdkBrokerClientSessionEndedIpcPayload({ clientId: "client_a" }),
     ).toBeNull();
   });
 });

@@ -209,7 +209,7 @@ describe("OcpSipCredentialService", () => {
     service.dispose();
   });
 
-  it("times out when credentials never arrive", async () => {
+  it("times out when credentials never arrive after budget starts", async () => {
     const gateway = new MockOcpGateway();
     const logger = createLoggerSpy();
     const service = new OcpSipCredentialService({
@@ -223,12 +223,49 @@ describe("OcpSipCredentialService", () => {
       credentialsTimeoutMs: 20,
     });
 
-    const result = await service.waitAndApplyNext(createCorrelationId());
+    const correlationId = createCorrelationId();
+    const pending = service.waitAndApplyNext(correlationId);
+    service.beginCredentialsTimeout(correlationId);
+    const result = await pending;
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toBe("ocp_credentials_timeout");
     }
     service.dispose();
+  });
+
+  it("does not time out while credentials wait is only armed", async () => {
+    vi.useFakeTimers();
+    const gateway = new MockOcpGateway();
+    const logger = createLoggerSpy();
+    const service = new OcpSipCredentialService({
+      ocpGateway: gateway,
+      logger,
+      authorizeSipAccount: createAuthorizeSipAccountStub(vi.fn()),
+      registerAccount: createRegisterAccountStub(vi.fn()),
+      promoteAuthorizedSipSession: createPromoteAuthorizedSipSessionStub(),
+      isSipRegistered: () => false,
+      getActiveSipIdentity: () => Promise.resolve(null),
+      credentialsTimeoutMs: 20,
+    });
+
+    const correlationId = createCorrelationId();
+    const pending = service.waitAndApplyNext(correlationId);
+    await vi.advanceTimersByTimeAsync(200);
+    let settled = false;
+    void pending.then(() => {
+      settled = true;
+    });
+    expect(settled).toBe(false);
+    service.cancelWait(
+      correlationId,
+      createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+        reason: "ocp_attempt_cancelled",
+      }),
+    );
+    await pending;
+    service.dispose();
+    vi.useRealTimers();
   });
 
   it("cancelWait resolves waiter and skips promote/register after authorize settles", async () => {

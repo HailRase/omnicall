@@ -21,19 +21,38 @@ Mirrors OmniCall desktop release discipline, adapted for npm private packages (o
 
 **Do not bump** for: docs-only, tests-only, internal refactors without consumer impact.
 
+### Corrective track (ADR-0027 / production-readiness)
+
+| Surface | Expectation | Notes |
+| --- | --- | --- |
+| `@softomnitel/omnicall-kit` | **MINOR** if additive public DX ships; else **PATCH** for corrective semantics | e.g. latest-known `getRevision()` observation is consumer-visible → treat as MINOR unless release cut classifies as PATCH-only docs/behavior harden |
+| OmniCall Desktop | **PATCH** for coordinator / dedup / pairing / window clock fixes | No host API break claimed by this track |
+| Version bump + npm publish | **WU-07 / authorized release cut only** | Agents must not bump or publish during WU-01…WU-06 |
+
 ## npm access posture
 
 | Item | Value |
 | --- | --- |
 | Scope | `@softomnitel` |
 | `publishConfig.access` | **`public`** (Free org interim) or **`restricted`** (Teams) |
-| Current stable | **`0.1.0`** on `latest` |
-| Current RC | **`0.1.0-rc.0`** on `rc` |
+| Workspace truth | kit **`0.2.1`**, protocol **`0.1.0`** (`packages/*/package.json`) |
+| npm `latest` (verified) | kit **`0.2.1`**, protocol **`0.1.0`** |
+| npm `rc` | **`0.1.0-rc.0`** (both) |
 | Free org plan | Can prepare locally; **cannot** publish restricted |
-| First RC dist-tag | **`rc`** (never `latest` while DI-10 open) |
-| Stable dist-tag | **`latest`** only after DI-10 / waiver |
+| Stable dist-tag | **`latest`** (DI-10 closed 2026-07-27) |
 
 See [npm-org-and-access.md](./npm-org-and-access.md).
+
+## Licensing / publish gate (fail-closed)
+
+Both publishable packages declare `"license": "UNLICENSED"` and ship a placeholder
+`LICENSE` (all rights reserved until a public license is chosen).
+
+- **UNLICENSED is not an open-source grant.** Do not invent SPDX text or claim MIT/Apache.
+- `release:publish-*` refuses unless `RELEASE_CONFIRM=1` **and**
+  `RELEASE_LICENSE_REVIEWED=1` (human legal/license review evidence outside this repo).
+- Security review gate in `docs/SECURITY.md` remains mandatory for public publish.
+- Example apps stay `private: true` and are never published.
 
 ## Release cut procedure
 
@@ -76,24 +95,24 @@ npm run release:check
 
 ### 5. Publish
 
-**RC** (npm Teams + auth required):
+**RC** (npm auth + license review while UNLICENSED):
 
 ```bash
 # PowerShell
-$env:RELEASE_CONFIRM='1'; npm run release:publish-rc
+$env:RELEASE_CONFIRM='1'; $env:RELEASE_LICENSE_REVIEWED='1'; npm run release:publish-rc
 
 # bash
-RELEASE_CONFIRM=1 npm run release:publish-rc
+RELEASE_CONFIRM=1 RELEASE_LICENSE_REVIEWED=1 npm run release:publish-rc
 ```
 
-**Stable** (also requires DI-10 gate env):
+**Stable** (also requires DI-10 gate env + license review while UNLICENSED):
 
 ```bash
 # PowerShell
-$env:RELEASE_CONFIRM='1'; $env:RELEASE_DI10_DONE='1'; npm run release:publish-stable
+$env:RELEASE_CONFIRM='1'; $env:RELEASE_DI10_DONE='1'; $env:RELEASE_LICENSE_REVIEWED='1'; npm run release:publish-stable
 
 # bash
-RELEASE_CONFIRM=1 RELEASE_DI10_DONE=1 npm run release:publish-stable
+RELEASE_CONFIRM=1 RELEASE_DI10_DONE=1 RELEASE_LICENSE_REVIEWED=1 npm run release:publish-stable
 ```
 
 ### 6. Lock packages again (optional)
@@ -126,8 +145,8 @@ git push origin v0.1.0-rc.0
 ## Never
 
 - Publish without `RELEASE_CONFIRM=1`
-- Publish `latest` while DI-10 is open
-- Publish with `--access public` (this track is private/restricted)
+- Publish without `RELEASE_LICENSE_REVIEWED=1` while packages remain `UNLICENSED`
+- Invent an SPDX license to greenwash the publish gate
 - Publish `examples/*`
 - Commit npm tokens or `.npmrc` with `_authToken`
 

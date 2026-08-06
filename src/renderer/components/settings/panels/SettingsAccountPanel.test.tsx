@@ -86,6 +86,20 @@ describe("SettingsAccountPanel", () => {
     expect(screen.queryByTestId("account-logout")).not.toBeInTheDocument();
   });
 
+  it("shows first-run hint when there are no saved profiles", () => {
+    renderPanel({ savedProfileOptions: [] });
+
+    expect(screen.getByTestId("settings-account-first-run-hint")).toBeInTheDocument();
+    expect(screen.getByText(/Первый вход/)).toBeInTheDocument();
+  });
+
+  it("hides first-run hint when saved profiles exist", () => {
+    renderPanel();
+    expect(
+      screen.queryByTestId("settings-account-first-run-hint"),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows save profile checkbox only for New selection in SIP mode", () => {
     renderPanel();
     expect(screen.getByTestId("account-save-profile-checkbox")).toBeInTheDocument();

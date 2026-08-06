@@ -1,6 +1,6 @@
 /**
- * Application call-command handler (DI-06 / ADR-0017 / ADR-0021).
- * expectedRevision + per-call serialization → existing Use Cases.
+ * Application call-command handler (DI-06 / ADR-0017 / ADR-0021 / ADR-0027).
+ * Aggregate revision via SdkSessionRevisionCoordinator; nested per-call mutex.
  * Ownership is informational (snapshot); control is capability-gated for any
  * authenticated paired client (shared desk — no cross-client not_owner deny).
  */
@@ -22,15 +22,15 @@ import type { ExternalSdkCallPort } from "./ExternalSdkCallPort.js";
 import {
   mapPlatformErrorToSdkFailure,
   mapUcResultToSdk,
-  readExpectedRevision,
   readStringField,
-  sdkCallStale,
-  sdkCallSuccess,
   sdkFail,
 } from "./externalSdkCallHelpers.js";
 import { SdkAggregateMutex } from "./SdkAggregateMutex.js";
 import type { SdkCallOwnershipRegistry } from "./SdkCallOwnershipRegistry.js";
-import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
+import type {
+  SdkRevisionMutationOutcome,
+  SdkSessionRevisionCoordinator,
+} from "./SdkSessionRevisionCoordinator.js";
 
 const CALL_COMMAND_TYPES = new Set<string>([
   "call:originate",
@@ -44,13 +44,13 @@ const CALL_COMMAND_TYPES = new Set<string>([
   "call:send-dtmf",
 ]);
 
-const ACCOUNT_LOCK_KEY = "__sdk_account__";
 const IDEMPOTENCY_TTL_MS = 120_000;
 
 export type ExternalSdkCallHandlerOptions = Readonly<{
   callPort: ExternalSdkCallPort;
   ownership: SdkCallOwnershipRegistry;
-  revisionClock: SdkSessionRevisionClock;
+  revisionCoordinator: SdkSessionRevisionCoordinator;
+  /** Nested per-call serialization (acquired inside aggregate lock). */
   mutex?: SdkAggregateMutex;
   nowMs?: () => number;
 }>;
@@ -66,7 +66,7 @@ type CachedReply = Readonly<{
 export class ExternalSdkCallHandler implements ExternalCommandHandler {
   private readonly callPort: ExternalSdkCallPort;
   private readonly ownership: SdkCallOwnershipRegistry;
-  private readonly revisionClock: SdkSessionRevisionClock;
+  private readonly revisionCoordinator: SdkSessionRevisionCoordinator;
   private readonly mutex: SdkAggregateMutex;
   private readonly nowMs: () => number;
   private readonly idempotency = new Map<string, CachedReply>();
@@ -75,7 +75,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
   constructor(options: ExternalSdkCallHandlerOptions) {
     this.callPort = options.callPort;
     this.ownership = options.ownership;
-    this.revisionClock = options.revisionClock;
+    this.revisionCoordinator = options.revisionCoordinator;
     this.mutex = options.mutex ?? new SdkAggregateMutex();
     this.nowMs = options.nowMs ?? (() => Date.now());
   }
@@ -104,7 +104,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
       return Promise.resolve(sdkFail("unsupported_command"));
     }
 
-    const requestId = message.requestId;
+    const requestId = this.idempotencyKey(message.requestId, context);
     this.pruneIdempotency();
     const cached = this.idempotency.get(requestId);
     if (cached !== undefined && cached.expiresAt > this.nowMs()) {
@@ -115,14 +115,17 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
       return pending;
     }
 
-    const execution = this.executeCommand(message, context).then((result) => {
-      this.idempotency.set(requestId, {
-        result,
-        expiresAt: this.nowMs() + IDEMPOTENCY_TTL_MS,
+    const execution = this.executeCommand(message, context)
+      .then((result) => {
+        this.idempotency.set(requestId, {
+          result,
+          expiresAt: this.nowMs() + IDEMPOTENCY_TTL_MS,
+        });
+        return result;
+      })
+      .finally(() => {
+        this.inFlight.delete(requestId);
       });
-      this.inFlight.delete(requestId);
-      return result;
-    });
     this.inFlight.set(requestId, execution);
     return execution;
   }
@@ -136,31 +139,29 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
       return sdkFail("unauthenticated");
     }
     if (message.type === "call:originate") {
-      return this.mutex.runExclusive(ACCOUNT_LOCK_KEY, () =>
-        this.handleOriginate(message.payload, clientId),
+      return this.revisionCoordinator.runMutationFromPayload(
+        message.payload,
+        () => this.handleOriginate(message.payload, clientId),
       );
     }
     const callIdRaw = readStringField(message.payload, "callId");
     if (callIdRaw === null) {
       return sdkFail("invalid_payload");
     }
-    return this.mutex.runExclusive(callIdRaw, () =>
-      this.handleControl(message.type, message.payload, clientId, callIdRaw),
+    // Aggregate lock first, then nested per-call lock (ADR-0027).
+    return this.revisionCoordinator.runMutationFromPayload(
+      message.payload,
+      () =>
+        this.mutex.runExclusive(callIdRaw, () =>
+          this.handleControl(message.type, message.payload, clientId, callIdRaw),
+        ),
     );
   }
 
   private async handleOriginate(
     payload: unknown,
     clientId: string,
-  ): Promise<ExternalHandlerResult> {
-    const expectedRevision = readExpectedRevision(payload);
-    if (expectedRevision === null) {
-      return sdkFail("invalid_payload");
-    }
-    const current = this.revisionClock.peek();
-    if (expectedRevision !== current) {
-      return sdkCallStale(current);
-    }
+  ): Promise<SdkRevisionMutationOutcome> {
     const destination = readStringField(payload, "destination");
     if (destination === null || destination.length === 0) {
       return sdkFail("invalid_payload");
@@ -171,10 +172,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
     }
     const callId = String(result.value.id);
     this.ownership.assignOwner(callId, clientId);
-    return sdkCallSuccess(
-      { callId, accepted: true },
-      this.revisionClock.advance(),
-    );
+    return { ok: true, result: { callId, accepted: true } };
   }
 
   private async handleControl(
@@ -182,15 +180,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
     payload: unknown,
     clientId: string,
     callIdRaw: string,
-  ): Promise<ExternalHandlerResult> {
-    const expectedRevision = readExpectedRevision(payload);
-    if (expectedRevision === null) {
-      return sdkFail("invalid_payload");
-    }
-    const sessionRevision = this.revisionClock.peek();
-    if (expectedRevision !== sessionRevision) {
-      return sdkCallStale(sessionRevision);
-    }
+  ): Promise<SdkRevisionMutationOutcome> {
     // ADR-0021: shared desk — any capability-authorized client may control.
     const callId = createCallId(callIdRaw);
     const ucResult = await this.invokeControl(type, callId, payload);
@@ -206,10 +196,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
     if (type === "call:hangup" || type === "call:reject") {
       this.ownership.finalize(callIdRaw);
     }
-    return sdkCallSuccess(
-      { callId: callIdRaw, accepted: true },
-      this.revisionClock.advance(),
-    );
+    return { ok: true, result: { callId: callIdRaw, accepted: true } };
   }
 
   private async invokeControl(
@@ -263,6 +250,13 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
         this.idempotency.delete(id);
       }
     }
+  }
+
+  private idempotencyKey(
+    requestId: string,
+    context: ExternalCommandContext | undefined,
+  ): string {
+    return `${context?.origin ?? ""}\u0000${context?.clientId ?? ""}\u0000${requestId}`;
   }
 }
 

@@ -41,9 +41,9 @@ function createSurface(
     isProductReady: () => true,
     requestProductCommand: () =>
       Promise.resolve({ ok: false as const, code: "unsupported_command" }),
-    showWindow: () => ({ ok: true, revision: 1, visible: true }),
-    hideWindow: () => ({ ok: true, revision: 1, visible: false }),
-    getWindowState: () => ({ ok: true, visible: false, revision: 1 }),
+    showWindow: () => ({ ok: true, visible: true }),
+    hideWindow: () => ({ ok: true, visible: false }),
+    getWindowState: () => ({ ok: true, visible: false }),
     ...overrides,
   };
 }
@@ -349,7 +349,7 @@ describe("LocalWsServerAdapter DI-06 call commands", () => {
       "client_rev_call",
       "call_controller",
     );
-    await adapter.revokePairedClient("client_rev_call");
+    await adapter.revokePairedClient("client_rev_call", TEST_ORIGIN);
     expect(await queue.next()).toMatchObject({
       kind: "event",
       type: "sdk:revoked",
@@ -357,5 +357,193 @@ describe("LocalWsServerAdapter DI-06 call commands", () => {
     await once(ws, "close");
     expect(hello.serverInstanceId.length).toBeGreaterThan(0);
     expect(invokeCount).toBe(0);
+  });
+
+  it("WU-04: shared requestId cannot steal another client cached reply", async () => {
+    const invokes: string[] = [];
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: (command, context) => {
+          invokes.push(context?.clientId ?? "missing");
+          if (command.kind !== "command") {
+            return Promise.resolve({ ok: false as const, code: "invalid_message" });
+          }
+          return Promise.resolve({
+            ok: true as const,
+            reply: {
+              protocolVersion: PROTOCOL_MAJOR,
+              kind: "reply" as const,
+              ok: true as const,
+              requestId: command.requestId,
+              commandType: command.type,
+              serverInstanceId: command.serverInstanceId,
+              sessionEpoch: command.sessionEpoch,
+              occurredAt: "2026-07-20T09:00:01.000Z",
+              revision: 2,
+              result: {
+                callId: `call_${context?.clientId ?? "x"}`,
+                accepted: true,
+              },
+            },
+          });
+        },
+      }),
+    });
+    const sharedRequestId = "req_cross_client_collision";
+    const clientA = await pairAuth(adapter, "client_dedup_a", "call_controller");
+    const clientB = await pairAuth(adapter, "client_dedup_b", "call_controller");
+
+    clientA.ws.send(originateBody(clientA.hello, sharedRequestId));
+    expect(await clientA.queue.next()).toMatchObject({
+      kind: "reply",
+      ok: true,
+      requestId: sharedRequestId,
+      result: { callId: "call_client_dedup_a" },
+    });
+
+    clientB.ws.send(originateBody(clientB.hello, sharedRequestId));
+    expect(await clientB.queue.next()).toMatchObject({
+      kind: "reply",
+      ok: true,
+      requestId: sharedRequestId,
+      result: { callId: "call_client_dedup_b" },
+    });
+    expect(invokes).toEqual(["client_dedup_a", "client_dedup_b"]);
+
+    clientA.ws.send(originateBody(clientA.hello, sharedRequestId));
+    expect(await clientA.queue.next()).toMatchObject({
+      kind: "reply",
+      ok: true,
+      result: { callId: "call_client_dedup_a" },
+    });
+    expect(invokes).toHaveLength(2);
+
+    clientA.queue.close();
+    clientA.ws.close();
+    clientB.queue.close();
+    clientB.ws.close();
+  });
+
+  it("WU-04: disconnect abandons pending so a reconnect can re-execute", async () => {
+    let releaseFirst: (() => void) | undefined;
+    const firstHeld = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    let invokeCount = 0;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: async (command) => {
+          invokeCount += 1;
+          if (invokeCount === 1) {
+            await firstHeld;
+          }
+          if (command.kind !== "command") {
+            return { ok: false as const, code: "invalid_message" };
+          }
+          return {
+            ok: true as const,
+            reply: {
+              protocolVersion: PROTOCOL_MAJOR,
+              kind: "reply" as const,
+              ok: true as const,
+              requestId: command.requestId,
+              commandType: command.type,
+              serverInstanceId: command.serverInstanceId,
+              sessionEpoch: command.sessionEpoch,
+              occurredAt: "2026-07-20T09:00:01.000Z",
+              revision: 2,
+              result: { callId: `call_inv_${invokeCount}`, accepted: true },
+            },
+          };
+        },
+      }),
+    });
+
+    const clientId = "client_abandon";
+    const keys = generateSdkPopTestKeyPair();
+    const port = adapter.getBoundAddress()!.port;
+
+    const pairWs = await openWs(port);
+    const pairQueue = attachMessageQueue(pairWs);
+    await handshake(pairQueue, pairWs);
+    pairWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "pairing",
+        type: "pairing:request",
+        clientId,
+        clientPublicKey: keys.publicKeyBase64Url,
+        keyAlgorithm: "ECDSA-P256-SHA256",
+        application: { name: "fixture-crm", version: "1.0.0" },
+        requestedProfile: "call_controller",
+        requestedCapabilities: [
+          "session.read.redacted",
+          "call.originate",
+          "call.control",
+        ],
+        occurredAt: "2026-07-20T09:00:00.000Z",
+      }),
+    );
+    expectType(await pairQueue.next(), "pairing:pending");
+    expectType(await pairQueue.next(), "pairing:approved");
+    pairQueue.close();
+    pairWs.close();
+    await once(pairWs, "close");
+
+    async function authSession(): Promise<{
+      ws: WebSocket;
+      queue: MessageQueue;
+      hello: Extract<WireMessage, { type: "sdk:server-hello" }>;
+    }> {
+      const ws = await openWs(port);
+      const queue = attachMessageQueue(ws);
+      const hello = await handshake(queue, ws, clientId);
+      const challenge = hello.authChallenge!;
+      ws.send(
+        JSON.stringify({
+          protocolVersion: PROTOCOL_MAJOR,
+          kind: "auth",
+          type: "sdk:auth-proof",
+          challengeId: challenge.challengeId,
+          clientId,
+          signature: signSdkPopPayload({
+            privateKey: keys.privateKey,
+            serverInstanceId: hello.serverInstanceId,
+            sessionEpoch: hello.sessionEpoch,
+            origin: TEST_ORIGIN,
+            clientId,
+            challengeId: challenge.challengeId,
+            nonce: challenge.nonce,
+          }),
+          occurredAt: "2026-07-20T09:00:00.000Z",
+        }),
+      );
+      await new Promise((r) => setTimeout(r, 40));
+      return { ws, queue, hello };
+    }
+
+    const first = await authSession();
+    first.ws.send(originateBody(first.hello, "req_abandon_pending"));
+    await new Promise((r) => setTimeout(r, 40));
+    expect(invokeCount).toBe(1);
+
+    first.queue.close();
+    first.ws.close();
+    await once(first.ws, "close");
+    // Keep the first broker held so it cannot late-complete into the cache.
+    // Disconnect must abandon the pending slot for the reconnecting principal.
+
+    const second = await authSession();
+    second.ws.send(originateBody(second.hello, "req_abandon_pending"));
+    expect(await second.queue.next()).toMatchObject({
+      kind: "reply",
+      ok: true,
+      requestId: "req_abandon_pending",
+      result: { callId: "call_inv_2" },
+    });
+    expect(invokeCount).toBe(2);
+    releaseFirst?.();
+    second.queue.close();
+    second.ws.close();
   });
 });

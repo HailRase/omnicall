@@ -1,0 +1,280 @@
+.schematic-svg {
+  display: block;
+  width: 100%;
+  max-width: 11rem;
+  height: auto;
+}
+
+.schematic-desktop {
+  fill: var(--color-bg-surface);
+  stroke: none;
+}
+
+.schematic-desktop-outline {
+  fill: none;
+  stroke: var(--color-border-default);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-taskbar {
+  fill: var(--color-bg-surface-deep);
+  stroke: none;
+}
+
+.schematic-softphone {
+  fill: var(--color-bg-surface);
+  stroke: var(--color-border-control);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-softphone-header,
+.schematic-softphone-inner {
+  fill: var(--color-bg-surface-alt);
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-status {
+  fill: var(--color-status-online);
+}
+
+.schematic-card-frame {
+  fill: var(--color-bg-surface);
+  stroke: var(--color-accent-primary);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-foreign-frame {
+  fill: var(--color-bg-surface-elevated);
+  stroke: var(--color-border-control);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.schematic-title-bar {
+  fill: var(--color-bg-surface-alt);
+  stroke: none;
+}
+
+.schematic-foreign-title {
+  fill: var(--color-bg-surface-deep);
+  stroke: none;
+}
+
+.schematic-content {
+  fill: var(--color-bg-surface-deep);
+  stroke: none;
+}
+
+.schematic-content-muted {
+  fill: var(--color-border-default);
+  stroke: none;
+  opacity: 0.7;
+}
+
+.schematic-dot {
+  fill: var(--color-accent-primary);
+}
+
+.schematic-dot-muted {
+  fill: var(--color-border-control);
+}
+
+.schematic-caption {
+  fill: var(--color-text-secondary);
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.pin-icon-host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  color: var(--color-accent-primary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-control);
+  border-radius: 999px;
+}
+
+.scene-card,
+.scene-foreign,
+.scene-foreign-cluster,
+.scene-pin {
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
+.schematic-svg[data-kind="raise"][data-active="true"] .scene-card {
+  animation: wb-raise-card-front 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="raise"][data-active="true"] .scene-foreign {
+  opacity: 0.88;
+}
+
+.schematic-svg[data-kind="raise"][data-active="false"] .scene-card {
+  opacity: 0.85;
+  transform: translate(-6px, 4px) scale(0.92);
+}
+
+.schematic-svg[data-kind="raise"][data-active="false"] .scene-foreign {
+  animation: wb-raise-foreign-cover 2.4s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-foreign-cluster {
+  opacity: 0.92;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-card {
+  animation: wb-aot-card-float 2.6s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-pin {
+  animation: wb-aot-pin-follow 2.6s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-card {
+  opacity: 0.88;
+  transform: translate(-4px, 6px) scale(0.94);
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-foreign-cluster {
+  animation: wb-aot-cluster-cover 2.6s linear infinite;
+}
+
+.schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-pin {
+  opacity: 0;
+}
+
+@keyframes wb-raise-card-front {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translate(-8px, 6px) scale(0.88);
+  }
+
+  38%,
+  72% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-8px, 6px) scale(0.88);
+  }
+}
+
+@keyframes wb-raise-foreign-cover {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  40%,
+  65% {
+    opacity: 1;
+    transform: translate(3px, -2px);
+  }
+}
+
+@keyframes wb-aot-card-float {
+  0% {
+    transform: translate(-6px, 4px);
+  }
+
+  25% {
+    transform: translate(8px, -6px);
+  }
+
+  50% {
+    transform: translate(12px, 2px);
+  }
+
+  75% {
+    transform: translate(-2px, -8px);
+  }
+
+  100% {
+    transform: translate(-6px, 4px);
+  }
+}
+
+@keyframes wb-aot-pin-follow {
+  0% {
+    opacity: 0.85;
+    transform: translate(-6px, 4px);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translate(8px, -6px);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: translate(12px, 2px);
+  }
+
+  75% {
+    opacity: 1;
+    transform: translate(-2px, -8px);
+  }
+
+  100% {
+    opacity: 0.85;
+    transform: translate(-6px, 4px);
+  }
+}
+
+@keyframes wb-aot-cluster-cover {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+
+  45%,
+  60% {
+    transform: translate(-4px, -3px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schematic-svg[data-kind="raise"][data-active="true"] .scene-card,
+  .schematic-svg[data-kind="raise"][data-active="false"] .scene-foreign,
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-card,
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-pin,
+  .schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-foreign-cluster {
+    animation: none;
+  }
+
+  .schematic-svg[data-kind="raise"][data-active="true"] .scene-card {
+    opacity: 1;
+    transform: none;
+  }
+
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-card {
+    transform: translate(4px, -3px);
+  }
+
+  .schematic-svg[data-kind="always-on-top"][data-active="true"] .scene-pin {
+    opacity: 1;
+    transform: translate(4px, -3px);
+  }
+
+  .schematic-svg[data-kind="always-on-top"][data-active="false"] .scene-foreign-cluster {
+    opacity: 1;
+    transform: none;
+  }
+}

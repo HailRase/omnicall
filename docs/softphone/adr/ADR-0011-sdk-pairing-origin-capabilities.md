@@ -26,10 +26,11 @@ revocation before any product state is exposed (DI-04).
 
 1. **Exact Origin gate:** Origin strings are matched **exactly** (missing, `null`, wildcard,
    suffix, and substring matches are rejected). Origin is an additional gate, **not** client
-   identity. **Upgrade admission** (unknown → renderer TOFU modal Allow/Deny, allowed,
-   denied/blacklist, Unblock restore rules) is defined by **ADR-0018**; this ADR no longer
-   requires the Origin to be pre-listed before the first WebSocket upgrade. Pairing /
-   PoP / session grants remain this ADR + ADR-0016 and run **after** Origin is `allowed`.
+   identity. **Upgrade admission** is defined by **ADR-0018** (amended 2026-08-03): only
+   **`allowed`** Origins receive a WebSocket; `unknown` / `denied` / malformed reject at
+   upgrade (`origin_blocked`). Pre-list via Trusted sites or
+   `OMNICALL_SDK_ALLOWED_ORIGINS`. Pairing / PoP / session grants remain this ADR +
+   ADR-0016 and run **after** Origin is `allowed`.
 
 2. **Pairing:** Explicit local user/admin approval is required before a client installation
    becomes trusted. Each client receives a distinct revocable identity. Pairing material is
@@ -96,10 +97,15 @@ DI-03 transport must not invent crypto or capability grants; DI-04 implements AD
 - Rollback: revoke all clients / stop gateway via env kill-switch (`OMNICALL_SDK_GATEWAY=0`)
   per ADR-0018 (not a consumer Settings listener toggle).
 - **Corrupt pairing blobs (2026-07-27):** if `SecretStoragePort.loadSecret` fails for the
-  SDK pairing scope (`sdk-gateway` index or `paired-client:*`), the pairing store **purges**
-  the bad blob and treats the binding as missing (empty list / `findActive` → null). Settings
-  IPC must not throw unhandled `secret_load_failed` for this scope. SIP/account secrets keep
-  hard failures. Recovery for operators: re-pair the browser client (no silent re-trust).
+  SDK pairing scope (`sdk-gateway` index or `paired-client:*` / `paired-client-v2:*`), the
+  pairing store **purges** the bad blob and treats the binding as missing (empty list /
+  `findActive` → null). Settings IPC must not throw unhandled `secret_load_failed` for this
+  scope. SIP/account secrets keep hard failures. Recovery for operators: re-pair the browser
+  client (no silent re-trust).
+- **Pairing storage identity (ADR-0027 / WU-05, 2026-08-02):** persist under **Origin+clientId**
+  (`paired-client-v2:<originSha256>.<encodedClientId>`). Legacy `paired-client:<clientId>`
+  migrates on touch only when stored Origin exactly matches; never cross-Origin merge/overwrite.
+  Settings revoke requires Origin+clientId.
 
 ## Architecture Checks
 

@@ -7,14 +7,15 @@
 | `@softomnitel/omnicall-protocol` | Runtime schemas + shared types |
 | `@softomnitel/omnicall-kit` | Browser / Node-capable client (`OmniCallClient`) |
 
-**Today:** incubating workspace under `omnicall-kit/` (`private: true`, `0.0.0`).  
-First public RC target: `@softomnitel/omnicall-kit@0.1.0-rc.0` / `@softomnitel/omnicall-protocol@0.1.0-rc.0` on
-npm dist-tag **`rc`** — see [release-and-support](./release-and-support.md).  
+**Workspace truth:** `@softomnitel/omnicall-kit@0.2.0` +
+`@softomnitel/omnicall-protocol@0.1.0` under `omnicall-kit/packages/*`.
+**npm (verified):** kit `latest` = **`0.2.0`**, protocol `latest` = **`0.1.0`**,
+`rc` = **`0.1.0-rc.0`** — see [release-and-support](./release-and-support.md).
 **Install the current stable:**
 
 ```bash
 npm install @softomnitel/omnicall-kit
-# or pin: npm install @softomnitel/omnicall-kit@0.1.0
+# or pin: npm install @softomnitel/omnicall-kit@0.2.0
 ```
 
 RC channel (optional): `npm install @softomnitel/omnicall-kit@rc`
@@ -54,7 +55,7 @@ browser Local Network Access / loopback permission policy (**ADR-0015**).
 
 | Constraint | Guidance |
 | --- | --- |
-| Exact Origin | Desktop matches the exact Origin string; admission is TOFU/blacklist (ADR-0018) |
+| Exact Origin | Desktop matches the exact Origin string; WebSocket only for `allowed` Trusted sites / seed; blacklist rejects (ADR-0018 amended 2026-08-03) |
 | Discovery | Loopback HTTP discovery only; never embed secrets in discovery docs |
 | Permission denied | Map to stable client errors (`local_network_permission_*`) — not silent success |
 | Mixed content | Prefer documented desktop endpoint URL your product already approved |

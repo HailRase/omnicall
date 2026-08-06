@@ -79,7 +79,6 @@ function createHarness(input?: {
     url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
     origin: 'https://crm.example',
     application: { name: 'fixture-crm', version: '1.0.0' },
-    sdkVersion: '0.0.0-test',
     requestedProfile: input?.requestedProfile ?? 'call_controller',
     requestedCapabilities: input?.requestedCapabilities ?? [...BASE_CAPS],
     keyStore,

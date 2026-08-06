@@ -17,7 +17,8 @@ type NotificationApi = Pick<UseNotificationsResult, "notify">;
 type UseActionNotificationsInput = Readonly<{
   notifications: NotificationApi;
   accountFeedback: Readonly<{
-    error: AccountAuthorizationErrorProjection | null;
+    notificationError: AccountAuthorizationErrorProjection | null;
+    inlineError: AccountAuthorizationErrorProjection | null;
     successKey?: TranslationKey | null;
     successKeys?: ReadonlyArray<TranslationKey>;
     warningKey: TranslationKey | null;
@@ -85,6 +86,16 @@ function resolveAccountSuccessKeys(
   return [];
 }
 
+function accountErrorSignature(
+  error: AccountAuthorizationErrorProjection | null,
+): string {
+  if (error === null) {
+    return "";
+  }
+  const detail = error.params?.detail ?? "";
+  return `${error.key}\u0000${detail}`;
+}
+
 function mapHeadsetFaultMessageKey(reason: HeadsetFaultReason): TranslationKey {
   switch (reason) {
     case "connect_failed":
@@ -136,7 +147,10 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     projection: callControlsProjection,
     onRetry: retryCallOperation,
   } = callControls;
-  const accountError = accountFeedback.error;
+  const accountNotificationError = accountFeedback.notificationError;
+  const accountInlineError = accountFeedback.inlineError;
+  const accountNotificationSignature = accountErrorSignature(accountNotificationError);
+  const accountInlineSignature = accountErrorSignature(accountInlineError);
   const accountSuccessSignature = resolveAccountSuccessKeys(accountFeedback).join("\u0000");
   const lastOperationError = callControlsProjection.lastOperationError;
   const attachOpenSystemState =
@@ -175,16 +189,15 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
   }, [accountFeedback.warningKey, notify]);
 
   useEffect(() => {
-    if (accountError === null) {
+    if (accountNotificationError === null || accountNotificationSignature.length === 0) {
       return;
     }
-    // AccountPanel Alert owns visible UX (persistent form error). Journal via Capture;
-    // interruptClass critical suppresses toast (Feedback Channel Law / ADR-0026).
+    // Server/register Account failures: toast-visible + journal (ADR-0026 amendment).
     notify({
-      ...buildAccountErrorDescriptor(accountError),
+      ...buildAccountErrorDescriptor(accountNotificationError),
       module: "account",
       functionId: "account.sign_in",
-      interruptClass: "critical",
+      interruptClass: "actionable",
       ...(attachOpenSystemState
         ? {
             action: {
@@ -197,7 +210,20 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
           }
         : {}),
     });
-  }, [accountError, attachOpenSystemState, notify]);
+  }, [accountNotificationError, accountNotificationSignature, attachOpenSystemState, notify]);
+
+  useEffect(() => {
+    if (accountInlineError === null || accountInlineSignature.length === 0) {
+      return;
+    }
+    // Form-persistent validation: AccountPanel Alert owns UX; journal without toast.
+    notify({
+      ...buildAccountErrorDescriptor(accountInlineError),
+      module: "account",
+      functionId: "account.sign_in",
+      interruptClass: "critical",
+    });
+  }, [accountInlineError, accountInlineSignature, notify]);
 
   useEffect(() => {
     if (lastOperationError === null) {
