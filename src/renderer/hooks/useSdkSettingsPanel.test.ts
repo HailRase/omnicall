@@ -182,7 +182,7 @@ describe("useSdkSettingsPanel", () => {
         }),
       {
         initialProps: {
-          notify: (_descriptor: NotificationDescriptor) => "n-1",
+          notify: () => "n-1",
         },
       },
     );
@@ -192,7 +192,7 @@ describe("useSdkSettingsPanel", () => {
     });
 
     await act(async () => {
-      rerender({ notify: (_descriptor: NotificationDescriptor) => "n-2" });
+      rerender({ notify: () => "n-2" });
       await Promise.resolve();
     });
 
