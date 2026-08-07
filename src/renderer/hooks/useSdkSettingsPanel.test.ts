@@ -7,6 +7,7 @@ import {
   createDefaultSdkOriginCapabilityMatrix,
 } from "@application/index.js";
 import { ok } from "@shared/result/index.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 import { useSdkSettingsPanel } from "./useSdkSettingsPanel.js";
 
 describe("useSdkSettingsPanel", () => {
@@ -172,7 +173,7 @@ describe("useSdkSettingsPanel", () => {
     );
 
     const { rerender } = renderHook(
-      (props: { notify: (descriptor: { level: "error" }) => string }) =>
+      (props: { notify: (descriptor: NotificationDescriptor) => string }) =>
         useSdkSettingsPanel({
           facade: facade as never,
           onActiveUserSettingsRefresh,
@@ -181,7 +182,7 @@ describe("useSdkSettingsPanel", () => {
         }),
       {
         initialProps: {
-          notify: () => "n-1",
+          notify: (_descriptor: NotificationDescriptor) => "n-1",
         },
       },
     );
@@ -191,13 +192,17 @@ describe("useSdkSettingsPanel", () => {
     });
 
     await act(async () => {
-      rerender({ notify: () => "n-2" });
+      rerender({ notify: (_descriptor: NotificationDescriptor) => "n-2" });
       await Promise.resolve();
     });
 
     expect(facade.getUserSettingsForAccount).toHaveBeenCalledTimes(1);
-    expect(invokeSdkGatewaySettings.mock.calls.filter((call) => call[0].op === "applyPolicy")).toHaveLength(
-      1,
+    const gatewayCalls = invokeSdkGatewaySettings.mock.calls as ReadonlyArray<
+      ReadonlyArray<Readonly<{ op?: string }>>
+    >;
+    const applyPolicyCalls = gatewayCalls.filter(
+      (call) => call[0]?.op === "applyPolicy",
     );
+    expect(applyPolicyCalls).toHaveLength(1);
   });
 });
