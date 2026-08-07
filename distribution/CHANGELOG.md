@@ -7,6 +7,14 @@ Versioning: SemVer. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-08-07
+
+### Fixed
+
+- Changing the interface language applies immediately and stays selected; the
+  previous Settings refresh loop that could revert the language and spam theme /
+  SDK gateway updates is fixed.
+
 ## [1.4.0] - 2026-08-06
 
 ### Added

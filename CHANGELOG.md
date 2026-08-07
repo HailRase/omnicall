@@ -7,6 +7,15 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-08-07
+
+### Fixed
+
+- **F-021** Interface language switch no longer races Settings SDK bootstrap:
+  locale applies immediately, stays persisted, and no longer triggers a
+  `setNativeTheme` / SDK `applyPolicy` feedback loop that could revert the
+  selected language.
+
 ## [1.4.0] - 2026-08-06
 
 ### Added
@@ -527,7 +536,8 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.4.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.4.1...main
+[1.4.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.4.1
 [1.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.4.0
 [1.3.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.1
 [1.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.3.0
