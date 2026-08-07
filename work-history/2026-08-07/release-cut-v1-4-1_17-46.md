@@ -22,3 +22,6 @@
 ## Результат
 - `npm run release:preflight` — green before cut
 - Version / manifest / STATUS synced to 1.4.1
+- CI Release run success: https://github.com/HailRase/omnicall/actions/runs/31189341617
+- Distribution: https://github.com/HailRase/omnicall-releases/releases/tag/v1.4.1
+- Live manifest `latestVersion`: `1.4.1`
