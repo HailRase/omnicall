@@ -129,12 +129,29 @@ function resolveSettingsUpdateError(error: unknown): string {
     : translateCurrent("errors.settingsSaveFailed");
 }
 
+let lastSyncedNativeTheme: AppTheme | null = null;
+let lastSyncedWindowAlwaysOnTop: boolean | null = null;
+
 function syncNativeTheme(theme: AppTheme): void {
+  if (lastSyncedNativeTheme === theme) {
+    return;
+  }
+  lastSyncedNativeTheme = theme;
   void window.softphone.setNativeTheme({ theme });
 }
 
 function syncWindowAlwaysOnTop(alwaysOnTop: boolean): void {
+  if (lastSyncedWindowAlwaysOnTop === alwaysOnTop) {
+    return;
+  }
+  lastSyncedWindowAlwaysOnTop = alwaysOnTop;
   void window.softphone?.setWindowAlwaysOnTop({ alwaysOnTop });
+}
+
+/** Test-only: clear side-effect dedupe so suite cases observe IPC again. */
+export function resetSettingsSideEffectSyncForTests(): void {
+  lastSyncedNativeTheme = null;
+  lastSyncedWindowAlwaysOnTop = null;
 }
 
 function applyLoadedUserSettings(
@@ -238,11 +255,18 @@ export function useSettingsActions(
 
   const onLanguageChange = useCallback(
     (language: SupportedLanguage): void => {
-      setRendererLanguage(language);
-      persistUserSettings({
+      if (userSettings.language === language) {
+        return;
+      }
+      const next = {
         ...userSettings,
         language,
-      });
+      };
+      // Optimistic local + runtime apply so Select/i18n do not wait on persist,
+      // and concurrent integration refreshes cannot flash the previous locale.
+      setRendererLanguage(language);
+      setUserSettings(next);
+      persistUserSettings(next);
     },
     [persistUserSettings, userSettings],
   );

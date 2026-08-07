@@ -9,6 +9,7 @@
 | Module / Area | Copy contract | Namespace(s) | Migration status | Verification |
 | --- | --- | --- | --- | --- |
 | `src/renderer/i18n/messages.ts`, `src/renderer/i18n/runtime.ts`, `src/renderer/i18n/catalogs/bgMessages.ts` | Typed catalog + runtime translation | all product namespaces | migrated | `messages.test.ts`, `npm run i18n:check` |
+| F-021 language switch race hardening (2026-08-07) | Immediate language apply; stable `notify`; SDK Settings bootstrap must not overwrite `UserSettings.language` | `settings.general.language*` (existing keys) | migrated | `useSettingsActions.test.ts`, `useNotifications.test.ts`, `useSdkSettingsPanel.test.ts`; invariants in `I18N-Architecture.md` / `UI-Architecture.md` |
 | `src/domain/settings/*` | Language value object + schema validation | n/a (domain value) | migrated | `SupportedLanguage.test.ts`, settings validation tests |
 | `src/application/projections/*` (UI-facing) | Semantic reason/label keys + params | `settings.systemState.*`, `connection.recovery.disabled.*`, `call.line.status.*`, … | migrated | projection unit tests |
 | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | i18n-driven system state UI | `settings.systemState.*` | migrated | `SettingsSystemStatePanel.test.tsx` |

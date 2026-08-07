@@ -387,6 +387,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (DI-08 activate): `ExternalSdkAccountHandler.ts`; `ExternalSdkAccountPort.ts`; `createSdkAccountPortFromFacade.ts`; `sdkAccountLogin.ts`; `sdkGatewayActivateApproval.ts`; `sdkAccountActivateSession.ts`; `bindSdkBrokerSession.ts`; `SdkActivateProfileConsentModal.tsx`; `src/shared/integration/sdkActivateTimeouts.ts` (Application re-export); `DeferredSdkActivateConsent.ts`; `externalSdkAccountActivateHelpers.ts`
 - Implementation evidence (SDK-08 client): `packages/sdk/src/internal/account-activate-commands.ts`; `account-activate-wire.ts`; `public/omnicall-client.activate.test.ts`; `tests/browser/omnicall-client-activate.browser.test.ts`
 - Implementation evidence (DI-09 settings): `SdkIntegrationSettings.ts`; `persistSdkIntegrationSettings.ts`; `SdkGatewaySettingsContract.ts`; `registerSdkGatewaySettingsIpc.ts`; `SdkModuleSettingsCard.tsx` (+ Status/Clients/Grant/Paired/Trusted/Blocked sections); `useSdkSettingsPanel.ts`; Settings UX polish tests `SdkModuleSettingsCard.test.tsx`; Storybook `SdkModuleSettingsCard.stories.tsx`
+- Implementation evidence (DI-09 bootstrap race hardening 2026-08-07): `useSdkSettingsPanel` mount applies gateway policy + local SDK state only (no full `onActiveUserSettingsRefresh`); origin mirror-save re-reads latest `UserSettings` before write; covered by `useSdkSettingsPanel.test.ts` (cross-ref F-021 language switch)
 
 ## F-012: Headset Call Controls
 
@@ -708,6 +709,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Language selector exists in Settings ? General.
   - Language is persisted per user in `UserSettings`.
   - Selected language applies immediately without restart.
+  - Language change must not re-bootstrap Settings integration panels or overwrite concurrent `UserSettings` fields (theme/SDK origins/etc.).
   - All touched UI and UI-facing logic add keys for every supported locale.
   - No new hardcoded user-visible strings outside approved translation modules/tests/stories.
   - Supported interface locales are `ru`, `en`, `fr`, `de`, `bg`; catalogs stay key-parity complete for migrated modules.
@@ -717,9 +719,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Test Coverage:
   - Unit: `SupportedLanguage` validation, `UserSettings` v2 migration/validation, translation key parity, interpolation.
   - Component: Settings language selector and at least one critical shell/call surface in `ru`, `en`, `fr`, `de`, and `bg`.
+  - Hook: `useSettingsActions` optimistic language persist; `useNotifications` stable `notify` across `resolveTitle`; `useSdkSettingsPanel` bootstrap does not full-refresh / preserves concurrent language on mirror-save.
   - Integration: save/reload language through `AccountBootstrapFacade` + settings repository.
   - E2E: deferred until harness exists.
-- Implementation evidence: `docs/softphone/adr/ADR-0006-interface-internationalization.md`, `src/domain/settings/SupportedLanguage.ts`, `src/domain/settings/UserSettings.ts`, `src/renderer/i18n/messages.ts`, `src/renderer/i18n/runtime.ts`, `.cursor/rules/i18n.mdc`, `docs/softphone/I18N-Architecture.md`, `docs/softphone/I18N-Coverage.md`
+- Implementation evidence: `docs/softphone/adr/ADR-0006-interface-internationalization.md`, `src/domain/settings/SupportedLanguage.ts`, `src/domain/settings/UserSettings.ts`, `src/renderer/i18n/messages.ts`, `src/renderer/i18n/runtime.ts`, `src/renderer/hooks/useSettingsActions.ts`, `src/renderer/hooks/useNotifications.ts`, `src/renderer/hooks/useSdkSettingsPanel.ts`, `.cursor/rules/i18n.mdc`, `docs/softphone/I18N-Architecture.md`, `docs/softphone/I18N-Coverage.md`, `docs/softphone/UI-Architecture.md` (Settings projection refresh invariants)
 
 ## F-022: Codec Preferences
 

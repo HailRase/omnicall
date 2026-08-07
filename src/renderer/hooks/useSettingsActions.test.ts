@@ -9,8 +9,12 @@ import { MockMediaGateway } from "@adapters/mock/MockMediaGateway.js";
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
-import { useSettingsActions } from "./useSettingsActions.js";
+import {
+  resetSettingsSideEffectSyncForTests,
+  useSettingsActions,
+} from "./useSettingsActions.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import { getRendererLanguage, setRendererLanguage } from "../i18n/index.js";
 
 function createFacade(settingsRepository: InMemorySettingsRepository): AccountBootstrapFacade {
   return new AccountBootstrapFacade({
@@ -99,11 +103,15 @@ describe("useSettingsActions", () => {
     .mockResolvedValue({ ok: true });
 
   beforeEach(() => {
+    resetSettingsSideEffectSyncForTests();
+    setRendererLanguage("ru");
     window.softphone = createSoftphonePreloadApiMock({ setNativeTheme });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    resetSettingsSideEffectSyncForTests();
+    setRendererLanguage("ru");
     useAccountBootstrapStore.setState({
       projection: initialAccountBootstrapProjection(),
     });
@@ -230,6 +238,48 @@ describe("useSettingsActions", () => {
       autoUnholdOnTransferFailure: true,
     });
     expect(setNativeTheme).toHaveBeenCalledWith({ theme: "dark" });
+  });
+
+  it("applies language immediately and persists without redundant native theme sync", async () => {
+    const applyMultiCallSettings = vi.fn();
+    const facade = createFacade(new InMemorySettingsRepository());
+
+    const { result } = renderHook(() =>
+      useSettingsActions({
+        facade,
+        currentSettings: {
+          multiSessionsEnabled: true,
+          autoUnholdOnTransferFailure: true,
+        },
+        applyMultiCallSettings,
+      }),
+    );
+
+    await act(async () => {
+      result.current.onThemeChange("dark");
+      await Promise.resolve();
+    });
+    expect(setNativeTheme).toHaveBeenCalledTimes(1);
+    setNativeTheme.mockClear();
+
+    act(() => {
+      result.current.onLanguageChange("en");
+    });
+
+    expect(result.current.userSettings.language).toBe("en");
+    expect(getRendererLanguage()).toBe("en");
+
+    await waitFor(() => {
+      expect(result.current.userSettings.language).toBe("en");
+    });
+
+    const saved = await facade.getUserSettingsForAccount();
+    expect(saved.ok).toBe(true);
+    if (saved.ok) {
+      expect(saved.value.language).toBe("en");
+    }
+    // Language-only persist must not re-hit native theme IPC.
+    expect(setNativeTheme).not.toHaveBeenCalled();
   });
 
   it("persists Notification Center master and quiet-successes preset", async () => {

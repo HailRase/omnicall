@@ -1,5 +1,5 @@
 /** Bind Settings → OmniCall Kit card to settings + gateway IPC. */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   allowSdkOrigin,
@@ -106,6 +106,22 @@ export function useSdkSettingsPanel(
     [notify],
   );
 
+  const onActiveUserSettingsRefreshRef = useRef(onActiveUserSettingsRefresh);
+  const presentEphemeralErrorRef = useRef(presentEphemeralError);
+  const invokeSdkGatewaySettingsRef = useRef(invokeSdkGatewaySettings);
+
+  useEffect(() => {
+    onActiveUserSettingsRefreshRef.current = onActiveUserSettingsRefresh;
+  }, [onActiveUserSettingsRefresh]);
+
+  useEffect(() => {
+    presentEphemeralErrorRef.current = presentEphemeralError;
+  }, [presentEphemeralError]);
+
+  useEffect(() => {
+    invokeSdkGatewaySettingsRef.current = invokeSdkGatewaySettings;
+  }, [invokeSdkGatewaySettings]);
+
   const applySnapshot = useCallback((response: SdkGatewaySettingsResponse): void => {
     if (!response.ok) {
       // Polling refresh must not toast; keep non-spammy strip for live gateway loss.
@@ -124,7 +140,7 @@ export function useSdkSettingsPanel(
   }, []);
 
   const refreshSnapshot = useCallback(async (): Promise<void> => {
-    const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
+    const response = await invokeSdkGatewaySettingsRef.current({ op: "getSnapshot" });
     applySnapshot(response);
     if (response.ok && response.snapshot.origins !== undefined) {
       setSettings((prev) => ({
@@ -133,9 +149,10 @@ export function useSdkSettingsPanel(
         operatorModalTimeouts: prev.operatorModalTimeouts,
       }));
     }
-  }, [applySnapshot, invokeSdkGatewaySettings]);
+  }, [applySnapshot]);
 
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       if (facade === null) {
         setSettings(SDK_INTEGRATION_DEFAULTS);
@@ -143,18 +160,25 @@ export function useSdkSettingsPanel(
         return;
       }
       const settingsResult = await facade.getUserSettingsForAccount();
+      if (cancelled) {
+        return;
+      }
       if (!settingsResult.ok) {
-        presentEphemeralError("settings.integrations.sdk.error.saveFailed");
+        presentEphemeralErrorRef.current("settings.integrations.sdk.error.saveFailed");
         return;
       }
       setErrorKey(null);
-      onActiveUserSettingsRefresh(settingsResult.value);
+      // Bootstrap must not call onActiveUserSettingsRefresh: a full snapshot apply
+      // races concurrent language/theme saves and can restart i18n → notify loops.
       const persisted = settingsResult.value.sdkIntegration;
       const timeouts = normalizeSdkOperatorModalTimeouts(
         persisted.operatorModalTimeouts,
       );
       sdkActivateConsentBridge.setConsentTtlMs(timeouts.consentTtlMs);
-      const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
+      const response = await invokeSdkGatewaySettingsRef.current({ op: "getSnapshot" });
+      if (cancelled) {
+        return;
+      }
       applySnapshot(response);
       const snapshotOrigins =
         response.ok && response.snapshot.origins !== undefined
@@ -173,7 +197,7 @@ export function useSdkSettingsPanel(
             };
       setSettings(live);
       // Push timeouts (+ origins) into live gateway so sweeper/pairing match Settings.
-      void invokeSdkGatewaySettings({
+      void invokeSdkGatewaySettingsRef.current({
         op: "applyPolicy",
         policy: {
           originsManaged: live.originsManaged,
@@ -185,22 +209,25 @@ export function useSdkSettingsPanel(
         snapshotOrigins !== null &&
         JSON.stringify(live.origins) !== JSON.stringify(persisted.origins)
       ) {
+        // Re-read before mirror write so concurrent language/theme edits are preserved.
+        const latest = await facade.getUserSettingsForAccount();
+        if (cancelled || !latest.ok) {
+          return;
+        }
         const mirrored = await facade.saveUserSettings({
-          ...settingsResult.value,
+          ...latest.value,
           sdkIntegration: live,
         });
-        if (mirrored.ok) {
-          onActiveUserSettingsRefresh(mirrored.value);
+        if (cancelled || !mirrored.ok) {
+          return;
         }
+        onActiveUserSettingsRefreshRef.current(mirrored.value);
       }
     })();
-  }, [
-    applySnapshot,
-    facade,
-    invokeSdkGatewaySettings,
-    onActiveUserSettingsRefresh,
-    presentEphemeralError,
-  ]);
+    return () => {
+      cancelled = true;
+    };
+  }, [applySnapshot, facade]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {

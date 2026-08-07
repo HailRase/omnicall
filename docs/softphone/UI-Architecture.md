@@ -43,6 +43,15 @@ User action → component callback → Actions hook → Facade / Use Case
 
 Config-only settings (no business rules): `Actions hook → facade.update*Settings() → port → store projection refresh` — **no Use Case**.
 
+### Settings projection refresh invariants
+
+- Owning hook for active `UserSettings` UI state: `useSettingsActions` (`userSettings` + `applyUserSettingsSnapshot`).
+- `applyUserSettingsSnapshot` / `applyLoadedUserSettings` are for intentional load, save success, or preferences import — not for integration-panel mount side effects.
+- Integration hooks (`useSdkSettingsPanel`, OCP/EA/ES panels) may refresh the shell projection only after their own successful persist that returns a full `UserSettings`.
+- Bootstrap/poll paths must update local integration state (+ gateway IPC) without re-applying unrelated fields (language, theme, notification prefs).
+- `notify` callbacks passed into Settings hooks must keep a stable function identity across i18n language changes (see `useNotifications` refs) to avoid effect re-entry races.
+- Native theme / always-on-top IPC from settings apply paths should be idempotent for unchanged values.
+
 ## Layout & Navigation
 
 `SoftphoneLayout` (widget — see `UI-Design-System.md`):

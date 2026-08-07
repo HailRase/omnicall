@@ -171,6 +171,8 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
   const closableRef = useRef(closable);
   const raiseWindowRef = useRef(raiseWindow);
   const onCaptureFailureRef = useRef(onCaptureFailure);
+  const captureRef = useRef(capture);
+  const resolveTitleRef = useRef(resolveTitle);
 
   useEffect(() => {
     durationRef.current = durationMs;
@@ -188,6 +190,16 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     onCaptureFailureRef.current = onCaptureFailure;
   }, [onCaptureFailure]);
 
+  useEffect(() => {
+    captureRef.current = capture;
+  }, [capture]);
+
+  useEffect(() => {
+    resolveTitleRef.current = resolveTitle;
+  }, [resolveTitle]);
+
+  // Keep notify identity stable across language/title-resolver changes so Settings
+  // integration hooks do not re-bootstrap and race concurrent UserSettings writes.
   const notify = useCallback(
     (descriptor: NotificationDescriptor): string => {
       const id = descriptor.id ?? createNotificationId();
@@ -216,15 +228,16 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
         return [item, ...withoutSameId];
       });
 
-      if (capture === undefined) {
+      const captureFn = captureRef.current;
+      if (captureFn === undefined) {
         enqueue();
       } else {
         const titleSnapshot =
-          resolveTitle?.(descriptor) ??
+          resolveTitleRef.current?.(descriptor) ??
           descriptor.messageText ??
           descriptor.messageKey ??
           "";
-        void capture(descriptor, id, titleSnapshot)
+        void captureFn(descriptor, id, titleSnapshot)
           .then((outcome) => {
             if (outcome.shouldPresentPopup) {
               enqueue();
@@ -245,7 +258,7 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
 
       return id;
     },
-    [capture, resolveTitle, stacking],
+    [stacking],
   );
 
   const dismiss = useCallback((id: string): void => {

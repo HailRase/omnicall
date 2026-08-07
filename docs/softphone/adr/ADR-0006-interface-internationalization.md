@@ -47,3 +47,4 @@ Adopt Option A. We introduce a typed in-repo translation catalog and a minimal r
 - Tests cover locale parity and critical surfaces in both languages.
 - Rule `i18n.mdc` becomes mandatory for UI/Application work.
 - Existing Russian-only policy in UI docs/rules is replaced by explicit multi-locale policy.
+- Immediate language switch must not re-enter Settings integration bootstrap effects (stable `notify`, no full `UserSettings` snapshot apply on integration mount). See `I18N-Architecture.md` language-switch invariants and `UI-Architecture.md` Settings projection refresh invariants.

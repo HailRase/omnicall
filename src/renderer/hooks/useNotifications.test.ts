@@ -262,6 +262,29 @@ describe("useNotifications", () => {
     });
   });
 
+  it("keeps notify identity stable when resolveTitle changes", () => {
+    const { result, rerender } = renderHook(
+      (props: { resolveTitle: (descriptor: { messageText?: string }) => string }) =>
+        useNotifications({
+          placement: "bottom-right",
+          stacking: "stacked",
+          durationMs: 2000,
+          maxVisible: 3,
+          resolveTitle: props.resolveTitle,
+          capture: () => Promise.resolve({ shouldPresentPopup: true }),
+        }),
+      {
+        initialProps: {
+          resolveTitle: () => "ru-title",
+        },
+      },
+    );
+
+    const firstNotify = result.current.notify;
+    rerender({ resolveTitle: () => "en-title" });
+    expect(result.current.notify).toBe(firstNotify);
+  });
+
   it("applies updated default duration only to new notifications", () => {
     const { result, rerender } = renderHook(
       (props: { durationMs: number }) =>
